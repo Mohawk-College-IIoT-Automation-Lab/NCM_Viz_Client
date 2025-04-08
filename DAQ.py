@@ -31,6 +31,10 @@ class Daq:
             print(f"[MQTT] Connecting to {self.mqtt_host}...")
             self.client.connect(self.mqtt_host)
             self.client.loop_start()
+
+            self.mqtt_subscribe("Sampling")
+            self.mqtt_subscribe("Filename")
+
             return True
         except Exception as e:
             print(f"[MQTT] Connection error: {e}")
@@ -66,9 +70,17 @@ class Daq:
         if message.topic == "Sampling":
             command = message.payload.decode().strip().lower()
             if command == "start" and not self.sampling:
-                self.start()
+                self.samplingCTL_start()
             elif command == "stop" and self.sampling:
-                self.samplingCTL_stop()     
+                self.samplingCTL_stop()
+            else:
+                self.mqtt_publish("Log", f"Unexpected response: {command} is not start or stop")
+
+        # don't want to change names while the system is writing
+        if message.topic == "Filename" and not self.thread.is_alive():
+            self.file_name = message.payload.decode().strip().lower()
+        else:
+            self.mqtt_publish("Log", "Could not change file name, thread is still running, stop first")
 
     def sampling_loop(self):
         # Add the channels you need to sample (e.g., A0, A1)
@@ -120,7 +132,7 @@ def main():
     if not daq.mqtt_connect():
         return
 
-    daq.mqtt_subscribe("Sampling")
+    
 
     try:
         while True:
