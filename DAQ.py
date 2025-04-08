@@ -112,6 +112,7 @@ class Daq:
             self.file_close()
             self.samplingCTL_stop()
 
+#test
 
 def main():
     daq = Daq(client_id="myDaqClient", broker_address="localhost")
