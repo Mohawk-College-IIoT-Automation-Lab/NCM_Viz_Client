@@ -5,32 +5,20 @@ import paho.mqtt.client as mqtt
 import csv
 
 class Daq:
-    def __init__(self, mqtt_host, mqtt_port, mqtt_topic, file_name=None):
+    def __init__(self, mqtt_host = "localhost", mqtt_port = 1883):
         self.mqtt_host = mqtt_host
         self.mqtt_port = mqtt_port
-        self.mqtt_topic = mqtt_topic
-        self.file_name = file_name
-        self.running = False
-        self.client = mqtt.Client()
-        
-        # Open the file for CSV output if a file name is given
-        if self.file_name:
-            self.file_handle = open(self.file_name, 'w', newline='')
-            self.csv_writer = csv.writer(self.file_handle)
-            # Write CSV header (if desired)
-            self.csv_writer.writerow(['Channel 0', 'Channel 1'])  # Add more channels if needed
-        else:
-            self.file_handle = None
-
-        # Initialize DAQ task
-        self.task = nidaqmx.Task()
-        self.thread = threading.Thread(target=self.sampling_loop)
+        self.file_name = ""
+        self.thread_running = False
+        self.mqtt_client = mqtt.Client()
+        self.daq_task = nidaqmx.Task()
+        self.sampling_thread = threading.Thread(target=self.sampling_loop)
 
     def mqtt_connect(self):
         try:
             print(f"[MQTT] Connecting to {self.mqtt_host}...")
-            self.client.connect(self.mqtt_host)
-            self.client.loop_start()
+            self.mqtt_client.connect(self.mqtt_host)
+            self.mqtt_client.loop_start()
 
             self.mqtt_subscribe("Sampling")
             self.mqtt_subscribe("Filename")
@@ -41,26 +29,44 @@ class Daq:
             return False
 
     def samplingCTL_start(self):
-        self.running = True
-        self.thread = threading.Thread(target=self.sampling_loop)
-        self.thread.start()
+        self.thread_running = True
+        self.sampling_thread = threading.Thread(target=self.sampling_loop)
+        self.sampling_thread.start()
+        print(f"[SamplingCTL] Starting sampling")
 
     def samplingCTL_stop(self):
-        self.running = False
-        if self.thread.is_alive():
-            self.thread.join()
-        self.task.stop()
+        self.thread_running = False
+        if self.sampling_thread.is_alive():
+            self.sampling_thread.join()
+        self.daq_task.stop()
+        print(f"[SamplingCTL] Stopping sampling")
+
+    def file_open(self):
+        # Open the file for CSV output if a file name is given
+        print(f"[File I/O] Trying to open file {self.file_name}")
+        if self.file_name:
+            self.file_handle = open(self.file_name, 'w', newline='')
+            self.csv_writer = csv.writer(self.file_handle)
+            # Write CSV header (if desired)
+            self.csv_writer.writerow(['Channel 0', 'Channel 1'])  # Add more channels if needed
+            print(f"[File I/O] File open {self.file_name}")
+            return True
+        else:
+            self.file_handle = None
+            print(f"[File I/O] No file name provided")
+            return False
 
     def file_close(self):
         if self.file_handle:
             self.file_handle.close()
+        print(f"[File I/O] Closing file {self.file_name}")
 
     def mqtt_publish(self, topic, message):
-        self.client.publish(topic, message)
+        self.mqtt_client.publish(topic, message)
         print(f"[MQTT] Published to topic: {topic}, message: {message}")
 
     def mqtt_subscribe(self, topic):
-        self.client.subscribe(topic)
+        self.mqtt_client.subscribe(topic)
         print(f"[MQTT] Subscribed to topic: {topic}")
 
     def mqtt_on_connect(self, client, userdata, flags, rc):
@@ -77,30 +83,36 @@ class Daq:
                 self.mqtt_publish("Log", f"Unexpected response: {command} is not start or stop")
 
         # don't want to change names while the system is writing
-        if message.topic == "Filename" and not self.thread.is_alive():
+        if message.topic == "Filename" and not self.sampling_thread.is_alive():
             self.file_name = message.payload.decode().strip().lower()
         else:
             self.mqtt_publish("Log", "Could not change file name, thread is still running, stop first")
 
     def sampling_loop(self):
+        # Open the CSV, if no filename is given safely stop and return
+        if not self.file_open():
+            self.file_close()
+            self.samplingCTL_stop()
+            return 
+
         # Add the channels you need to sample (e.g., A0, A1)
-        self.task.ai_channels.add_ai_voltage_chan("Dev1/ai0")
-        self.task.ai_channels.add_ai_voltage_chan("Dev1/ai1")
+        self.daq_task.ai_channels.add_ai_voltage_chan("Dev1/ai0")
+        self.daq_task.ai_channels.add_ai_voltage_chan("Dev1/ai1")
         
         # Configure continuous sampling for multiple channels
-        self.task.timing.cfg_samp_clk_timing(
+        self.daq_task.timing.cfg_samp_clk_timing(
             rate=990.0,  # Sampling rate: 990 Hz
             sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
             samps_per_chan=990  # Buffer size: 1 second of data
         )
-
+ 
         # Start the task
-        self.task.start()
+        self.daq_task.start()
 
         try:
-            while self.running:
+            while self.thread_running:
                 # Read all available data from the DAQ buffer
-                data = self.task.read()
+                data = self.daq_task.read()
 
                 if not data:
                     continue  # If no data, skip this loop iteration
@@ -127,7 +139,7 @@ class Daq:
 #test
 
 def main():
-    daq = Daq(client_id="myDaqClient", broker_address="localhost")
+    daq = Daq(mqtt_host="10.4.8.5", mqtt_port=1883)
 
     if not daq.mqtt_connect():
         return
