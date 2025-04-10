@@ -10,16 +10,20 @@ class Daq:
         self.mqtt_port = mqtt_port
         self.file_name = ""
         self.thread_running = False
+        
         self.mqtt_client = mqtt.Client()
+        self.mqtt_client.on_connect = self.mqtt_on_connect
+        self.mqtt_client.on_message = self.mqtt_on_message
+
         self.daq_task = nidaqmx.Task()
-        self.sampling_thread = threading.Thread(target=self.sampling_loop)
 
     def mqtt_connect(self):
         try:
             print(f"[MQTT] Connecting to {self.mqtt_host}...")
-            self.mqtt_client.connect(self.mqtt_host)
+            self.mqtt_client.connect(host=self.mqtt_host, port=self.mqtt_port)
             self.mqtt_client.loop_start()
 
+            
             self.mqtt_subscribe("Sampling")
             self.mqtt_subscribe("Filename")
 
@@ -75,9 +79,9 @@ class Daq:
     def mqtt_on_message(self, client, userdata, message):
         if message.topic == "Sampling":
             command = message.payload.decode().strip().lower()
-            if command == "start" and not self.sampling:
+            if command == "start" and not self.thread_running:
                 self.samplingCTL_start()
-            elif command == "stop" and self.sampling:
+            elif command == "stop" and self.thread_running:
                 self.samplingCTL_stop()
             else:
                 self.mqtt_publish("Log", f"Unexpected response: {command} is not start or stop")
@@ -143,8 +147,6 @@ def main():
 
     if not daq.mqtt_connect():
         return
-
-    
 
     try:
         while True:
