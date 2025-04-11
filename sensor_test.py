@@ -1,47 +1,69 @@
-import nidaqmx
-import time
+import nidaqmx  # Library for interfacing with NI DAQ devices
+import time  # For sleep and timing operations
+import numpy as np  # For numerical operations
+import math  # For mathematical operations
+import threading  # For multithreading (not used in this code)
 
-import nidaqmx.task
+from nidaqmx.constants import FilterType, AcquisitionType, LoggingMode, LoggingOperation, READ_ALL_AVAILABLE
 
-SAMPLE_RATE = 1000  # Hz
-SAMPLES_PER_READ = 1000  # One second worth of data
-CHANNEL = "Dev2/ai1"  # Change Dev1 to your actual device name
-FILE_NAME = "daq_data.txt"
+# Constants for DAQ configuration
+SAMPLE_RATE = 1000  # Sampling rate in Hz
+SAMPLES_PER_READ = 1000  # Number of samples to read per channel
+OUTPUT_FREW = 10000  # (Unused in this code)
+CHANNELS = ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"]  # List of analog input channels
+FILE_NAME = "daq_data.tdms"  # File name for logging data
 
+# Create a global task object for the DAQ
 task = nidaqmx.Task()
 
 def main():
-    # Set up the channel and timing
-    task.ai_channels.add_ai_voltage_chan(CHANNEL)
-    task.timing.cfg_samp_clk_timing(rate=SAMPLE_RATE,
-                                    sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
-                                    samps_per_chan=SAMPLES_PER_READ)
-    
-    print("Starting data collection. Press Ctrl+C to stop.")
-    task.start()
+    # Set up the first analog input channel
+    channel = task.ai_channels.add_ai_voltage_chan(CHANNELS[0])
 
+    # Optional: Configure a digital filter for the channel (currently commented out)
+    # channel.ai_dig_fltr_enable = True
+    # channel.ai_dig_fltr_lowpass_cutoff_freq = 1000  # Low-pass filter cutoff frequency in Hz
+    # channel.ai_dig_fltr_type = FilterType.LOWPASS  # Filter type
+
+    # Configure the sampling clock timing for continuous acquisition
+    task.timing.cfg_samp_clk_timing(
+        rate=SAMPLE_RATE,  # Sampling rate in Hz
+        sample_mode=AcquisitionType.CONTINUOUS,  # Continuous sampling mode
+        samps_per_chan=SAMPLES_PER_READ  # Number of samples per channel
+    )
+
+    # Configure logging to save data to a TDMS file
+    task.in_stream.configure_logging(
+        file_path=FILE_NAME,  # Path to the TDMS file
+        logging_mode=LoggingMode.LOG_AND_READ,  # Log data and allow reading
+        operation=LoggingOperation.CREATE_OR_REPLACE  # Create or overwrite the file
+    )
+
+    print("Starting data collection. Press Ctrl+C to stop.")
+    task.start()  # Start the DAQ task
+
+    # Infinite loop to continuously read and process data
     while True:
-        # Start task and read data
-       
-       #Todo: make this work
-        data = task.ai_channels
-        data = task.read()
-    
-        # Write data to file
-        with open(FILE_NAME, "a") as f:
-            for sample in data:
-                f.write(f"{sample:.6f}\n")
-        
-        print(f"Wrote {SAMPLES_PER_READ} samples to {FILE_NAME}")
-        time.sleep(1)  # Wait before next capture (if needed)
+        try:
+            # Read all available data from the task
+            data = task.read(READ_ALL_AVAILABLE)
+            
+            # Calculate the average of the data
+            avg = np.average(np.array(data))
+            if not math.isnan(avg):  # Check if the average is a valid number
+                print(f"Sampled {SAMPLES_PER_READ} at {SAMPLE_RATE} Hz avg value: {avg}")
+        except Exception as e:
+            # Handle any exceptions that occur during data reading
+            print(f"[Error] {e}")
 
 if __name__ == "__main__":
-    
+    # Run the main function
     main()
     try:
+        # Keep the program running until interrupted
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        # Handle Ctrl+C to gracefully exit the program
         print("Exiting...")
-        task.stop()
-        
+        task.stop()  # Stop the DAQ task
