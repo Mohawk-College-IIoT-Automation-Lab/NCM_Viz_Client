@@ -1,159 +1,105 @@
-import nidaqmx
-import time
-import threading
-import paho.mqtt.client as mqtt
-import csv
+import nidaqmx  # Library for interfacing with NI DAQ devices
+import time  # For sleep and timing operations
+import numpy as np  # For numerical operations
+import math  # For mathematical operations
+import multiprocessing
 
-class Daq:
-    def __init__(self, mqtt_host = "localhost", mqtt_port = 1883):
-        self.mqtt_host = mqtt_host
-        self.mqtt_port = mqtt_port
-        self.file_name = ""
-        self.thread_running = False
-        
-        self.mqtt_client = mqtt.Client()
-        self.mqtt_client.on_connect = self.mqtt_on_connect
-        self.mqtt_client.on_message = self.mqtt_on_message
+from nidaqmx.constants import (
+    FilterType,
+    AcquisitionType,
+    LoggingMode,
+    LoggingOperation,
+    READ_ALL_AVAILABLE,
+)
 
-        self.daq_task = nidaqmx.Task()
 
-    def mqtt_connect(self):
-        try:
-            print(f"[MQTT] Connecting to {self.mqtt_host}...")
-            self.mqtt_client.connect(host=self.mqtt_host, port=self.mqtt_port)
-            self.mqtt_client.loop_start()
+class DAQ_Worker(multiprocessing.Process):
 
-            
-            self.mqtt_subscribe("Sampling")
-            self.mqtt_subscribe("Filename")
+    # Constants for DAQ configuration
+    SAMPLE_RATE = 1000  # Sampling rate in Hz
+    SAMPLES_PER_READ = 1000  # Number of samples to read per channel
+    OUTPUT_FREW = 10000  # (Unused in this code)
+    CHANNELS = [
+        "Dev2/ai0",
+        "Dev2/ai1",
+        "Dev2/ai2",
+        "Dev2/ai3",
+    ]  # List of analog input channels
+    FILE_NAME = "daq_data.tdms"  # File name for logging data
 
-            return True
-        except Exception as e:
-            print(f"[MQTT] Connection error: {e}")
-            return False
+    def __init__(
+        self,
+        channels: list = CHANNELS,
+        sample_rate: int = SAMPLE_RATE,
+        samples_per_read: int = SAMPLES_PER_READ,
+        display_rate: int = 30,
+        file_name: str = FILE_NAME,
+    ):
+        super().__init__(self)  # Initialize the proess
 
-    def samplingCTL_start(self):
-        self.thread_running = True
-        self.sampling_thread = threading.Thread(target=self.sampling_loop)
-        self.sampling_thread.start()
-        print(f"[SamplingCTL] Starting sampling")
+        self.channels = channels  # List of analog input channels
+        self.sample_rate = sample_rate  # Sampling rate in Hz
+        self.display_rate = display_rate
+        self.samples_per_read = samples_per_read  # Number of samples to read per channel
+        self.file_name = file_name  # File name for logging data
 
-    def samplingCTL_stop(self):
-        self.thread_running = False
-        if self.sampling_thread.is_alive():
-            self.sampling_thread.join()
-        self.daq_task.stop()
-        print(f"[SamplingCTL] Stopping sampling")
+        self.task = nidaqmx.Task()  # Create a global task object for the DAQ
+        self.running = False  # Flag to control the thread execution
 
-    def file_open(self):
-        # Open the file for CSV output if a file name is given
-        print(f"[File I/O] Trying to open file {self.file_name}")
-        if self.file_name:
-            self.file_handle = open(self.file_name, 'w', newline='')
-            self.csv_writer = csv.writer(self.file_handle)
-            # Write CSV header (if desired)
-            self.csv_writer.writerow(['Channel 0', 'Channel 1'])  # Add more channels if needed
-            print(f"[File I/O] File open {self.file_name}")
-            return True
-        else:
-            self.file_handle = None
-            print(f"[File I/O] No file name provided")
-            return False
+    def stop(self):
+        self.running = False
+        self.task.close()
 
-    def file_close(self):
-        if self.file_handle:
-            self.file_handle.close()
-        print(f"[File I/O] Closing file {self.file_name}")
+    def run(self):
+        channel = self.task.ai_channels.add_ai_voltage_chan(self.channels)
 
-    def mqtt_publish(self, topic, message):
-        self.mqtt_client.publish(topic, message)
-        print(f"[MQTT] Published to topic: {topic}, message: {message}")
+        # Optional: Configure a digital filter for the channel (currently commented out)
+        # channel.ai_dig_fltr_enable = True
+        # channel.ai_dig_fltr_lowpass_cutoff_freq = 1000  # Low-pass filter cutoff frequency in Hz
+        # channel.ai_dig_fltr_type = FilterType.LOWPASS  # Filter type
 
-    def mqtt_subscribe(self, topic):
-        self.mqtt_client.subscribe(topic)
-        print(f"[MQTT] Subscribed to topic: {topic}")
-
-    def mqtt_on_connect(self, client, userdata, flags, rc):
-        print(f"[MQTT] Connected with result code {rc}")
-
-    def mqtt_on_message(self, client, userdata, message):
-        if message.topic == "Sampling":
-            command = message.payload.decode().strip().lower()
-            if command == "start" and not self.thread_running:
-                self.samplingCTL_start()
-            elif command == "stop" and self.thread_running:
-                self.samplingCTL_stop()
-            else:
-                self.mqtt_publish("Log", f"Unexpected response: {command} is not start or stop")
-
-        # don't want to change names while the system is writing
-        if message.topic == "Filename" and not self.sampling_thread.is_alive():
-            self.file_name = message.payload.decode().strip().lower()
-        else:
-            self.mqtt_publish("Log", "Could not change file name, thread is still running, stop first")
-
-    def sampling_loop(self):
-        # Open the CSV, if no filename is given safely stop and return
-        if not self.file_open():
-            self.file_close()
-            self.samplingCTL_stop()
-            return 
-
-        # Add the channels you need to sample (e.g., A0, A1)
-        self.daq_task.ai_channels.add_ai_voltage_chan("Dev1/ai0")
-        self.daq_task.ai_channels.add_ai_voltage_chan("Dev1/ai1")
-        
-        # Configure continuous sampling for multiple channels
-        self.daq_task.timing.cfg_samp_clk_timing(
-            rate=990.0,  # Sampling rate: 990 Hz
-            sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
-            samps_per_chan=990  # Buffer size: 1 second of data
+        # Configure the sampling clock timing for continuous acquisition
+        self.task.timing.cfg_samp_clk_timing(
+            rate=self.SAMPLE_RATE,  # Sampling rate in Hz
+            sample_mode=AcquisitionType.CONTINUOUS,  # Continuous sampling mode
+            samps_per_chan=self.SAMPLES_PER_READ  # Number of samples per channel
         )
- 
-        # Start the task
-        self.daq_task.start()
 
-        try:
-            while self.thread_running:
-                # Read all available data from the DAQ buffer
-                data = self.daq_task.read()
+        # Configure logging to save data to a TDMS file
+        self.task.in_stream.configure_logging(
+            file_path=self.FILE_NAME,  # Path to the TDMS file
+            logging_mode=LoggingMode.LOG_AND_READ,  # Log data and allow reading
+            operation=LoggingOperation.CREATE_OR_REPLACE  # Create or overwrite the file
+        )
 
-                if not data:
-                    continue  # If no data, skip this loop iteration
+        print("Starting data collection. Press Ctrl+C to stop.")
+        self.task.start()  # Start the DAQ task
 
-                # data[0] -> channel A0 samples, data[1] -> channel A1 samples
-                message = ",".join(f"{x:.6f}" for x in data[0]) + "," + ",".join(f"{x:.6f}" for x in data[1])
+        # Infinite loop to continuously read and process data
+        while self.running:
+            try:
+                # Read all available data from the task
+                data = self.task.read(READ_ALL_AVAILABLE)
+                
+                # Calculate the average of the data
+                avg = np.average(np.array(data))
+                if not math.isnan(avg):  # Check if the average is a valid number
+                    print(f"Sampled {self.SAMPLES_PER_READ} at {self.SAMPLE_RATE} Hz avg value: {avg}")
+            except Exception as e:
+                # Handle any exceptions that occur during data reading
+                print(f"[Error] {e}")
 
-                # Publish the data to MQTT
-                self.mqtt_publish(self.mqtt_topic, message)
 
-                # Write the data to the file
-                if self.file_handle:
-                    self.csv_writer.writerow(data[0] + data[1])  # Flatten and write to CSV file
-                    self.file_handle.flush()
-
-        except Exception as e:
-            print(f"[DAQ] Sampling error: {e}")
-
-        finally:
-            # Stop the task when done
-            self.file_close()
-            self.samplingCTL_stop()
-
-#test
-
-def main():
-    daq = Daq(mqtt_host="10.4.8.5", mqtt_port=1883)
-
-    if not daq.mqtt_connect():
-        return
+if __name__ == '__main__':
+    p1 = DAQ_Worker()
 
     try:
+        # Keep the program running until interrupted
+        p1.start()
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        daq.samplingCTL_stop()
+        # Handle Ctrl+C to gracefully exit the program
         print("Exiting...")
-
-if __name__ == "__main__":
-    main()
+        p1.stop()
+        p1.join()
