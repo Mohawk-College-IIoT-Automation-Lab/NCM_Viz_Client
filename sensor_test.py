@@ -3,11 +3,12 @@ import nidaqmx  # Library for interfacing with NI DAQ (Data Acquisition) devices
 import time  # Used to pause execution and keep the main loop running
 import nidaqmx.constants  # Contains configuration enums like AcquisitionType, FilterType, etc.
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
-import numpy as np  # For efficient numerical operations and array handling
+import numpy as np  # For efficient numerical operations and array handling'
+from scipy.signal import medfilt
 
 from nptdms import TdmsWriter, ChannelObject, RootObject, GroupObject  # For TDMS file structure and writing
 
-FS_ACQ = 1000  # Acquisition sampling frequency in Hz
+FS_ACQ = 2000  # Acquisition sampling frequency in Hz
 FS_DISP = 10  # Display frequency (used for buffer size)
 SAMPLE_PER_BUFFER = int(FS_ACQ // FS_DISP)  # Number of samples to read per callback
 print(FS_ACQ, FS_DISP, SAMPLE_PER_BUFFER)  # Debug: confirm sampling setup
@@ -36,7 +37,7 @@ tdms_file = open(FILE_NAME, 'wb')  # Open the file manually
 tdms_writer = TdmsWriter(tdms_file)  # Create the TDMS writer object
 
 # --- Low-pass filter implementation ---
-def low_pass_filter(data, window_size=5):
+def low_pass_filter(data, window_size=10):
     # Simple moving average filter
     kernel = np.ones(window_size) / window_size
     return np.convolve(data, kernel, mode='same')  # Apply filtering across the data array
@@ -52,7 +53,7 @@ def read_ai_task_callback(task_idx, event_type, num_samples, callback_data=None)
     # Create a TDMS-compatible list of ChannelObjects with filtered data
     list = []
     for i in range(len(CHANNEL_NAMES)):
-        filter_out[i, :] = low_pass_filter(buffer[i, :])  # Apply filter per channel
+        filter_out[i, :] = medfilt(buffer[i,:], kernel_size=5) # using the scipy median filter
         list.append(ChannelObject(GROUP_NAME, CHANNEL_NAMES[i], filter_out[i, :]))  # Build TDMS channel data
 
     # Write filtered data segment to the TDMS file
@@ -78,20 +79,10 @@ def setup_tasks():
         SAMPLE_PER_BUFFER, read_ai_task_callback
     )
 
-# --- Write the initial TDMS structure before logging data ---
-def setup_tdms():
-    tdms_data = [ROOT_OBJ, GROUP_OBJ]  # TDMS requires root and group metadata
-
-    # Add empty ChannelObjects to define structure in TDMS
-    for i in range(len(CHANNEL_NAMES)):
-        tdms_data.append(ChannelObject(group=GROUP_NAME, channel=CHANNEL_NAMES[i], data=np.array([])))
-
-    tdms_writer.write_segment(tdms_data)  # Write the initial segment
-
 # --- Main function ---
 def main():
+    tdms_writer.write_segment([ROOT_OBJ, GROUP_OBJ])  # Write the initial segment
     setup_tasks()  # Configure DAQ hardware
-    setup_tdms()   # Set up TDMS file layout
 
     print("Starting data collection. Press Ctrl+C to stop.")
     analog_task.start()  # Start acquisition
