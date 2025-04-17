@@ -1,16 +1,18 @@
+import PyQt5.QtChart
 from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QGridLayout, QWidget, QTabWidget
-from PyQt5.QtCore import QRect
-from PyQt5.QtChart import *
-from custom_labels import AlarmLabel
+from PyQt5.QtCore import QRect, QDateTime, Qt, QPointF
+from PyQt5.QtGui import QPainter
+from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
+from custom_qt import AlarmLabel, DistanceGraph
 from dimensions import Dimension
-import sys, os
+import sys, os, PyQt5
 
 
 class MainWindow(QMainWindow):
 
-    WINDOW_DIMS = Dimension(0, 0, 800, 600)
     CENTRAL_WIDGET_DIMS = Dimension(10, 10, 780, 50)
     ALARM_LABEL_DIMS = Dimension(0, 0, 50, 50)
+    GRAPH_WIDGET_DIMS = Dimension(0, 0, 400, 400)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -18,17 +20,10 @@ class MainWindow(QMainWindow):
         self.setObjectName("main_window")
         self.setWindowTitle("Main Window")
 
-        self.setFixedSize(MainWindow.WINDOW_DIMS.w, MainWindow.WINDOW_DIMS.h)
+        # self.setFixedSize(MainWindow.WINDOW_DIMS.w, MainWindow.WINDOW_DIMS.h)
+        self.showMaximized()
 
         self.central_widget = QWidget(self)
-
-        self.central_widget.setGeometry(
-            QRect(
-                MainWindow.CENTRAL_WIDGET_DIMS.x, 
-                MainWindow.CENTRAL_WIDGET_DIMS.y, 
-                MainWindow.CENTRAL_WIDGET_DIMS.w, 
-                MainWindow.CENTRAL_WIDGET_DIMS.h))
-        
         self.setCentralWidget(self.central_widget)
         
         # Create a horizontal layout
@@ -51,17 +46,26 @@ class MainWindow(QMainWindow):
         
         self.experiment_tab = QWidget()
         self.experiment_tab.setObjectName("experiment_tab")
-        
-        self.chart_grid_box_layout = QGridLayout(self.experiment_tab)
 
-        self.distance_chart_1 = QChart()
-        self.distance_chart_view_1 = QChartView(self.distance_chart_1)
+        self.left_dist_graph = DistanceGraph(isLeft=True)
+        self.left_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
 
-        self.distance_chart_2 = QChart()
-        self.distance_chart_view_2 = QChartView(self.distance_chart_2)
+        self.right_dist_graph = DistanceGraph(isLeft=True)
+        self.right_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
 
-        self.chart_grid_box_layout.addWidget(self.distance_chart_view_1, 0, 0)
-        self.chart_grid_box_layout.addWidget(self.distance_chart_view_2, 0, 1)
+        self.right_dist_graph1 = DistanceGraph(isLeft=True)
+        self.right_dist_graph1.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
+
+        self.experiment_tab_v_box_layout = QVBoxLayout(self.experiment_tab)
+
+        self.top_graph_h_box_layout = QHBoxLayout()
+        self.top_graph_h_box_layout.setContentsMargins(5, 20, 20, 5)
+        self.top_graph_h_box_layout.addWidget(self.left_dist_graph)
+        self.top_graph_h_box_layout.addWidget(self.right_dist_graph)
+
+        self.experiment_tab_v_box_layout.addLayout(self.top_graph_h_box_layout)
+        self.experiment_tab_v_box_layout.addWidget(self.right_dist_graph1)
+
 
         self.control_tab = QWidget()
         self.control_tab.setObjectName("control_tab")
