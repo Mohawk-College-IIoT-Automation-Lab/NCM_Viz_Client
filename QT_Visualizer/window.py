@@ -24,7 +24,6 @@ class MainWindow(QMainWindow):
         self.showMaximized()
 
         self.central_widget = QWidget(self)
-        self.setCentralWidget(self.central_widget)
         
         # Create a horizontal layout
         self.alarm_h_box_layout = QHBoxLayout()
@@ -38,27 +37,35 @@ class MainWindow(QMainWindow):
             AlarmLabel("Alarm 4")
         ]
 
+        self.tab_widget = QTabWidget()
+        self.experiment_tab = QWidget()
+        self.control_tab = QWidget()
+  
+        self.left_dist_graph = DistanceGraph(isLeft=True)
+        self.right_dist_graph = DistanceGraph(isLeft=True)
+        self.right_dist_graph1 = DistanceGraph(isLeft=True)
+
+        self.experiment_tab_v_box_layout = QVBoxLayout(self.experiment_tab)
+        self.top_graph_h_box_layout = QHBoxLayout()
+
+        self.__setup_window__()
+
+    def __setup_window__(self):
+        self.setCentralWidget(self.central_widget)
+
         for label in self.labels:
             self.alarm_h_box_layout.addWidget(label)
 
         # Set the layout on the central widget
         self.central_v_box_layout.addLayout(self.alarm_h_box_layout)
-        
-        self.experiment_tab = QWidget()
+
         self.experiment_tab.setObjectName("experiment_tab")
+        self.control_tab.setObjectName("control_tab")
 
-        self.left_dist_graph = DistanceGraph(isLeft=True)
         self.left_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-
-        self.right_dist_graph = DistanceGraph(isLeft=True)
         self.right_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-
-        self.right_dist_graph1 = DistanceGraph(isLeft=True)
         self.right_dist_graph1.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-
-        self.experiment_tab_v_box_layout = QVBoxLayout(self.experiment_tab)
-
-        self.top_graph_h_box_layout = QHBoxLayout()
+                                            
         self.top_graph_h_box_layout.setContentsMargins(5, 20, 20, 5)
         self.top_graph_h_box_layout.addWidget(self.left_dist_graph)
         self.top_graph_h_box_layout.addWidget(self.right_dist_graph)
@@ -66,22 +73,21 @@ class MainWindow(QMainWindow):
         self.experiment_tab_v_box_layout.addLayout(self.top_graph_h_box_layout)
         self.experiment_tab_v_box_layout.addWidget(self.right_dist_graph1)
 
-
-        self.control_tab = QWidget()
-        self.control_tab.setObjectName("control_tab")
-
-        self.tab_widget = QTabWidget()
         self.tab_widget.setObjectName("tab_widget")
         self.tab_widget.setGeometry(0, 0, 500, 500)
         self.tab_widget.addTab(self.experiment_tab, "Experiment")
         self.tab_widget.addTab(self.control_tab, "Control")
 
         self.central_v_box_layout.addWidget(self.tab_widget)
-
         self.central_widget.setLayout(self.central_v_box_layout)
 
 
+
+        
+
+
 if __name__ == '__main__':
+    
     app = QApplication(sys.argv)
     main = MainWindow()
     main.show()
