@@ -1,0 +1,14 @@
+{
+    "Ultra Sonic Distance" : {
+        "LL" : 0.0,
+        "LQ" : 0.0,
+        "RR" : 0.0,
+        "RQ" : 0.0
+    },
+    "Anemometer"{
+        "LL" : 0.0,
+        "LQ" : 0.0,
+        "RR" : 0.0,
+        "RQ" : 0.0
+    }
+}

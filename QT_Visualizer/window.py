@@ -1,18 +1,12 @@
-import PyQt5.QtChart
-from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QGridLayout, QWidget, QTabWidget
-from PyQt5.QtCore import QRect, QDateTime, Qt, QPointF
-from PyQt5.QtGui import QPainter
-from PyQt5.QtChart import QChart, QChartView, QLineSeries, QDateTimeAxis, QValueAxis
-from custom_qt import AlarmLabel, DistanceGraph
-from dimensions import Dimension
+from PyQt5.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget
+from custom_qt import AlarmLabel, QCustomGraphsWidget
+from Transform import Size
 import sys, os, PyQt5
-
+from Mqtt import QMqttObject
 
 class MainWindow(QMainWindow):
 
-    CENTRAL_WIDGET_DIMS = Dimension(10, 10, 780, 50)
-    ALARM_LABEL_DIMS = Dimension(0, 0, 50, 50)
-    GRAPH_WIDGET_DIMS = Dimension(0, 0, 400, 400)
+    GRAPH_WIDGET_SIZE = Size(400, 400)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,7 +14,6 @@ class MainWindow(QMainWindow):
         self.setObjectName("main_window")
         self.setWindowTitle("Main Window")
 
-        # self.setFixedSize(MainWindow.WINDOW_DIMS.w, MainWindow.WINDOW_DIMS.h)
         self.showMaximized()
 
         self.central_widget = QWidget(self)
@@ -40,13 +33,12 @@ class MainWindow(QMainWindow):
         self.tab_widget = QTabWidget()
         self.experiment_tab = QWidget()
         self.control_tab = QWidget()
-  
-        self.left_dist_graph = DistanceGraph(isLeft=True)
-        self.right_dist_graph = DistanceGraph(isLeft=True)
-        self.right_dist_graph1 = DistanceGraph(isLeft=True)
 
-        self.experiment_tab_v_box_layout = QVBoxLayout(self.experiment_tab)
-        self.top_graph_h_box_layout = QHBoxLayout()
+        self.graphs = QCustomGraphsWidget()
+
+        self.mqtt_client = QMqttObject("10.4.5.8", 1883)
+        self.mqtt_client.distance_data_ready.connect(self.graphs.update_plot)
+
 
         self.__setup_window__()
 
@@ -61,17 +53,6 @@ class MainWindow(QMainWindow):
 
         self.experiment_tab.setObjectName("experiment_tab")
         self.control_tab.setObjectName("control_tab")
-
-        self.left_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-        self.right_dist_graph.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-        self.right_dist_graph1.setFixedSize(MainWindow.GRAPH_WIDGET_DIMS.w, MainWindow.GRAPH_WIDGET_DIMS.h)
-                                            
-        self.top_graph_h_box_layout.setContentsMargins(5, 20, 20, 5)
-        self.top_graph_h_box_layout.addWidget(self.left_dist_graph)
-        self.top_graph_h_box_layout.addWidget(self.right_dist_graph)
-
-        self.experiment_tab_v_box_layout.addLayout(self.top_graph_h_box_layout)
-        self.experiment_tab_v_box_layout.addWidget(self.right_dist_graph1)
 
         self.tab_widget.setObjectName("tab_widget")
         self.tab_widget.setGeometry(0, 0, 500, 500)
