@@ -7,15 +7,15 @@ import numpy as np
 
 class QCustomGraphsWidget(QWidget):
 
-    def __init__(self, parent = ..., flags = ...):
-        super().__init__(parent, flags)
+    def __init__(self, parent=None, **kargs):
+        super().__init__(parent, **kargs)
 
         self.main_v_box = QVBoxLayout(self)
         self.top_h_box = QHBoxLayout()
 
-        self.left_graph = Q2SensorsGraph(title="Left Mould (LL, LQ)")
-        self.right_graph = Q2SensorsGraph(title="Right Mould (RQ, RR)")
-        self.standing_wave_graph = Q2SensorsGraph(title="Stating Wave Height (LL-LQ) (RR-RQ)")
+        self.left_graph = Q2SensorsGraph(title="Left Mould (LL, LQ)", size=Size(300, 300))
+        self.right_graph = Q2SensorsGraph(title="Right Mould (RQ, RR)", size=Size(300, 300))
+        self.standing_wave_graph = Q2SensorsGraph(title="Stating Wave Height (LL-LQ) (RR-RQ)", size=Size(600, 300))
 
         self.top_h_box.addWidget(self.left_graph)
         self.top_h_box.addWidget(self.right_graph)
@@ -68,10 +68,14 @@ class QSingleSensorGraph(pg.PlotWidget):
 
 class Q2SensorsGraph(pg.PlotWidget):
 
-    def __init__(self, buffer_size = 600, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
+    DEFAULT_SIZE = Size(300, 300)
+
+    def __init__(self, size:Size=DEFAULT_SIZE, buffer_size = 600, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
         disp_int = 1 / approx_display_rate
+
+        self.setFixedSize(size.w, size.h)
 
         self.plotItem.setLabel("left", "Distance", units="mm")
         self.plotItem.setLabel("bottom", "Duration", units=f"{disp_int:.3}s")
@@ -90,7 +94,7 @@ class Q2SensorsGraph(pg.PlotWidget):
         self.data_1 = np.zeros(self.buffer_size, dtype=np.float32)
         self.data_2 = np.zeros(self.buffer_size, dtype=np.float32)
 
-    @pyqtSlot
+    @pyqtSlot()
     def update_plot(self, data_1:float, data_2:float):
         self.data_1 = np.roll(self.data_1, -1)
         self.data_1[-1] = data_1

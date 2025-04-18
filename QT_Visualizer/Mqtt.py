@@ -20,14 +20,14 @@ class QMqttObject(QObject):
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
 
-    def __init__(self, host_address:str, host_port:int, parent = ...):
+    def __init__(self, host_address:str, host_port:int, parent=None):
         super().__init__(parent)
   
         self.host_addess = host_address
         self.host_port = host_port
 
         self.mqtt_client = Client()
-        self.mqtt_client.connect(self.host_addess, self.host_port)
+        #self.mqtt_client.connect(self.host_addess, self.host_port)
         
         self.mqtt_client.on_connect = self.mqtt_on_connect
         self.mqtt_client.on_connect_fail = self.mqtt_connect_fail

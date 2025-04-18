@@ -34,7 +34,7 @@ class MainWindow(QMainWindow):
         self.experiment_tab = QWidget()
         self.control_tab = QWidget()
 
-        self.graphs = QCustomGraphsWidget()
+        self.graphs = QCustomGraphsWidget(self.experiment_tab)
 
         self.mqtt_client = QMqttObject("10.4.5.8", 1883)
         self.mqtt_client.distance_data_ready.connect(self.graphs.update_plot)
