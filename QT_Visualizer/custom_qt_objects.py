@@ -5,7 +5,6 @@ from Transform import Size
 import pyqtgraph as pg
 import numpy as np
 
-
 class QSingleSensorGraph(pg.PlotWidget):
     def __init__(self, buffer_size:int=600, approx_display_rate:int=30, title:str="Default Title", parent=None, background='default', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
