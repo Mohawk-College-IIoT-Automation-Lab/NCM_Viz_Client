@@ -15,12 +15,12 @@ class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
     Anemometer: SensorReadings
 
-class QMqttObject(QObject):
+class QMqttSensors(QObject):
 
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
 
-    def __init__(self, host_address:str, host_port:int, parent=None):
+    def __init__(self, host_address:str="localhost", host_port:int=1883, parent=None):
         super().__init__(parent)
   
         self.host_addess = host_address
@@ -63,5 +63,15 @@ class QMqttObject(QObject):
         print(f"[MQTT Message Received] Topic: {message.topic} Data: {message.payload.decode()}")
 
 
+class QMqttAlarms(QObject):
 
+    alarm_signal_1 = pyqtSignal(bool)
+    alarm_signal_2 = pyqtSignal(bool)
+    alarm_signal_3 = pyqtSignal(bool)
+    alarm_signal_4 = pyqtSignal(bool)
 
+    def __init__(self, host_address:str="localhost", host_port:int=1883, parent=None):
+        super().__init__(parent)
+    
+    def mqtt_alarm_callback(self, client:Client, userdata, message:MQTTMessage):
+        pass

@@ -5,33 +5,6 @@ from Transform import Size
 import pyqtgraph as pg
 import numpy as np
 
-class QCustomGraphsWidget(QWidget):
-
-    def __init__(self, parent=None, **kargs):
-        super().__init__(parent, **kargs)
-
-        self.main_v_box = QVBoxLayout(self)
-        self.top_h_box = QHBoxLayout()
-
-        self.left_graph = Q2SensorsGraph(title="Left Mould (LL, LQ)", size=Size(300, 300))
-        self.right_graph = Q2SensorsGraph(title="Right Mould (RQ, RR)", size=Size(300, 300))
-        self.standing_wave_graph = Q2SensorsGraph(title="Stating Wave Height (LL-LQ) (RR-RQ)", size=Size(600, 300))
-
-        self.top_h_box.addWidget(self.left_graph)
-        self.top_h_box.addWidget(self.right_graph)
-        self.main_v_box.addLayout(self.top_h_box)
-        self.main_v_box.addWidget(self.standing_wave_graph)
-
-
-    @pyqtSlot()
-    def update_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):
-        left_standing_wave = ll_value - lq_value
-        right_standing_wave = rr_value - rq_value
-        
-        self.left_graph.update_plot(lq_value, ll_value)
-        self.right_graph.update_plot(rq_value, rr_value)
-        self.standing_wave_graph.update_plot(left_standing_wave, right_standing_wave)
-
 
 class QSingleSensorGraph(pg.PlotWidget):
     def __init__(self, buffer_size:int=600, approx_display_rate:int=30, title:str="Default Title", parent=None, background='default', plotItem=None, **kargs):
@@ -110,8 +83,6 @@ class Q2SensorsGraph(pg.PlotWidget):
         self.data_1_plot.setData(self.time_data, self.data_1)
         self.data_2_plot.setData(self.time_data, self.data_2)
 
-
-
 class AlarmLabel(QLabel):
 
     DEFAULT_SIZE = Size(100, 25)
@@ -138,6 +109,12 @@ class AlarmLabel(QLabel):
     def toggle(self):
         self.state = not self.state
         self.update_style()
+
+    @pyqtSlot(bool)
+    def set_state(self, state:bool):
+        self.state = state
+        self.update_style()
+    
 
     def update_style(self):
         palette = self.palette()
