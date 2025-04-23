@@ -2,3 +2,4 @@
 *.tdms_index
 *.pyc
 *.log
+.obsidian/
