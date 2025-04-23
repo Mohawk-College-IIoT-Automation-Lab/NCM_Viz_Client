@@ -1,7 +1,7 @@
 from Transform import Size
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QColor, QPalette
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QStatusBar
 from m_qobject import *
 
 class QMqttAlarms(M_QObject):
@@ -11,8 +11,8 @@ class QMqttAlarms(M_QObject):
     alarm_signal_3 = pyqtSignal(bool)
     alarm_signal_4 = pyqtSignal(bool)
 
-    def __init__(self, host_address:str="localhost", host_port:int=1883, parent=None):
-        super().__init__(False, host_address, host_port, parent)
+    def __init__(self, status_bar:QStatusBar, host_address:str="localhost", host_port:int=1883, parent=None):
+        super().__init__(status_bar, host_address, host_port, parent)
 
         self.alarm_topic = "NCM/Alarm/#" # all alarm topics
 
@@ -22,19 +22,19 @@ class QMqttAlarms(M_QObject):
     def mqtt_alarm_callback(self, client:Client, userdata, message:MQTTMessage):
         if message.topic == "Alarm1":
             self.alarm_signal_1.emit(bool(message.payload))
-            self.emit_and_log(f"[MQTT][Alarm1] Received data: {message.payload}")
+            self.status_and_log(f"[MQTT][Alarm1] Received data: {message.payload}")
 
         elif message.topic == "Alarm2":
             self.alarm_signal_2.emit(bool(message.payload))
-            self.emit_and_log(f"[MQTT][Alarm2] Received data: {message.payload}")
+            self.status_and_log(f"[MQTT][Alarm2] Received data: {message.payload}")
 
         elif message.topic == "Alarm3":
             self.alarm_signal_3.emit(bool(message.payload))
-            self.emit_and_log(f"[MQTT][Alarm3] Received data: {message.payload}")
+            self.status_and_log(f"[MQTT][Alarm3] Received data: {message.payload}")
 
         elif message.topic == "Alarm4":
             self.alarm_signal_4.emit(bool(message.payload))
-            self.emit_and_log(f"[MQTT][Alarm4] Received data: {message.payload}")
+            self.status_and_log(f"[MQTT][Alarm4] Received data: {message.payload}")
             
         else:
             self._mqtt_default_callback(client, userdata, message)
@@ -42,11 +42,11 @@ class QMqttAlarms(M_QObject):
 
 class QAlarmWidget(QWidget):
 
-    def __init__(self, alarm_name_1:str="alarm1", alarm_name_2:str="alarm2", alarm_name_3:str="alarm3", alarm_name_4:str="alarm4", host_name:str="localhost", host_port:int=1883, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, alarm_name_1:str="alarm1", alarm_name_2:str="alarm2", alarm_name_3:str="alarm3", alarm_name_4:str="alarm4", host_name:str="localhost", host_port:int=1883, parent=None, **kargs):
         super().__init__(parent, **kargs)
 
         self.central_layout = QHBoxLayout(self)
-        self.alarm_m_qobject = QMqttAlarms(host_name, host_port)
+        self.alarm_m_qobject = QMqttAlarms(status_bar, host_name, host_port)
 
         alarm1 = AlarmLabel(alarm_name_1)
         alarm2 = AlarmLabel(alarm_name_2)

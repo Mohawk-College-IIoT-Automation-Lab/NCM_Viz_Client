@@ -1,14 +1,15 @@
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, QObject
+from PyQt5.QtWidgets import QStatusBar
 from paho.mqtt.client import Client, MQTTMessage
 import logging
 
 
 class M_QObject(QObject):
 
-    status_bar_printer = pyqtSignal(str)
-
-    def __init__(self, connect_on_init:bool=False, host_name:str="localhost", host_port:int = 1883, log_name="log", parent=None):
+    def __init__(self, status_bar:QStatusBar, host_name:str="localhost", host_port:int = 1883, log_name="log", parent=None):
         super().__init__(parent)
+
+        self.status_bar = status_bar
 
         self.logger = logging.getLogger(log_name)
         self.logger.setLevel(logging.DEBUG)
@@ -22,7 +23,7 @@ class M_QObject(QObject):
         self.logger.addHandler(file_handler)
         self.log("Logging initialized")
 
-        self._connected = connect_on_init
+        self._connected = False
         self._host_name = host_name
         self._host_port = host_port
         self.mqtt_client = Client()
@@ -31,9 +32,6 @@ class M_QObject(QObject):
         self.mqtt_client.on_connect = self._mqtt_connect_disconnect
         self.mqtt_client.on_disconnect = self._mqtt_connect_disconnect
         self.mqtt_client.on_connect_fail = self._mqtt_failed
-
-        if self._connected:
-            self.mqtt_connect()
 
     def _mqtt_connect_disconnect(self):
         # Get connection status
@@ -46,18 +44,18 @@ class M_QObject(QObject):
             self.mqtt_client.loop_stop()
 
         # Loggign and emit status
-        self.emit_and_log(f"[MQTT] Connection status: {self.connected}")
+        self.status_and_log(f"[MQTT] Connection status: {self.connected}")
         
     def _mqtt_failed(self):
         self._connected = self.mqtt_client.is_connected()
         self.mqtt_client.loop_stop()
-        self.emit_and_log("[MQTT] Failed to connect")
+        self.status_and_log("[MQTT] Failed to connect")
 
     def _mqtt_default_callback(self, client:Client, userdata, message:MQTTMessage):
         self.log(f"[MQTT] unhandled data received from topic: {message.topic} -> {message.payload.decode()}")
 
-    def emit_and_log(self, message:str):
-        self.status_bar_printer.emit(message)
+    def status_and_log(self, message:str):
+        self.status_bar.showMessage(message)
         self.logger.debug(message)
 
     def log(self, message:str):
@@ -65,12 +63,12 @@ class M_QObject(QObject):
 
     @pyqtSlot()
     def mqtt_connect(self):
-        self.emit_and_log(f"[MQTT] Attempting connection to host: {self._host_name} on port: {self._host_port}")
+        self.status_and_log(f"[MQTT] Attempting connection to host: {self._host_name} on port: {self._host_port}")
 
         error = self.mqtt_client.connect(self._host_name, self._host_port)
         
         if error:
-            self.emit_and_log(f"[MQTT] Error connecting to host: {self._host_name}:{self._host_port}, error code: {error}")
+            self.status_and_log(f"[MQTT] Error connecting to host: {self._host_name}:{self._host_port}, error code: {error}")
             
         
     @pyqtSlot()
@@ -91,7 +89,7 @@ class M_QObject(QObject):
     @host_name.setter
     def host_name(self, value: str):
         if self.connected:
-            self.emit_and_log("Cannot change host name while connected")
+            self.status_and_log("Cannot change host name while connected")
             return
         self._host_name = value
 
@@ -102,7 +100,7 @@ class M_QObject(QObject):
     @host_port.setter
     def host_port(self, value: int):
         if self.connected:
-            self.emit_and_log("Cannot change host port while connected")
+            self.status_and_log("Cannot change host port while connected")
             return
         self._host_port = value
 

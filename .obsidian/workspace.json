@@ -170,6 +170,8 @@
   },
   "active": "77dab71ee9beb951",
   "lastOpenFiles": [
+    "QT_Visualizer/m_qt_tool_menu_bar.py",
+    "QT_Visualizer/m_qt_actions.py",
     "QT_Visualizer/__pycache__/m_qt_mould.cpython-312.pyc",
     "QT_Visualizer/m_qt_mould.py",
     "QT_Visualizer/__pycache__/m_qt_experiment.cpython-312.pyc",
@@ -179,8 +181,6 @@
     "QT_Visualizer/m_qt_experiment.py",
     "QT_Visualizer/m_qt_alarms.py",
     "QT_Visualizer/m_qt_tabs.py",
-    "QT_Visualizer/m_qt_sensors.py",
-    "QT_Visualizer/m_qt_alarm.py",
     "README.md",
     "development_log.md",
     "Development Log/development_log.md",

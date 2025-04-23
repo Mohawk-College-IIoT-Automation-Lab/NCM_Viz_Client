@@ -1,6 +1,6 @@
 from m_qobject import *
 from m_qt_graphs import Q2SensorsGraph
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 import json
@@ -21,8 +21,8 @@ class QMqttSensors(M_QObject):
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
 
-    def __init__(self, host_name:str="localhost", host_port:int=1883, parent=None):
-        super().__init__(False, host_name, host_port, parent)
+    def __init__(self, status_bar:QStatusBar, host_name:str="localhost", host_port:int=1883, parent=None):
+        super().__init__(status_bar, host_name, host_port, parent)
 
         self.display_data_topic = "NCM/SensorData"
 
@@ -40,11 +40,11 @@ class QMqttSensors(M_QObject):
             self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
             
         except json.JSONDecodeError:
-            self.emit_and_log(f"[MQTT][JSON Error] Loading / decoding error - Data: {message.payload.decode()}")
+            self.status_and_log(f"[MQTT][JSON Error] Loading / decoding error - Data: {message.payload.decode()}")
 
 class SensorGraphWidget(QWidget):
 
-    def __init__(self, parent=None, host_name:str="localhost", host_port:int=1883, **kargs):
+    def __init__(self, status_bar:QStatusBar, parent=None, host_name:str="localhost", host_port:int=1883, **kargs):
         super().__init__(parent, **kargs)
 
         main_h_box = QHBoxLayout(self)
@@ -73,7 +73,7 @@ class SensorGraphWidget(QWidget):
 
         self.setLayout(main_h_box)
 
-        self.sensor_m_qobject = QMqttSensors(host_name=host_name, host_port=host_port)
+        self.sensor_m_qobject = QMqttSensors(status_bar, host_name, host_port)
         self.sensor_m_qobject.distance_data_ready.connect(self.update_usd_plot)
         self.sensor_m_qobject.anemometer_data_ready.connect(self.update_an_plot)
         

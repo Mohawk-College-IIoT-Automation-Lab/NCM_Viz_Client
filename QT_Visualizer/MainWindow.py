@@ -1,11 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget
-from PyQt5.QtCore import pyqtSlot
 from Transform import Size
 import os
 
 from m_qt_mould import MouldControlTabWidget
 from m_qt_alarms import QAlarmWidget
-from m_qt_experiment import QExperimentControlWidget
+from QT_Visualizer.m_qt_actions import M_QActions
 from m_qt_sensors import SensorGraphWidget
 
 if os.name != 'nt':
@@ -23,11 +22,11 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         central_v_box_layout = QVBoxLayout(central_widget)
 
-        alarms = QAlarmWidget()
-        experiment_control = QExperimentControlWidget()
+        alarms = QAlarmWidget(self.statusBar())
+        experiment_control = M_QActions(self.statusBar(), self)
 
         tab_widget = QTabWidget()
-        sensor_tab = SensorGraphWidget()
+        sensor_tab = SensorGraphWidget(self.statusBar())
         mould_control_tab = MouldControlTabWidget()
         sen_control_tab = QWidget()
 
@@ -41,18 +40,11 @@ class MainWindow(QMainWindow):
 
         # Set the layout on the central widget
         central_v_box_layout.addWidget(alarms)
-        central_v_box_layout.addWidget(experiment_control)
         central_v_box_layout.addWidget(tab_widget)
         central_widget.setLayout(central_v_box_layout)
-
-        sensor_tab.sensor_m_qobject.status_bar_printer.connect(self.status_bar_printer)
-        alarms.alarm_m_qobject.status_bar_printer.connect(self.status_bar_printer)
         
         self.showMaximized()
 
-    @pyqtSlot(str)
-    def status_bar_printer(self, message):
-        self.statusBar().showMessage(message)
 
 
 

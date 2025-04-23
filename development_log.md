@@ -1,13 +1,15 @@
 ### To do
  - [ ] Make a base object `M_QWidget` that has all of the built-in stuff I want
     - [x] Logging
-    - [ ] Basic signals & slots
+    - [x] Basic signals & slots
     - [ ] Clean exit
-    - [ ] Mqtt
-    - [ ] Status bar printing
+	    - [ ] Close connections
+    - [x] Mqtt
+    - [x] Status bar printing
 - [ ] Adapt all the current widgets in `custom_qt_widgets.py` to be `MW_QWidget`'s
 - [ ] Build a basic `M_QMqtt` object that has all of the basic functionality I want
 	- [ ] replace the current class in `custom_qt_mqtt.py` with class that are defined within the class that they are used. They would extend the `M_QMqtt` base class.
+- [ ] Create the NIDaqmx process that does the actual data capture
 - [ ] Finish building the widgets for the tabs for a basic MVP
 	- [ ] Needs to start/stop the data capture
 	- [ ] Needs to store the raw data in a tdms file
@@ -28,4 +30,5 @@
 - updated `M_QObject` to have a defined `log()` function and a `emit_and_log()` function
 - Made the graphs expand the fill the screen
 - Fixed all of the multiple inheritance mess
-- 
+- Adjusted the way that the status bar is handled, now it's passed as an object rather than as a signal. Less to remember
+- Working on the tool bar for experiment control
