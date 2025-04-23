@@ -1,5 +1,3 @@
-- Planned out my next couple steps to building the first release
-
 ### To do
  - [ ] Make a base object `M_QWidget` that has all of the built-in stuff I want
     - [ ] Logging
@@ -15,3 +13,10 @@
 	- [ ] Needs to store the raw data in a tdms file
 	- [ ] Needs to plot the data in real-time on the app
 	- [ ] Needs to be able to recall and plot the raw-data
+
+## 04-22-2025
+- Reorganized some code
+- Planned out my next couple steps to building the first release
+
+## 04-23-2025
+
