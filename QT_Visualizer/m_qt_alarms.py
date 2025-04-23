@@ -1,8 +1,9 @@
-from Transform import Size
+
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QStatusBar
-from m_qobject import *
+from QT_Visualizer.Transform import Size
+from QT_Visualizer.m_qobject import *
 
 class QMqttAlarms(M_QObject):
 
@@ -12,7 +13,7 @@ class QMqttAlarms(M_QObject):
     alarm_signal_4 = pyqtSignal(bool)
 
     def __init__(self, status_bar:QStatusBar, host_address:str="localhost", host_port:int=1883, parent=None):
-        super().__init__(status_bar, host_address, host_port, parent)
+        super().__init__(status_bar, host_address, host_port, parent=parent)
 
         self.alarm_topic = "NCM/Alarm/#" # all alarm topics
 

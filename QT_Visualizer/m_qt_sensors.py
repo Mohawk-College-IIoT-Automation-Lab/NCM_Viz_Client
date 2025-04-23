@@ -1,7 +1,9 @@
-from m_qobject import *
-from m_qt_graphs import Q2SensorsGraph
+
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
+
+from QT_Visualizer.m_qobject import *
+from QT_Visualizer.m_qt_graphs import Q2SensorsGraph
 
 import json
 from pydantic import BaseModel
@@ -22,7 +24,7 @@ class QMqttSensors(M_QObject):
     anemometer_data_ready = pyqtSignal(float, float, float, float)
 
     def __init__(self, status_bar:QStatusBar, host_name:str="localhost", host_port:int=1883, parent=None):
-        super().__init__(status_bar, host_name, host_port, parent)
+        super().__init__(status_bar, host_name, host_port, parent=parent)
 
         self.display_data_topic = "NCM/SensorData"
 

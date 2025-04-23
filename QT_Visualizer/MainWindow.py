@@ -1,11 +1,11 @@
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget
-from Transform import Size
+from QT_Visualizer.Transform import Size
 import os
 
-from m_qt_mould import MouldControlTabWidget
-from m_qt_alarms import QAlarmWidget
-from QT_Visualizer.m_qt_actions import M_QActions
-from m_qt_sensors import SensorGraphWidget
+from QT_Visualizer.m_qt_mould import MouldControlTabWidget
+from QT_Visualizer.m_qt_alarms import QAlarmWidget
+from QT_Visualizer.m_qt_actions import M_ActionsSingleton
+from QT_Visualizer.m_qt_sensors import SensorGraphWidget
 
 if os.name != 'nt':
     os.environ["QT_QPA_PLATFORM"] = "xcb" # required for drop down to work
@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         central_v_box_layout = QVBoxLayout(central_widget)
 
         alarms = QAlarmWidget(self.statusBar())
-        experiment_control = M_QActions(self.statusBar(), self)
+        experiment_control = M_ActionsSingleton(self.statusBar(), self)
 
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar())

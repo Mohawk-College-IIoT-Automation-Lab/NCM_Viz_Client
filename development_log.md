@@ -32,3 +32,5 @@
 - Fixed all of the multiple inheritance mess
 - Adjusted the way that the status bar is handled, now it's passed as an object rather than as a signal. Less to remember
 - Working on the tool bar for experiment control
+- Working on developing out `M_ActionSignleton`
+- 
