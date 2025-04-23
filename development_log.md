@@ -1,6 +1,6 @@
 ### To do
  - [ ] Make a base object `M_QWidget` that has all of the built-in stuff I want
-    - [ ] Logging
+    - [x] Logging
     - [ ] Basic signals & slots
     - [ ] Clean exit
     - [ ] Mqtt
@@ -19,4 +19,13 @@
 - Planned out my next couple steps to building the first release
 
 ## 04-23-2025
-
+- Working on `M_QObject`
+	- Setting up the logger
+	- Setting up basic Mqtt
+- Re-implemented my original mqtt objects with `M_QObjects`
+- Re-organizing the file structure such that all the objects for each widget are in the same file
+- Re-working the sensor plots
+- updated `M_QObject` to have a defined `log()` function and a `emit_and_log()` function
+- Made the graphs expand the fill the screen
+- Fixed all of the multiple inheritance mess
+- 

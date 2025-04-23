@@ -1,3 +1,4 @@
 *.tdms
 *.tdms_index
 *.pyc
+*.log

@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "README.md",
+                "file": "development_log.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "README"
+              "title": "development_log"
             }
           }
         ]
@@ -94,7 +94,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "README.md",
+                "file": "development_log.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -104,7 +104,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for README"
+              "title": "Backlinks for development_log"
             }
           },
           {
@@ -113,12 +113,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "README.md",
+                "file": "development_log.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from README"
+              "title": "Outgoing links from development_log"
             }
           },
           {
@@ -142,13 +142,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "README.md",
+                "file": "development_log.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of README"
+              "title": "Outline of development_log"
             }
           }
         ]
@@ -170,10 +170,20 @@
   },
   "active": "77dab71ee9beb951",
   "lastOpenFiles": [
+    "QT_Visualizer/__pycache__/m_qt_mould.cpython-312.pyc",
+    "QT_Visualizer/m_qt_mould.py",
+    "QT_Visualizer/__pycache__/m_qt_experiment.cpython-312.pyc",
+    "QT_Visualizer/__pycache__/m_qt_alarms.cpython-312.pyc",
+    "QT_Visualizer/__pycache__/m_qt_sensors.cpython-312.pyc",
+    "QT_Visualizer/__pycache__/m_qt_tabs.cpython-312.pyc",
+    "QT_Visualizer/m_qt_experiment.py",
+    "QT_Visualizer/m_qt_alarms.py",
+    "QT_Visualizer/m_qt_tabs.py",
+    "QT_Visualizer/m_qt_sensors.py",
+    "QT_Visualizer/m_qt_alarm.py",
+    "README.md",
     "development_log.md",
     "Development Log/development_log.md",
-    "Development Log/04-22-2025.md",
-    "README.md",
-    "Development Log"
+    "Development Log/04-22-2025.md"
   ]
 }
