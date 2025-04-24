@@ -33,4 +33,14 @@
 - Adjusted the way that the status bar is handled, now it's passed as an object rather than as a signal. Less to remember
 - Working on the tool bar for experiment control
 - Working on developing out `M_ActionSignleton`
-- 
+
+## 04-24-2025
+- trying to setup the venv / dependencies better than before
+	- using an install script and `requirements.txt` document
+	- Finished building a nice install script
+	- Also made an uninstaller
+- Had to remove the singletonness of the actions for the time being
+- It now compiles and runs on multiple desktop envs. I should also make an equivalent install script for Windows.
+	- I'll get buddy gpt to do convert it later.
+- I want to spend some time today and work on the ni-daqmx side of things
+

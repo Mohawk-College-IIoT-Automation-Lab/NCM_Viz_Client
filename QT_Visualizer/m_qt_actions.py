@@ -4,8 +4,6 @@ from QT_Visualizer.m_qobject import M_QObject
 
 class M_ActionsSingleton(M_QObject):
 
-    _instance = None
-
     start_exp_signal = pyqtSignal()
     stop_exp_signal = pyqtSignal()
     reset_exp_signal = pyqtSignal()
@@ -26,68 +24,62 @@ class M_ActionsSingleton(M_QObject):
     sen_full_open_signal = pyqtSignal()
     sen_full_closed_signal = pyqtSignal()
 
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(M_ActionsSingleton, cls).__new__(cls)
-        return cls._instance
+    def __init__(self, status_bar:QStatusBar, parent=None, host_name:str="localhost", host_port:int=1883):
+        super().__init__(status_bar, host_name, host_port, parent=parent)
 
-    def __init__(self, status_bar:QStatusBar, parent:QMainWindow, host_name:str="localhost", host_port:int=1883):
-        if not hasattr(self, "_initialized"):  # Ensure __init__ runs only once
-            super().__init__(status_bar, host_name, host_port, parent=parent)
-            self._initialized = True
 
-            # Create all the actions
-            self.start_exp_action = QAction("Start Experiment", self)
-            self.stop_exp_action = QAction("Stop Experiment", self)
-            self.reset_exp_action = QAction("Reset Experiment", self)
+        # Create all the actions
+        self.start_exp_action = QAction("Start Experiment", self)
+        self.stop_exp_action = QAction("Stop Experiment", self)
+        self.reset_exp_action = QAction("Reset Experiment", self)
 
-            self.quit_action = QAction("Quit", self)
-            self.help_action = QAction("Help", self)
-            self.settings_action = QAction("Settings", self)
+        self.quit_action = QAction("Quit", self)
+        self.help_action = QAction("Help", self)
+        self.settings_action = QAction("Settings", self)
 
-            self.sen_tuning_action = QAction("SEN Tuning", self)
-            self.sensor_tuning_action = QAction("Sensor Tuning", self)
-            self.stopper_rod_tuning_action = QAction("Stopper Rod Tuning", self)
+        self.sen_tuning_action = QAction("SEN Tuning", self)
+        self.sensor_tuning_action = QAction("Sensor Tuning", self)
+        self.stopper_rod_tuning_action = QAction("Stopper Rod Tuning", self)
 
-            self.mould_fill_action = QAction("Mould Fill", self)
-            self.mould_drain_action = QAction("Mould Drain", self)
-            self.tundish_fill_action = QAction("Tundish Fill", self)
-            self.tundish_drain_action = QAction("Tundish Drain", self)
-            self.fill_all_action = QAction("Fill All", self)
-            self.drain_all_action = QAction("Drain All", self)
+        self.mould_fill_action = QAction("Mould Fill", self)
+        self.mould_drain_action = QAction("Mould Drain", self)
+        self.tundish_fill_action = QAction("Tundish Fill", self)
+        self.tundish_drain_action = QAction("Tundish Drain", self)
+        self.fill_all_action = QAction("Fill All", self)
+        self.drain_all_action = QAction("Drain All", self)
 
-            self.stopper_rod_closed_action = QAction("Stopper Rod Closed", self)
-            self.stopper_rod_open_action = QAction("Stopper Rod Open", self)
+        self.stopper_rod_closed_action = QAction("Stopper Rod Closed", self)
+        self.stopper_rod_open_action = QAction("Stopper Rod Open", self)
 
-            self.sen_full_open_action = QAction("SEN Full Open", self)
-            self.sen_full_closed_action = QAction("SEN Full Closed", self)
+        self.sen_full_open_action = QAction("SEN Full Open", self)
+        self.sen_full_closed_action = QAction("SEN Full Closed", self)
 
-            # Connect actions to slots
-            self.start_exp_action.triggered.connect(self.start_exp)
-            self.stop_exp_action.triggered.connect(self.stop_exp)
-            self.reset_exp_action.triggered.connect(self.reset_exp)
+        # Connect actions to slots
+        self.start_exp_action.triggered.connect(self.start_exp)
+        self.stop_exp_action.triggered.connect(self.stop_exp)
+        self.reset_exp_action.triggered.connect(self.reset_exp)
 
-            self.quit_action.triggered.connect(self.quit)
-            self.help_action.triggered.connect(self.help)
-            self.settings_action.triggered.connect(self.settings)
+        self.quit_action.triggered.connect(self.quit)
+        self.help_action.triggered.connect(self.help)
+        self.settings_action.triggered.connect(self.settings)
 
-            self.sen_tuning_action.triggered.connect(self.sen_tuning)
-            self.sensor_tuning_action.triggered.connect(self.sensor_tuning)
-            self.stopper_rod_tuning_action.triggered.connect(self.stopper_rod_tuning)
+        self.sen_tuning_action.triggered.connect(self.sen_tuning)
+        self.sensor_tuning_action.triggered.connect(self.sensor_tuning)
+        self.stopper_rod_tuning_action.triggered.connect(self.stopper_rod_tuning)
 
-            self.mould_fill_action.triggered.connect(self.mould_fill)
-            self.mould_drain_action.triggered.connect(self.mould_drain) 
-            self.tundish_fill_action.triggered.connect(self.tundish_fill)
-            self.tundish_drain_action.triggered.connect(self.tundish_drain)
-            self.fill_all_action.triggered.connect(self.fill_all)
-            self.drain_all_action.triggered.connect(self.drain_all)
+        self.mould_fill_action.triggered.connect(self.mould_fill)
+        self.mould_drain_action.triggered.connect(self.mould_drain) 
+        self.tundish_fill_action.triggered.connect(self.tundish_fill)
+        self.tundish_drain_action.triggered.connect(self.tundish_drain)
+        self.fill_all_action.triggered.connect(self.fill_all)
+        self.drain_all_action.triggered.connect(self.drain_all)
 
-            self.stopper_rod_closed_action.triggered.connect(self.stopper_rod_closed)
-            self.stopper_rod_open_action.triggered.connect(self.stopper_rod_open)
-            self.sen_full_open_action.triggered.connect(self.sen_full_open)
-            self.sen_full_closed_action.triggered.connect(self.sen_full_closed)
+        self.stopper_rod_closed_action.triggered.connect(self.stopper_rod_closed)
+        self.stopper_rod_open_action.triggered.connect(self.stopper_rod_open)
+        self.sen_full_open_action.triggered.connect(self.sen_full_open)
+        self.sen_full_closed_action.triggered.connect(self.sen_full_closed)
 
-            # self.mqtt_connect()
+        # self.mqtt_connect()
 
     @pyqtSlot()
     def start_exp(self):
