@@ -30,12 +30,20 @@ class M_USB_DAQ_Process(Process, M_Object):
         self.log(f"Process {self.name} stopped.")
         #self.mqtt_disconnect()
 
-    def _target_function(self):
+    def _hf_data_callback(self):
         """
         The target function is a placeholder for the function that will be executed in the separate process.
         It should be overridden in subclasses to define the specific behavior of the process.
         """
         pass
+
+    def _lf_data_callback(self):
+        """
+        The target function is a placeholder for the function that will be executed in the separate process.
+        It should be overridden in subclasses to define the specific behavior of the process.
+        """
+        pass
+
 
     def run(self):
         """
