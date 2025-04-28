@@ -4,7 +4,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 from .Mqtt.sensors_mqtt import SensorsMQTT
 from .Mqtt.GenericMqtteLogger import Logger
-from .m_qt_graphs import Q2SensorsGraph
+from .QT_Custom_Graphs import Q2SensorsGraph
 
 
 class SensorGraphWidget(QWidget):

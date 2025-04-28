@@ -1,12 +1,11 @@
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget
-from QT_Visualizer.Transform import Size
 import os
+from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget
+from .Transform import Size
+from .QT_NCM_Status_Lights import StatusWidget
+from .QT_NCM_Actions import M_ActionsSingleton
+from .QT_NCM_Sensors import SensorGraphWidget
 
-from QT_Visualizer.m_qt_status_lights import QAlarmWidget
-from QT_Visualizer.m_qt_actions import M_ActionsSingleton
-from QT_Visualizer.m_qt_sensors import SensorGraphWidget
-
-from QT_Visualizer.Mqtt.GenericMqtteLogger import Logger
+from .Mqtt.GenericMqtteLogger import Logger
 
 if os.name != 'nt':
     os.environ["QT_QPA_PLATFORM"] = "xcb" # required for drop down to work
@@ -25,8 +24,8 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         central_v_box_layout = QVBoxLayout(central_widget)
 
-        alarms = QAlarmWidget(self.statusBar(), logger=logger)
-        experiment_control = M_ActionsSingleton(status_bar=self.statusBar(), logger=logger, parent=self)
+        alarms = StatusWidget(self.statusBar(), logger=logger)
+        self.custom_actions = M_ActionsSingleton(status_bar=self.statusBar(), logger=logger, parent=self)
 
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar(), logger=logger, parent=self)

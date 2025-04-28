@@ -2,5 +2,7 @@ nidaqmx
 pyqt5
 pyqtgraph
 pydantic
-numpy==1.26.4
+numpy
 paho-mqtt
+scipy
+nptdms

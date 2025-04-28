@@ -1,10 +1,21 @@
 from PyQt5.QtWidgets import QApplication
-from QT_Visualizer.MainWindow import MainWindow
+from NCM_Viz.NCM_Mainwindow import MainWindow
+from NI_DAQ import DAQ_Process
 import sys
 
+daq_process = DAQ_Process()
+
+app = None
+main = None
+
+def custom_exit(app: QApplication):
+    app.exec_()
+    daq_process.stop()
+    daq_process.join()
+
 if __name__ == '__main__':
-    
     app = QApplication(sys.argv)
     main = MainWindow()
+    daq_process.start()
     main.show()
-    sys.exit(app.exec_())
+    sys.exit(custom_exit(app))

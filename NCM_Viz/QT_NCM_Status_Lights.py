@@ -6,7 +6,7 @@ from .Transform import Size
 from .Mqtt.status_lights_mqtt import StatusLightsMqtt
 from .Mqtt.GenericMqtteLogger import Logger
 
-class QAlarmWidget(QWidget):
+class StatusWidget(QWidget):
 
     ELAPSED_SIZE = Size(200, 25)
 
@@ -26,7 +26,7 @@ class QAlarmWidget(QWidget):
         experiment_status = AlarmLabel("Experiment Status")
         self.experiment_timer = QLabel("Experiment Timer")
 
-        self.experiment_timer.setMinimumSize(QAlarmWidget.ELAPSED_SIZE.w, QAlarmWidget.ELAPSED_SIZE.h)
+        self.experiment_timer.setMinimumSize(StatusWidget.ELAPSED_SIZE.w, StatusWidget.ELAPSED_SIZE.h)
         self.experiment_timer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.mqtt_client.alarm_signal_1.connect(alarm1.set_state)

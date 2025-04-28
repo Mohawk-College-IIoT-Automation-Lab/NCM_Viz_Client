@@ -1,5 +1,5 @@
-[submodule "QT_Visualizer/Mqtt/GenericMqtteLogger"]
-	path = QT_Visualizer/Mqtt/GenericMqtteLogger
+[submodule "NCM_Viz/Mqtt/GenericMqtteLogger"]
+	path = NCM_Viz/Mqtt/GenericMqtteLogger
 	url = https://github.com/Mohawk-College-IIoT-Automation-Lab/GenericMqtteLogger.git
 [submodule "NI-DAQ/Mqtt/GenericMqtteLogger"]
 	path = NI-DAQ/Mqtt/GenericMqtteLogger

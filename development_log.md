@@ -63,5 +63,8 @@
 	3. Making the graphs work and the experiment status stuff respond
 	4. Making sure the data is logging correctly in the tdms
 	5. Double checking general logging is working
-- Taking a break at 1515 until 1545
+- Refactoring further.
+- Taking a break at 1530 until 1600
+- refactoring further.
+
 
