@@ -26,7 +26,6 @@ class DAQ_Config(BaseModel):
     file_name: str = "default.tdms"
     fs: int = 2000
     fs_disp: int = 15
-    output_freq: int = 1
     filter_config: int = 0 # no filt, lpf, hpf, bandpass
     lpf_cutoff: float = 500
     hpf_cutoff: float = 0.01
@@ -52,12 +51,15 @@ class DAQ:
         self._channel_names = self._config.channel_names
         self._fs = self._config.fs
         self._fs_disp = self._config.fs_disp
-        self._output_freq = self._config.output_freq
         self._lpf_cutoff = self._config.lpf_cutoff
         self._hpf_cutoff = self._config.hpf_cutoff
         self._butter_order = self._config.butter_order
 
         self._fs_sample = self._fs * 2
+
+        self._buffer_size = self._fs_sample # Number of samples to read per callback
+        self._raw_data_buffer = np.zeros((len(self._channels), self._buffer_size), dtype=np.float32)
+        self._filter_data_buffer = np.zeros((len(self._channels), self._buffer_size), dtype=np.float32)
 
         self._low = self._lpf_cutoff / self._fs
         self._high = self._hpf_cutoff / self._fs
@@ -68,29 +70,50 @@ class DAQ:
         self._a = None
         self._b = None
 
-        self._base_group_name = "NCM"
-        self._raw_group_name = "Raw"
-        self._lpf_group_name = "LPF"
-        self._hpf_group_name = "HPF"
-
-        self._group_obj = GroupObject(self._base_group_name)  # TDMS group that holds related channels
+        self._group_obj = GroupObject("NCM")  # TDMS group that holds related channels
+        self._raw_group_obj = GroupObject("Raw")  # TDMS group for raw data
+        self._filter_group_obj = GroupObject("Filtered")  # TDMS group for filtered data
         self._root_obj = RootObject(properties={"description": "NIDAQmx Acquisition"})  # TDMS root metadata
 
         # Create TDMS file writer object
-        self._tdms_file = open(self._file_name, 'wb')
-        self._tdms_writer = TdmsWriter(self._tdms_file)
-        self._tdms_writer.write_segment([self._root_obj, self._group_obj])  # Write the initial segment
-
+        self._new_tdms(self._config.file_name)
         self._setup_filter()
 
-    def _raw_data_callback(self, task_idx, event_type, num_samples, callback_data=None):
+        self._task = nidaqmx.Task()  # Main acquisition task
+        self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(self._task.in_stream)  # Efficient streaming reader
 
+        for c in self._channels:
+            self._task.ai_channels.add_ai_voltage_chan(c)
+        self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
+        self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
+        self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._display_data_callback)
+
+    def _raw_data_callback(self, task_idx, event_type, num_samples, callback_data=None):
+        
         pass
 
     def _display_data_callback(self, task_idx, event_type, num_samples, callback_data=None):
 
         pass
-    
+
+    def _new_tdms(self, file_name: str):
+        if self._tdms_file is not None:
+            self._file_name = file_name
+            self._tdms_file = open(self._file_name, 'wb')
+            self._tdms_writer = TdmsWriter(self._tdms_file)
+            self._tdms_writer.write_segment([self._root_obj, self._group_obj])
+        else:
+            raise ValueError("TDMS file is not initialized. Please call _setup_tdms() first.")
+
+    def _reset_tdms(self):
+        self._close_tdms()
+        self._new_tdms(self._file_name)
+
+    def _close_tdms(self):
+        # Close the TDMS file
+        self._tdms_writer.close()
+        self._tdms_file.close()
+
     def _setup_filter(self):
         if self._filter_config == 0:
             # No filter
@@ -130,11 +153,6 @@ class DAQ:
         b, a = butter(self._butter_order, self._high, btype='high')
         self._a = a
         self._b = b
-
-    def _close_tdms(self):
-        # Close the TDMS file
-        self._tdms_writer.close()
-        self._tdms_file.close()
 
     def _close_task(self):
         # Close the DAQ task
