@@ -56,4 +56,12 @@
 	- Created a non-singleton logger as well.
 - Added elapsed time and experiment status lights to the alarms. Also made them have a min size
 - Next is the experiment control actions I think
+- Made the logger setable, and if it's not set it will default to logging in log.log
+- It is 1500 right now and everything is currently compiling, next steps I think should be:
+	1. Experiment control actions & mqtt
+	2. Receiving mqtt commands in the daq process and doing something
+	3. Making the graphs work and the experiment status stuff respond
+	4. Making sure the data is logging correctly in the tdms
+	5. Double checking general logging is working
+- Taking a break at 1515 until 1545
 
