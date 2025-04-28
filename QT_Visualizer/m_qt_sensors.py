@@ -2,47 +2,9 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
-from QT_Visualizer.m_qobject import *
-from QT_Visualizer.m_qt_graphs import Q2SensorsGraph
+from .Mqtt.sensors_mqtt import SensorsMQTT
+from .m_qt_graphs import Q2SensorsGraph
 
-import json
-from pydantic import BaseModel
-
-class SensorReadings(BaseModel):
-    LL: float
-    LQ: float
-    RR: float
-    RQ: float
-    
-class SensorData(BaseModel):
-    Ultra_Sonic_Distance: SensorReadings
-    Anemometer: SensorReadings
-
-class QMqttSensors(M_QObject):
-
-    distance_data_ready = pyqtSignal(float, float, float, float)
-    anemometer_data_ready = pyqtSignal(float, float, float, float)
-
-    def __init__(self, status_bar:QStatusBar, host_name:str="localhost", host_port:int=1883, parent=None):
-        super().__init__(status_bar, host_name, host_port, parent=parent)
-
-        self.display_data_topic = "NCM/SensorData"
-
-        self.mqtt_client.message_callback_add(self.display_data_topic, self.mqtt_display_callback)
-        self.mqtt_client.subscribe(self.display_data_topic)
-        
-    def mqtt_display_callback(self, client:Client, userdata, message:MQTTMessage):
-        try:
-            payload = json.load(message.payload.decode())
-            sensor_data = SensorData(**payload)
-
-            self.log(f"[MQTT][SensorData] Received data: {sensor_data}")
-
-            self.distance_data_ready.emit(sensor_data.Ultra_Sonic_Distance.LL, sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
-            self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
-            
-        except json.JSONDecodeError:
-            self.status_and_log(f"[MQTT][JSON Error] Loading / decoding error - Data: {message.payload.decode()}")
 
 class SensorGraphWidget(QWidget):
 
@@ -75,7 +37,7 @@ class SensorGraphWidget(QWidget):
 
         self.setLayout(main_h_box)
 
-        self.sensor_m_qobject = QMqttSensors(status_bar, host_name, host_port)
+        self.sensor_m_qobject = SensorsMQTT(host_name, host_port)
         self.sensor_m_qobject.distance_data_ready.connect(self.update_usd_plot)
         self.sensor_m_qobject.anemometer_data_ready.connect(self.update_an_plot)
         

@@ -1,8 +1,9 @@
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
-from QT_Visualizer.m_qobject import M_QObject
+from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
-class M_ActionsSingleton(M_QObject):
+from .Mqtt.GenericMqtteLogger import GenericMQTT
+
+class M_ActionsSingleton(QObject):
 
     start_exp_signal = pyqtSignal()
     stop_exp_signal = pyqtSignal()
@@ -25,8 +26,9 @@ class M_ActionsSingleton(M_QObject):
     sen_full_closed_signal = pyqtSignal()
 
     def __init__(self, status_bar:QStatusBar, parent=None, host_name:str="localhost", host_port:int=1883):
-        super().__init__(status_bar, host_name, host_port, parent=parent)
-
+        super().__init__(parent)
+        self.status_bar = status_bar
+        self.mqtt_client = GenericMQTT(host_name, host_port)
 
         # Create all the actions
         self.start_exp_action = QAction("Start Experiment", self)

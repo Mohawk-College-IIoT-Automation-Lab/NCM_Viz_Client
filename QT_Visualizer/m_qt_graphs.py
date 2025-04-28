@@ -1,7 +1,7 @@
 import PyQt5.Qt
 from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
 from PyQt5.QtWidgets import QSizePolicy
-from QT_Visualizer.Transform import Size
+from .Transform import Size
 import pyqtgraph as pg
 import numpy as np
 

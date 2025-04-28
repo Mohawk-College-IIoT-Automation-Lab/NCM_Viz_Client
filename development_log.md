@@ -44,3 +44,16 @@
 	- I'll get buddy gpt to do convert it later.
 - I want to spend some time today and work on the ni-daqmx side of things
 
+## 04-28-2025
+- Created a logger singleton, rather than extending it. Now I am going to decouple the logger and make each object create a copy of the singleton.
+- Creating a single for each Mqtt Client type 
+	- Sensor data (done and needs to be tested)
+	- Status lights (done and needs to be tested)
+	- Experiment Control
+	- Mould Control
+- Working on decoupling mqtt from qt
+- Made a logger and generic mqtt sub module
+	- Created a non-singleton logger as well.
+- Added elapsed time and experiment status lights to the alarms. Also made them have a min size
+- Next is the experiment control actions I think
+

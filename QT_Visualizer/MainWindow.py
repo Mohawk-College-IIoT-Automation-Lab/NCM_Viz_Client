@@ -2,8 +2,7 @@ from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTab
 from QT_Visualizer.Transform import Size
 import os
 
-from QT_Visualizer.m_qt_mould import MouldControlTabWidget
-from QT_Visualizer.m_qt_alarms import QAlarmWidget
+from QT_Visualizer.m_qt_status_lights import QAlarmWidget
 from QT_Visualizer.m_qt_actions import M_ActionsSingleton
 from QT_Visualizer.m_qt_sensors import SensorGraphWidget
 
@@ -23,11 +22,10 @@ class MainWindow(QMainWindow):
         central_v_box_layout = QVBoxLayout(central_widget)
 
         alarms = QAlarmWidget(self.statusBar())
-        experiment_control = M_ActionsSingleton(self.statusBar(), self)
+        experiment_control = M_ActionsSingleton(status_bar=self.statusBar(), parent=self)
 
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar())
-        mould_control_tab = MouldControlTabWidget()
         sen_control_tab = QWidget()
 
         self.setCentralWidget(central_widget)
@@ -35,7 +33,6 @@ class MainWindow(QMainWindow):
         # Set the layout on the central widge
         tab_widget.setGeometry(0, 0, 500, 500)
         tab_widget.addTab(sensor_tab, "Sensors")
-        tab_widget.addTab(mould_control_tab, "Mould Control")
         tab_widget.addTab(sen_control_tab, "SEN Control")
 
         # Set the layout on the central widget
