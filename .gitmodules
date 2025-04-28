@@ -1,9 +1,6 @@
 [submodule "NCM_Viz/Mqtt/GenericMqtteLogger"]
 	path = NCM_Viz/Mqtt/GenericMqtteLogger
 	url = https://github.com/Mohawk-College-IIoT-Automation-Lab/GenericMqtteLogger.git
-[submodule "NI-DAQ/Mqtt/GenericMqtteLogger"]
-	path = NI-DAQ/Mqtt/GenericMqtteLogger
-	url = https://github.com/Mohawk-College-IIoT-Automation-Lab/GenericMqtteLogger.git
 [submodule "NI_DAQ/GenericMqtteLogger"]
 	path = NI_DAQ/GenericMqtteLogger
 	url = https://github.com/Mohawk-College-IIoT-Automation-Lab/GenericMqtteLogger.git
