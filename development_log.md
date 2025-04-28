@@ -66,5 +66,7 @@
 - Refactoring further.
 - Taking a break at 1530 until 1600
 - refactoring further.
+- Really getting into the weeds of the daq process, making it very configurable and a singleton, really hope it works so I don't have to redo it.
+- Currently 1700, stopping for a snack, then back to it.
 
 

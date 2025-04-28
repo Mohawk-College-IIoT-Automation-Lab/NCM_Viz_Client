@@ -19,28 +19,17 @@ class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
     Anemometer: SensorReadings
 
-
-
-    def write_segment(self, data:np.ndarray):
-        # Write filtered data segment to the TDMS file
-        list = []
-        for i in range(len(self._channel_names)):
-            # Apply median filter to the data
-            filtered_data = medfilt(data[i,:], kernel_size=5)
-        self._tdms_writer.write_segment(data)
-
-
 class DAQ_Config(BaseModel):
-    device_name: str
-    channels: list[str]
-    channel_names: list[str]
-    file_name: str
-    fs: int
-    fs_disp: int
-    output_freq: int
-    filter_config: int # no filt, lpf, hpf, bandpass, medfit
-    lpf_cutoff: int = 10
-    hpf_cutoff: int = 0
+    device_name: str = "Dev2"
+    channels: list[str] = ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"]
+    channel_names: list[str] = ["USD1", "USD2", "USD3", "USD4"]
+    file_name: str = "default.tdms"
+    fs: int = 2000
+    fs_disp: int = 15
+    output_freq: int = 1
+    filter_config: int = 0 # no filt, lpf, hpf, bandpass
+    lpf_cutoff: float = 500
+    hpf_cutoff: float = 0.01
     butter_order: int = 5
 
 class DAQ_Factory:
