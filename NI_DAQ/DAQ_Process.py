@@ -1,12 +1,15 @@
 from multiprocessing import Process
+import threading
 import time
-from .Mqtt.GenericMqtteLogger import GenericMQTT, Logger, LoggerSingleton
+from .GenericMqtteLogger import GenericMQTT, Logger, LoggerSingleton
 
 class DAQ_Process(Process):
     
     def __init__(self, name:str="Name", host_name:str="localhost", host_port:int=1883, logger:Logger=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mqtt_client = GenericMQTT(host_name, host_port, logger=logger)
+        self.mqtt_client = None
+        self.host_name = host_name
+        self.host_port = host_port
 
         if logger is None:
             self.logger = LoggerSingleton().logger
@@ -16,6 +19,7 @@ class DAQ_Process(Process):
         self.logger.debug(f"[NI DAQ] Process {name} initialized.")
 
         self._is_running = False
+        self._lock = None
         self.name = name
 
     def start(self):
@@ -38,6 +42,8 @@ class DAQ_Process(Process):
 
 
     def run(self):
+        self._lock = threading.Lock()
+        self.mqtt_client = GenericMQTT(self.host_name, self.host_port)
         while self._is_running:
             self.logger.debug(f"Process {self.name} is running.")
             # Call the target function here
