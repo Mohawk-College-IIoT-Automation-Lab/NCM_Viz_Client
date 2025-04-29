@@ -11,7 +11,6 @@ main = None
 def custom_exit(app: QApplication):
     app.exec_()
     daq_process.stop()
-    daq_process.join()
 
 if __name__ == '__main__':
     daq_process.start()

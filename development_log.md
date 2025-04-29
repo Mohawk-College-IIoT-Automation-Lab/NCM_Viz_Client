@@ -70,3 +70,11 @@
 - Currently 1700, stopping for a snack, then back to it.
 
 
+## 04-29-2025
+- Goal: Make the DAQ process work!
+- DAQ object has:
+	- Load from config
+	- Call backs
+- Everything compiles right now and throws minimal errors, but all of the structure is there, it should work. It's time to test
+
+
