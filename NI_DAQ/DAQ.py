@@ -30,16 +30,16 @@ class DAQ(GenericMQTT):
                  device_name:str="Dev2", 
                  channels:list[str]=["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"], 
                  channel_names:list[str] =["USD1", "USD2", "USD3", "USD4"], 
-                 file_name="default.tdms", 
-                 fs=2000, 
-                 fs_disp=15, 
-                 filter_config=1, 
-                 lpf_cutoff=500, 
-                 hpf_cutoff=0.01, 
-                 butter_order=5, 
-                 host_name="localhost", 
-                 host_port=1883, 
-                 logger=None):
+                 file_name:str="default.tdms", 
+                 fs:int=2000, 
+                 fs_disp:int=15, 
+                 filter_config:int=1, 
+                 lpf_cutoff:float=500.0, 
+                 hpf_cutoff:float=0.01, 
+                 butter_order:int=5, 
+                 host_name:str="localhost", 
+                 host_port:int=1883, 
+                 logger:Logger=None):
         
         super().__init__(host_name, host_port, logger)
 

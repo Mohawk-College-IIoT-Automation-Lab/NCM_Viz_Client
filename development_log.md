@@ -76,5 +76,10 @@
 	- Load from config
 	- Call backs
 - Everything compiles right now and throws minimal errors, but all of the structure is there, it should work. It's time to test
+- I noticed a weird behaviour in testing. Basically what is happening is that I init everything with a Log called "DAQ.log", but what is happening is that after the process is created (and likely after pickeling) it's overwriting it to default and creating a new log called "log.log" the default name
+	- Fixed it, I wasn't correctly setting the log name
+- I have a new weird behaviour now, it's creating a duplicate process.
+	- So it's connecting and everything works, but there are 2. I may need to make the process a singleton
+	
 
 

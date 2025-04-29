@@ -12,9 +12,6 @@ def custom_exit(app: QApplication):
     app.exec_()
     daq_process.stop()
 
-if __name__ == '__main__':
-    daq_process.start()
-
     app = QApplication(sys.argv)
     main = MainWindow()
     
