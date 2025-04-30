@@ -97,5 +97,14 @@
 - [ ] Figure out how to do make a start-up window that allows you to configure the DAQ and then start it.
 - [ ] Start to look into the SEN stuff
 
+## 04-30-2025
+- Integrated David's logger into the `GenericMQTTeLogger` repo
+- Working on adapting the rest of the code
+	- Should be done, need to test
+	- Found an issue with David's logger where:
+		- Defualt level was set too high
+		- Multiple set of handlers were being created and causing problems like duplicate messages
+- Added safe start up and close down using multiprocessing.Event
+
 
 

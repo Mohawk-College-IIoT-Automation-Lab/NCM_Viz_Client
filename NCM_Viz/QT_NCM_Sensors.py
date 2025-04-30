@@ -3,13 +3,12 @@ from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
 from .Mqtt.sensors_mqtt import SensorsMQTT
-from .Mqtt.GenericMqtteLogger import Logger
 from .QT_Custom_Graphs import Q2SensorsGraph
 
 
 class SensorGraphWidget(QWidget):
 
-    def __init__(self, status_bar:QStatusBar, parent=None, host_name:str="localhost", host_port:int=1883, logger:Logger=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, parent=None, log_name:str="Qt", host_name:str="localhost", host_port:int=1883, **kargs):
         super().__init__(parent, **kargs)
 
         main_h_box = QHBoxLayout(self)
@@ -38,7 +37,7 @@ class SensorGraphWidget(QWidget):
 
         self.setLayout(main_h_box)
 
-        self.sensor_m_qobject = SensorsMQTT(host_name, host_port, logger=logger)
+        self.sensor_m_qobject = SensorsMQTT(log_name, host_name, host_port)
         self.sensor_m_qobject.distance_data_ready.connect(self.update_usd_plot)
         self.sensor_m_qobject.anemometer_data_ready.connect(self.update_an_plot)
         

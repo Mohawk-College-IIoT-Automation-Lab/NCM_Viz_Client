@@ -1,4 +1,5 @@
-from .GenericMqtteLogger.generic_mqtt import GenericMQTT, Logger
+from .GenericMqtteLogger.generic_mqtt import GenericMQTT, initialize_logging
+import logging
 from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
 
@@ -20,15 +21,17 @@ class SensorsMQTT(GenericMQTT, QObject):
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
     
-    def __init__(self, host_address:str="localhost", host_port:int=1883, logger:Logger=None, parent=None):
+    def __init__(self, log_name:str="Qt", host_name:str="localhost", host_port:int=1883, parent=None):
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, host_address, host_port, logger)
+        GenericMQTT.__init__(self, log_name=log_name, host_name=host_name, host_port=host_port)
 
-        self.logger.debug("Creating SensorsMQTT object")
+        initialize_logging(process_name=log_name, broker=host_name, port=host_port)
+
+        logging.debug("Creating SensorsMQTT object")
 
         self.display_data_topic = "NCM/SensorData"
 
-        self.logger.debug(f"Subscribing to topic: {self.display_data_topic}")
+        logging.debug(f"Subscribing to topic: {self.display_data_topic}")
         
         self.mqtt_client.message_callback_add(self.display_data_topic, self.mqtt_display_callback)
         self.mqtt_client.subscribe(self.display_data_topic)
@@ -38,10 +41,10 @@ class SensorsMQTT(GenericMQTT, QObject):
             payload = json.load(message.payload.decode())
             sensor_data = SensorData(**payload)
 
-            self.logger.info(f"[MQTT][SensorData] Received data: {sensor_data}")
+            logging.info(f"[MQTT][SensorData] Received data: {sensor_data}")
 
             self.distance_data_ready.emit(sensor_data.Ultra_Sonic_Distance.LL, sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
             self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
             
         except json.JSONDecodeError:
-            self.logger.error(f"[MQTT][SensorData] Failed to decode JSON payload: {message.payload.decode()}")
+            logging.error(f"[MQTT][SensorData] Failed to decode JSON payload: {message.payload.decode()}")

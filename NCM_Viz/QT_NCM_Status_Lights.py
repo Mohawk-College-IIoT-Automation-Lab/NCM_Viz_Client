@@ -4,19 +4,18 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStatusBar, QSizePolicy
 from .Transform import Size
 from .Mqtt.status_lights_mqtt import StatusLightsMqtt
-from .Mqtt.GenericMqtteLogger import Logger
 
 class StatusWidget(QWidget):
 
     ELAPSED_SIZE = Size(200, 25)
 
-    def __init__(self, status_bar:QStatusBar, alarm_name_1:str="alarm1", alarm_name_2:str="alarm2", alarm_name_3:str="alarm3", alarm_name_4:str="alarm4", host_name:str="localhost", host_port:int=1883, logger:Logger=None, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, alarm_name_1:str="alarm1", alarm_name_2:str="alarm2", alarm_name_3:str="alarm3", alarm_name_4:str="alarm4", log_name:str="Qt", host_name:str="localhost", host_port:int=1883, parent=None, **kargs):
         super().__init__(parent, **kargs)
 
         self.central_layout = QVBoxLayout(self)
         self.experiment_layout = QHBoxLayout()
         self.alarms_layout = QHBoxLayout()
-        self.mqtt_client = StatusLightsMqtt(host_name, host_port, logger=logger)
+        self.mqtt_client = StatusLightsMqtt(log_name, host_name, host_port)
 
         alarm1 = AlarmLabel(alarm_name_1)
         alarm2 = AlarmLabel(alarm_name_2)
