@@ -1,16 +1,29 @@
 from PyQt5.QtWidgets import QToolBar, QMainWindow, QMenuBar, QStatusBar
-from .Mqtt.actions_mqtt import Actions
+from .Mqtt.actions_mqtt import ActionsMQTT
 from Constants.configs import LoggerConfig
 
 class M_QToolBar(QToolBar):
-    def __init__(self, title:str, parent:QMainWindow, status_bar:QStatusBar, logger_confgi:LoggerConfig):
-        super().__init__(title, parent)
-        self.setMovable(False)
-        self.setFloatable(False)
+    def __init__(self, parent:QMainWindow, status_bar:QStatusBar, logger_config:LoggerConfig):
+        super().__init__(parent)
 
-        actions_inst = Actions.get_instance()
+        actions_inst = ActionsMQTT.get_instance(status_bar=status_bar, logger_config=logger_config)
+
+        self.addAction(actions_inst.start_exp_action)
+        self.addAction(actions_inst.stop_exp_action)
 
 
 class M_QMenuBar(QMenuBar):
-    def __init__(self, title:str, parent:QMainWindow):
+    def __init__(self, parent:QMainWindow, status_bar:QStatusBar, logger_config:LoggerConfig):
         super().__init__(parent)
+
+        actions_inst = ActionsMQTT.get_instance(status_bar=status_bar, logger_config=logger_config)
+
+        file_menu = self.addMenu("File")
+        exp_menu = self.addMenu("Experiment")
+        mould_menu = self.addMenu("Mould")
+
+        file_menu.addAction(actions_inst.quit_action)
+        file_menu.addAction(actions_inst.help_action)
+
+        exp_menu.addAction(actions_inst.start_exp_action)
+        exp_menu.addAction(actions_inst.stop_exp_action)
