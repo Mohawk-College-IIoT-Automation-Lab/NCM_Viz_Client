@@ -84,7 +84,18 @@
 - Current state, the process is a starts, stops safely, is a singleton
 	- need to test full functionality
 	- connect it to the gui
+- adjusted main.py to start the daq process correctly and kill it correclty
+- it's getting very close, tomorrow I should be able to complete everything and then start doing some testing.
 
+### To-do - tomorrow:
+- [ ] Full functionality test, either with mosquitto_pub/sub or the app
+- [ ] Connect the data sources to each other
+- [ ] Finish implementing all the graphs
+- [ ] Let it run for a while
+- [ ] Make a seperate file for SensorData & other base models
+- [ ] Clean up and improve
+- [ ] Figure out how to do make a start-up window that allows you to configure the DAQ and then start it.
+- [ ] Start to look into the SEN stuff
 
 
 
