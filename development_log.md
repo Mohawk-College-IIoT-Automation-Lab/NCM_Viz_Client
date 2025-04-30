@@ -105,6 +105,16 @@
 		- Defualt level was set too high
 		- Multiple set of handlers were being created and causing problems like duplicate messages
 - Added safe start up and close down using multiprocessing.Event
+- Logging is working and everything starts!
+- Made a logger and daq config and moved the base models
+- turning all the mqtt stuff into singletons and adapting the configs
+	- Actions
+	- SensorsMQTT
+	- StatusLightsMQTT
+- Switching to absolute import and running with `python -m main.py`
+- Fixed many bugs
+- Adapted more or less everything to some sort of config file
+- Everything starts up nicely, and seems to be working. Need to finish implementing actions so I can do full func testing.
 
 
 

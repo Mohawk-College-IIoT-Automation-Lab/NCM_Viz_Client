@@ -4,23 +4,24 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStatusBar, QSizePolicy
 from .Transform import Size
 from .Mqtt.status_lights_mqtt import StatusLightsMqtt
+from Constants.configs import StatusLightsConfig, LoggerConfig, MQTTConfig
 
 class StatusWidget(QWidget):
 
     ELAPSED_SIZE = Size(200, 25)
 
-    def __init__(self, status_bar:QStatusBar, alarm_name_1:str="alarm1", alarm_name_2:str="alarm2", alarm_name_3:str="alarm3", alarm_name_4:str="alarm4", log_name:str="Qt", host_name:str="localhost", host_port:int=1883, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, status_lights_config:StatusLightsConfig = StatusLightsConfig, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
-
+        self.status_light_config = status_lights_config
         self.central_layout = QVBoxLayout(self)
         self.experiment_layout = QHBoxLayout()
         self.alarms_layout = QHBoxLayout()
-        self.mqtt_client = StatusLightsMqtt(log_name, host_name, host_port)
+        self.mqtt_client = StatusLightsMqtt(status_lights_config=status_lights_config, logger_config=logger_config)
 
-        alarm1 = AlarmLabel(alarm_name_1)
-        alarm2 = AlarmLabel(alarm_name_2)
-        alarm3 = AlarmLabel(alarm_name_3)
-        alarm4 = AlarmLabel(alarm_name_4)
+        self.alarm_labels = []
+
+        for an in status_lights_config.alarm_names:
+            self.alarm_labels.append(AlarmLabel(an))
 
         experiment_status = AlarmLabel("Experiment Status")
         self.experiment_timer = QLabel("Experiment Timer")
@@ -28,26 +29,24 @@ class StatusWidget(QWidget):
         self.experiment_timer.setMinimumSize(StatusWidget.ELAPSED_SIZE.w, StatusWidget.ELAPSED_SIZE.h)
         self.experiment_timer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.mqtt_client.alarm_signal_1.connect(alarm1.set_state)
-        self.mqtt_client.alarm_signal_2.connect(alarm2.set_state)
-        self.mqtt_client.alarm_signal_3.connect(alarm3.set_state)
-        self.mqtt_client.alarm_signal_4.connect(alarm4.set_state)
-
+        self.mqtt_client.alarm_signal.connect(self.alarm_status_set)
         self.mqtt_client.experiment_running.connect(experiment_status.set_state)
         self.mqtt_client.experiment_elapsed_time.connect(self.set_experiment_time)
 
-        self.alarms_layout.addWidget(alarm1)
-        self.alarms_layout.addWidget(alarm2)
-        self.alarms_layout.addWidget(alarm3)
-        self.alarms_layout.addWidget(alarm4)
-
+        for a in self.alarm_labels:
+            self.alarms_layout.addWidget(a)
         self.experiment_layout.addWidget(experiment_status)
         self.experiment_layout.addWidget(self.experiment_timer)
 
         self.central_layout.addLayout(self.experiment_layout)
         self.central_layout.addLayout(self.alarms_layout)
 
-        # self.mqtt_alarms.mqtt_connect()
+    @pyqtSlot(str, bool)
+    def alarm_status_set(self, alarm_name:str, status:bool):
+        for al in self.alarm_labels:
+            if alarm_name in al:
+                al.set_state(status)
+
 
     @pyqtSlot(int)
     def set_experiment_time(self, elapsed_time:int):

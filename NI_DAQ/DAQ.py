@@ -14,33 +14,10 @@ import logging
 import asyncio
 from multiprocessing import Event
 
+from Constants.base_models import SensorData, SensorReadings
+from Constants.configs import DAQConfig, FilterConfig, LowPassConfig, HighPassConfig, BandPassConfig
 from .GenericMqtteLogger.davids_logger import initialize_logging
 from .GenericMqtteLogger.generic_mqtt import GenericMQTT  # For MQTT communication
-
-class SensorReadings(BaseModel):
-    LL: float
-    LQ: float
-    RR: float
-    RQ: float
-    
-class SensorData(BaseModel):
-    Ultra_Sonic_Distance: SensorReadings
-    Anemometer: SensorReadings
-
-class DAQConfig(BaseModel):
-    log_name: str = "DAQ"
-    device_name: str = "Dev2"
-    channels: List[str] = ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"]
-    channel_names: List[str] = ["USD1", "USD2", "USD3", "USD4"]
-    file_name: str = "default.tdms"
-    fs: int = 2000
-    fs_disp: int = 15
-    filter_config: int = 1
-    lpf_cutoff: float = 500.0
-    hpf_cutoff: float = 0.01
-    butter_order: int = 5
-    host_name: str = "localhost"
-    host_port: int = 1883
 
 class DAQ(GenericMQTT):
 
@@ -48,7 +25,7 @@ class DAQ(GenericMQTT):
     _instance = None
 
     @classmethod
-    def get_instance(cls, config: DAQConfig):
+    def get_instance(cls, config: DAQConfig = DAQConfig):
         if cls._instance is None:
             cls._instance = cls(config)
         return cls._instance
@@ -59,34 +36,15 @@ class DAQ(GenericMQTT):
             return
         
         self._initialized = True
-    
         self._config = config
-        self._log_name = config.log_name
-        self._device_name = config.device_name
-        self._channels = config.channels
-        self._channel_names = config.channel_names
-        self._file_name = config.file_name
-        self._fs = config.fs
-        self._fs_disp = config.fs_disp
-        self._filter_config = config.filter_config
-        self._lpf_cutoff = config.lpf_cutoff
-        self._hpf_cutoff = config.hpf_cutoff
-        self._butter_order = config.butter_order
 
-        super().__init__(self._config.log_name, self._config.host_name, self._config.host_port)
+        super().__init__(log_name=config.log_config.log_name, host_name=config.mqtt_config.host_name, host_port=config.mqtt_config.host_port)
         logging.debug("[DAQ] Initializing DAQ...")
 
         # Calculate the sample rate and buffer sizes
-        self._fs_sample = self._fs * 2
-        self._buffer_size = int(self._fs_sample / self._fs_disp) + 1
-        logging.debug(f"[DAQ][init] Fs: {self._fs}, Fs Sample: {self._fs_sample}, Fs Disp: {self._fs_disp}, Buffer Size: {self._buffer_size}")
-
-        # Calculate the filter parameters
-        self._low = self._lpf_cutoff / self._fs
-        self._high = self._hpf_cutoff / self._fs
-        self._filt_params = [self._low, self._high]
-        logging.debug(f"[DAQ][init] Low: {self._lpf_cutoff} : {self._low}, High: {self._hpf_cutoff} : {self._high}")
-        logging.debug(f"[DAQ][init] Filter Config: {self._filter_config}")
+        self._fs_sample = config.fs * 2
+        self._buffer_size = int(self._fs_sample / config.fs_disp) + 1
+        logging.debug(f"[DAQ][init] Fs: {config.fs}, Fs Sample: {self._fs_sample}, Fs Disp: {config.fs_disp}, Buffer Size: {self._buffer_size}")
 
         # Place holders for the filter coefficients
         self._a = None
@@ -102,6 +60,7 @@ class DAQ(GenericMQTT):
         self._root_obj = RootObject(properties={"description": "NIDAQmx Acquisition"})  # TDMS root metadata
 
         # Place holders for the tdms file and writer
+        self._file_name = config.file_name
         self._tdms_file = None
         self._tdms_writer = None
 
@@ -110,14 +69,14 @@ class DAQ(GenericMQTT):
         self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(self._task.in_stream)  # Efficient streaming reader
 
         # Condigure the ni-daqmx task and add channels
-        for c in self._channels:
+        for c in config.channels:
             self._task.ai_channels.add_ai_voltage_chan(c)
         self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
         self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
 
         # setup buffers for raw and filtered data
-        self._raw_data_buffer = np.zeros((len(self._channels), self._buffer_size), dtype=np.float32)
-        self._filter_data_buffer = np.zeros((len(self._channels), self._buffer_size), dtype=np.float32)
+        self._raw_data_buffer = np.zeros((len(config.channels), self._buffer_size), dtype=np.float32)
+        self._filter_data_buffer = np.zeros((len(config.channels), self._buffer_size), dtype=np.float32)
 
         logging.debug(f"[DAQ][init] Connecting to MQTT")
         self.mqtt_connect()
@@ -145,7 +104,8 @@ class DAQ(GenericMQTT):
         data = json.loads(message.payload.decode())
         file_name = data.get("file_name", None)
         if file_name is not None:
-            self.rename_file(file_name)
+            self.stop_recording()
+            self._new_tdms(file_name)
         else:
             logging.error("[DAQ] File name is None. Cannot rename TDMS file.")
             Exception("File name is None. Cannot rename TDMS file.")
@@ -194,18 +154,7 @@ class DAQ(GenericMQTT):
         except Exception as e:
             logging.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
 
-    def close(self):
-        # Close the DAQ task
-        logging.debug("[DAQ] Closing DAQ task...")
-        self._task.close()
-        
-        logging.debug("[DAQ] Disconnecting from MQTT...")
-        self.mqtt_disconnect()
-
-        logging.debug("[DAQ] Closing TDMS file...")
-        self._close_tdms()
-
-    def start_recording(self):
+    def _start_recording(self, filename:str="default"):
         if self._task.is_task_done():
             logging.debug("[DAQ] Starting DAQ task and creating TDMS")
             self._new_tdms(self._config.file_name)
@@ -213,25 +162,10 @@ class DAQ(GenericMQTT):
         else:
             logging.debug("[DAQ] DAQ task is already running.")
 
-    def stop_recording(self):
+    def _stop_recording(self):
         logging.debug("[DAQ] Stopping DAQ task...")
         self._task.stop()
         self._close_tdms()
-
-    def rename_file(self, file_name: str):
-        logging.debug(f"[DAQ] Renaming TDMS file to: {file_name}")
-        if file_name is None:
-            logging.error("[DAQ] File name is None. Cannot rename TDMS file.")
-            raise ValueError("File name is None. Cannot rename TDMS file.")
-        elif not self.is_recording:
-            logging.error("[DAQ] Cannot rename TDMS while recording.")
-            raise Exception("Cannot rename TDMS while recording.")
-        else:
-            self._close_tdms()
-            if ".log" not in file_name:
-                file_name += ".log"
-            self._file_name = file_name
-            self._new_tdms(self._file_name)
 
     async def publish(self, topic: str, payload: str):
         if self.connected:
@@ -248,31 +182,37 @@ class DAQ(GenericMQTT):
             channel_objects = []
 
             for i in range(len(self._channel_names)):
-                channel_objects.append(ChannelObject(self._raw_group_obj, self._channel_names[i], raw[i, :]))
-                channel_objects.append(ChannelObject(self._filter_group_obj, self._channel_names[i], filtered[i, :]))
+                channel_objects.append(ChannelObject(self._raw_group_obj, self._config.channel_names[i], raw[i, :]))
+                channel_objects.append(ChannelObject(self._filter_group_obj, self._config.channel_names[i], filtered[i, :]))
             
             self._tdms_writer.write_segment(channel_objects)
         except Exception as e:
             logging.error(f"[DAQ] TDMS Writing exceptions : {e}")
 
     def _setup_filter(self):
-        logging.debug(f"[DAQ] Setting up filter with config: {self._filter_config}")
-        if self._filter_config == 0:
+        logging.debug(f"[DAQ] Setting up filter with config: {self._config.filter_config.type}")
+        low = self._config.filter_config.lpf_cutoff / self._config.fs
+        high = self._config.filter_config.hpf_cutoff / self._config.fs
+
+        if self._config.filter_config.__class__ == FilterConfig:
             # No filter
             self._a = None
             self._b = None
-        elif self._filter_config == 1:
-            # Low-pass filter
-            self._create_lowpass_filter()
-        elif self._filter_config == 2:
-            # High-pass filter
-            self._create_highpass_filter()
-        elif self._filter_config == 3:
-            # Band-pass filter
-            self._create_bandpass_filter()
-        else:
-            logging.error(f"[DAQ] Invalid filter configuration: {self._filter_config}")
-            raise ValueError(f"Invalid filter configuration : {self._filter_config}")
+            low = 0
+            high = 0
+
+        elif self._config.filter_config.__class__ == BandPassConfig:
+            b, a = butter(self._config.filter_config.order, [high, low], btype='bandpass') 
+
+        elif self._config.filter_config.__class__ == LowPassConfig:
+            b, a = butter(self._config.filter_config.order, [low], btype='lowpass') 
+
+        elif self._config.filter_config.__class__ == BandPassConfig:
+            b, a = butter(self._config.filter_config.order, [high], btype='highpass') 
+    
+        self._a = a
+        self._b = b
+        logging.debug(f"[DAQ][init] Low: {self._config.filter_config.lpf_cutoff} : {low}, High: {self._config.filter_config.hpf_cutoff} : {high} created")
         
     def _filter_data(self, data: np.ndarray):
         if self._a is not None and self._b is not None:
@@ -281,29 +221,22 @@ class DAQ(GenericMQTT):
             return filtered_data
         else:
             return data
-        
-    def _create_bandpass_filter(self):
-        b, a = butter(self._butter_order, self._filt_params, btype='band')
-        self._a = a
-        self._b = b
-        logging.debug(f"[DAQ] Bandpass filter created with params: {self._filt_params}")
-
-    def _create_lowpass_filter(self):
-        b, a = butter(self._butter_order, self._low, btype='low')
-        self._a = a
-        self._b = b
-        logging.debug(f"[DAQ] Lowpass filter created with params: {self._low}")
-
-    def _create_highpass_filter(self):
-        b, a = butter(self._butter_order, self._high, btype='high')
-        self._a = a
-        self._b = b
-        logging.debug(f"[DAQ] Highpass filter created with params: {self._high}")
 
     @classmethod
     def stop(cls, stop_event:Event): # type: ignore
         stop_event.set()
         print("stop")
+
+    def close(self):
+        # Close the DAQ task
+        logging.debug("[DAQ] Closing DAQ task...")
+        self._task.close()
+        
+        logging.debug("[DAQ] Disconnecting from MQTT...")
+        self.mqtt_disconnect()
+
+        logging.debug("[DAQ] Closing TDMS file...")
+        self._close_tdms()
 
     @classmethod
     def run(cls, daq_config : DAQConfig, stop_event:Event): # type: ignore

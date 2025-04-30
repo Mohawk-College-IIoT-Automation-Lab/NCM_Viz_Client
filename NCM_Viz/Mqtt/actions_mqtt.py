@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
-from .Mqtt.GenericMqtteLogger import GenericMQTT
+from .GenericMqtteLogger import GenericMQTT
 import logging
+from Constants.configs import LoggerConfig, MQTTConfig
 
-class Actions(QObject):
+class Actions(GenericMQTT, QObject):
 
     start_exp_signal = pyqtSignal()
     stop_exp_signal = pyqtSignal()
@@ -26,8 +27,22 @@ class Actions(QObject):
     sen_full_open_signal = pyqtSignal()
     sen_full_closed_signal = pyqtSignal()
 
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, status_bar: QStatusBar, parent=None, logger_config:LoggerConfig=LoggerConfig):
+        if cls._instance is None:
+            cls._instance = cls(status_bar, parent, logger_config.log_name, logger_config.mqtt_config.host_name, logger_config.mqtt_config.host_port)
+        return cls._instance
+
     def __init__(self, status_bar:QStatusBar, parent=None, log_name:str="Qt", host_name:str="localhost", host_port:int=1883):
-        super().__init__(parent)
+        if Actions._instance is not None:
+            logging.error("[QT][Actions] Runtime Error: Trying to re-init Actions. use Actions.get_instance(...)")
+            raise RuntimeError("Use Actions.get_instance() to access the singleton.")
+        
+        QObject().__init__(parent)
+        GenericMQTT(log_name=log_name, host_name=host_name, host_port=host_port)
+
         self.status_bar = status_bar
         self.mqtt_client = GenericMQTT(log_name, host_name, host_port)
         logging.debug("Creating M_ActionsSingleton object")

@@ -5,27 +5,33 @@ from PyQt5.QtCore import pyqtSignal, QObject
 
 import json
 from pydantic import BaseModel
+from Constants.base_models import SensorData, SensorReadings
+from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig
 
-class SensorReadings(BaseModel):
-    LL: float
-    LQ: float
-    RR: float
-    RQ: float
-    
-class SensorData(BaseModel):
-    Ultra_Sonic_Distance: SensorReadings
-    Anemometer: SensorReadings
 
 class SensorsMQTT(GenericMQTT, QObject):
 
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
-    
-    def __init__(self, log_name:str="Qt", host_name:str="localhost", host_port:int=1883, parent=None):
-        QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, log_name=log_name, host_name=host_name, host_port=host_port)
 
-        initialize_logging(process_name=log_name, broker=host_name, port=host_port)
+    _instance = None
+
+    @classmethod
+    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, sensors_config:SensorsConfig = SensorsConfig, parent=None):
+        if cls._instance is None:
+            cls._instance = cls(logger_config, parent)
+        return cls._instance
+
+    def __init__(self, logger_config:LoggerConfig, sensors_config:SensorsConfig, parent=None):
+
+        if SensorsMQTT._instance is not None:
+            logging.error("[QT][Sensors] Runtime Error: Trying to re-init Sensors. use SensorsMQTT.get_instance(...)")
+            raise RuntimeError("Use SensorsMQTT.get_instance() to access the singleton.")
+        
+        QObject.__init__(self, parent)
+        GenericMQTT.__init__(self, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+
+        initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
 
         logging.debug("Creating SensorsMQTT object")
 

@@ -2,39 +2,47 @@ from .GenericMqtteLogger.generic_mqtt import GenericMQTT, initialize_logging
 import logging
 from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
+from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsConfig
 
 class StatusLightsMqtt(GenericMQTT, QObject):
 
-    alarm_signal_1 = pyqtSignal(bool)
-    alarm_signal_2 = pyqtSignal(bool)
-    alarm_signal_3 = pyqtSignal(bool)
-    alarm_signal_4 = pyqtSignal(bool)
-
+    alarm_signal = pyqtSignal(str, bool)
     experiment_running = pyqtSignal(bool)
     experiment_elapsed_time = pyqtSignal(int)
+
+    _instance = None
     
-    def __init__(self, log_name:str="Qt", host_name:str="localhost", host_port:int=1883, parent=None):
+    @classmethod
+    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, status_lights_config:StatusLightsConfig = StatusLightsConfig, parent=None):
+        if cls._instance is None:
+            cls._instance = cls(logger_config, status_lights_config, parent)
+        return cls._instance
+
+    def __init__(self, logger_config:LoggerConfig, status_lights_config:StatusLightsConfig, parent=None):
+
+        if StatusLightsMqtt._instance is not None:
+            logging.error("[QT][Status Lights] Runtime Error: Trying to re-init Status Lights. use StatusLightsMqtt.get_instance(...)")
+            raise RuntimeError("Use StatusLightsMqtt.get_instance() to access the singleton.")
 
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, log_name=log_name, host_name=host_name, host_port=host_port)
+        GenericMQTT.__init__(self, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
 
-        initialize_logging(process_name=log_name, broker=host_name, port=host_port)
+        initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
+
         logging.debug("Creating StatusLightsMqtt object")
 
-        self.alarm_base_topic = "NCM/Alarm/"
-        self.alarm_topcis = [f"{self.alarm_base_topic}Alarm{i}" for i in range(1, 4)]
+        self.status_lights_config = status_lights_config
 
-        self.experiment_base_topic = "NCM/ExperimentControl/" # all experiment control topics
-        self.experiment_topics = [f"{self.experiment_base_topic}Running", f"{self.experiment_base_topic}ElapsedTime"]
-
-        for topic in self.alarm_topcis:
+        for topic in status_lights_config.alarm_topics:
+            topic = f"{status_lights_config.alarm_base_topic}{topic}"
             logging.debug(f"Subscribing to topic: {topic}")
             self.mqtt_client.message_callback_add(topic, self.mqtt_alarm_callback)
             self.mqtt_client.subscribe(topic)
 
-        for topic in self.experiment_topics:
+        for topic in status_lights_config.experiment_topics:
+            topic = f"{status_lights_config.experiment_base_topic}{topic}"
             logging.debug(f"Subscribing to topic: {topic}")
-            self.mqtt_client.message_callback_add(topic, self.mqtt_alarm_callback)
+            self.mqtt_client.message_callback_add(topic, self.mqtt_experiment_callback)
             self.mqtt_client.subscribe(topic)
     
     def mqtt_experiment_callback(self, client:Client, userdata, message:MQTTMessage):
@@ -53,21 +61,11 @@ class StatusLightsMqtt(GenericMQTT, QObject):
             self._mqtt_default_callback(client, userdata, message)
 
     def mqtt_alarm_callback(self, client:Client, userdata, message:MQTTMessage):
-        if message.topic == "Alarm1":
-            self.alarm_signal_1.emit(bool(message.payload))
-            logging.info(f"[MQTT][Alarm1] Received data: {message.payload}")
-
-        elif message.topic == "Alarm2":
-            self.alarm_signal_2.emit(bool(message.payload))
-            logging.info(f"[MQTT][Alarm2] Received data: {message.payload}")
-
-        elif message.topic == "Alarm3":
-            self.alarm_signal_3.emit(bool(message.payload))
-            logging.info(f"[MQTT][Alarm3] Received data: {message.payload}")
-
-        elif message.topic == "Alarm4":
-            self.alarm_signal_4.emit(bool(message.payload))
-            logging.info(f"[MQTT][Alarm4] Received data: {message.payload}")
-            
+        for word in self.status_lights_config.alarm_topics:
+            if word in message.topic:
+                self.alarm_signal.emit(word, message.payload.decode())
+                logging.warning(f"[QT][Status Lights][MQTT] Alarm: {word} status: {message.payload.decode()}")
+                return 
         else:
+            logging.debug(f"[QT][Status Lights][MQTT] Missed a message?")
             self._mqtt_default_callback(client, userdata, message)

@@ -1,19 +1,14 @@
 from PyQt5.QtWidgets import QApplication
 from NCM_Viz.NCM_Mainwindow import MainWindow
-from NI_DAQ.DAQ import DAQConfig, DAQ, initialize_logging
+from NI_DAQ.DAQ import DAQ, initialize_logging
+from Constants import DAQConfig, LoggerConfig, MQTTConfig
 import logging
 import sys, signal
 
 from multiprocessing import set_start_method, Event, Process
 
 
-app = None
-main = None
-stop_event = None
-daq_config = DAQConfig(log_name="DAQ", host_name="10.4.8.5", host_port=1883)
-
-
-def gui_process_callback(exit_event: Event, log_name:str="Qt", host_name:str="localhost", host_port:int=1883):
+def gui_process_callback(logger_config:LoggerConfig, exit_event: Event):
     def handle_sigint(*args):
         print("Ctrl+C detected in GUI. Signaling parent...")
         exit_event.set()
@@ -22,38 +17,33 @@ def gui_process_callback(exit_event: Event, log_name:str="Qt", host_name:str="lo
     signal.signal(signal.SIGINT, handle_sigint)
 
     app = QApplication(sys.argv)
-    window = MainWindow(log_name=log_name, host_name=host_name, host_port=host_port, exit_event=exit_event)
+    window = MainWindow(logger_config=logger_config, exit_event=exit_event)
     window.show()
 
     sys.exit(app.exec_())
 
 
-def custom_exit():
-    stop_event.set()
-    logging.debug("[Main] Exitting fom life")
-    return 0
-
 if __name__ == "__main__":
 
     set_start_method("spawn") # Requird for Py QT on Windows
 
-    host = str("10.4.8.5")
-    port = 1883
+    mqtt_config = MQTTConfig(host_name="10.4.8.5", host_port=1883)
 
-    initialize_logging(process_name="Main", broker=host, port=port)
+    initialize_logging(process_name="Main", broker=mqtt_config.host_name, port=mqtt_config.host_port)
 
     logging.debug(f"[Main] Main initialized. ")
-    
-
     stop_event = Event()
 
     logging.debug(f"[Main] Starting DAQ Process")
+    daq_logger = LoggerConfig(log_name="DAQ", mqtt_config=mqtt_config)
+    daq_config = DAQConfig(log_config=daq_logger, mqtt_config=mqtt_config)
     daq_process = Process(target=DAQ.run, args=(daq_config,stop_event))
     daq_process.start()
 
     
     logging.debug(f"[Main] Starting QApp and Mainwindow")
-    gui_process = Process(target=gui_process_callback, args=(stop_event, "Qt", host, port))
+    gui_logger = LoggerConfig(log_name="Qt", mqtt_config=mqtt_config)
+    gui_process = Process(target=gui_process_callback, args=(gui_logger, stop_event))
     gui_process.start()
 
     stop_event.wait()
