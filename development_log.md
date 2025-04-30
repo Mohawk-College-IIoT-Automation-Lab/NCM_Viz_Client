@@ -80,6 +80,11 @@
 	- Fixed it, I wasn't correctly setting the log name
 - I have a new weird behaviour now, it's creating a duplicate process.
 	- So it's connecting and everything works, but there are 2. I may need to make the process a singleton
-	
+	- I figured it out with some help from buddy gpt.
+- Current state, the process is a starts, stops safely, is a singleton
+	- need to test full functionality
+	- connect it to the gui
+
+
 
 

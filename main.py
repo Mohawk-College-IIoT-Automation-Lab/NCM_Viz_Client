@@ -3,17 +3,28 @@ from NCM_Viz.NCM_Mainwindow import MainWindow
 from NI_DAQ import DAQ_Process
 import sys
 
-daq_process = DAQ_Process()
+from multiprocessing import set_start_method
+
 
 app = None
 main = None
+daq = None
 
 def custom_exit(app: QApplication):
     app.exec_()
-    daq_process.stop()
+
+    return 0
+    
+if __name__ == "__main__":
+
+    set_start_method("spawn") # Requird for Py QT on Windows
 
     app = QApplication(sys.argv)
     main = MainWindow()
+    daq = DAQ_Process("DAQ", "10.4.8.5", 1883)
+
+    daq.start()
     
     main.show()
-    sys.exit(custom_exit(app))
+    sys.exit(custom_exit())
+

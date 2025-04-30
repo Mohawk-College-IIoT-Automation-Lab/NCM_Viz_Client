@@ -8,8 +8,10 @@ from nptdms import TdmsWriter, ChannelObject, RootObject, GroupObject  # For TDM
 
 import json
 from pydantic import BaseModel
+from typing import List
 
 import asyncio
+from multiprocessing import Event
 
 from .GenericMqtteLogger.logger import Logger
 from .GenericMqtteLogger.generic_mqtt import GenericMQTT  # For MQTT communication
@@ -24,37 +26,52 @@ class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
     Anemometer: SensorReadings
 
+class DAQConfig(BaseModel):
+    device_name: str = "Dev2"
+    channels: List[str] = ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"]
+    channel_names: List[str] = ["USD1", "USD2", "USD3", "USD4"]
+    file_name: str = "default.tdms"
+    fs: int = 2000
+    fs_disp: int = 15
+    filter_config: int = 1
+    lpf_cutoff: float = 500.0
+    hpf_cutoff: float = 0.01
+    butter_order: int = 5
+    host_name: str = "localhost"
+    host_port: int = 1883
+
 class DAQ(GenericMQTT):
 
-    def __init__(self, 
-                 device_name:str="Dev2", 
-                 channels:list[str]=["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"], 
-                 channel_names:list[str] =["USD1", "USD2", "USD3", "USD4"], 
-                 file_name:str="default.tdms", 
-                 fs:int=2000, 
-                 fs_disp:int=15, 
-                 filter_config:int=1, 
-                 lpf_cutoff:float=500.0, 
-                 hpf_cutoff:float=0.01, 
-                 butter_order:int=5, 
-                 host_name:str="localhost", 
-                 host_port:int=1883, 
-                 logger:Logger=None):
-        
-        super().__init__(host_name, host_port, logger)
+    _running = False
+    _instance = None
 
-        self.logger.debug("[DAQ] Initializing DAQ...")
+    @classmethod
+    def get_instance(cls, config: DAQConfig):
+        if cls._instance is None:
+            cls._instance = cls(config, Logger("DAQ"))
+        return cls._instance
+
+    def __init__(self, config: DAQConfig, logger: Logger = None):
+
+        if getattr(self, '_initialized', False):
+            return
         
-        self._device_name = device_name
-        self._channels = channels
-        self._channel_names = channel_names
-        self._file_name = file_name
-        self._fs = fs
-        self._fs_disp = fs_disp
-        self._filter_config = filter_config
-        self._lpf_cutoff = lpf_cutoff
-        self._hpf_cutoff = hpf_cutoff
-        self._butter_order = butter_order
+        self._initialized = True
+    
+        self._config = config
+        self._device_name = config.device_name
+        self._channels = config.channels
+        self._channel_names = config.channel_names
+        self._file_name = config.file_name
+        self._fs = config.fs
+        self._fs_disp = config.fs_disp
+        self._filter_config = config.filter_config
+        self._lpf_cutoff = config.lpf_cutoff
+        self._hpf_cutoff = config.hpf_cutoff
+        self._butter_order = config.butter_order
+
+        super().__init__(self._config.host_name, self._config.host_port, logger)
+        self.logger.debug("[DAQ] Initializing DAQ...")
 
         # Calculate the sample rate and buffer sizes
         self._fs_sample = self._fs * 2
@@ -138,7 +155,7 @@ class DAQ(GenericMQTT):
         self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
 
         # Write to TDMS in a coroutine
-        asyncio.run(self._write_tdms(self._raw_data_buffer, self._filter_data_buffer))
+        asyncio.create_task(self._write_tdms(self._raw_data_buffer, self._filter_data_buffer))
 
         # Calculate display avg
         avg = np.mean(self._filter_data_buffer, axis=0)
@@ -150,20 +167,29 @@ class DAQ(GenericMQTT):
         )
         
         # push to mqtt
-        asyncio.run(self.mqtt_client.publish("NCM/DisplayData", sensor_data.model_dump_json()))
+        asyncio.create_task(self.mqtt_client.publish("NCM/DisplayData", sensor_data.model_dump_json()))
 
     def _new_tdms(self, file_name: str):
-        self.logger.debug(f"[DAQ] Creating new TDMS file: {file_name}")
-        self._file_name = file_name
-        self._tdms_file = open(self._file_name, 'wb')
-        self._tdms_writer = TdmsWriter(self._tdms_file)
-        self._tdms_writer.write_segment([self._root_obj, self._group_obj])
+        self.logger.debug(f"[DAQ] Trying to cerate TDMS file {self._file_name}")
+        try:
+            self._file_name = file_name
+            self._tdms_file = open(self._file_name, 'wb')
+            self._tdms_writer = TdmsWriter(self._tdms_file)
+            self._tdms_writer.write_segment([self._root_obj, self._group_obj])
+            self.logger.debug(f"[DAQ] Created new TDMS file: {file_name}")
+        except Exception as e:
+            self.logger.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
+
 
     def _close_tdms(self):
         # Close the TDMS file
-        self._tdms_writer.close()
-        self._tdms_file.close()
-        self.logger.debug(f"[DAQ] TDMS file closed: {self._file_name}")
+        self.logger.debug(f"[DAQ] Trying to close TDMS file: {self._file_name}")
+        try:
+            self._tdms_writer.close()
+            self._tdms_file.close()
+            self.logger.debug(f"[DAQ] TDMS file closed: {self._file_name}")
+        except Exception as e:
+            self.logger.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
 
     def close(self):
         # Close the DAQ task
@@ -215,13 +241,16 @@ class DAQ(GenericMQTT):
 
     async def _write_tdms(self, raw:np.ndarray, filtered:np.ndarray):
         # Create a TDMS-compatible list of ChannelObjects with filtered data
-        channel_objects = []
+        try:
+            channel_objects = []
 
-        for i in range(len(self._channel_names)):
-            channel_objects.append(ChannelObject(self._raw_group_obj, self._channel_names[i], raw[i, :]))
-            channel_objects.append(ChannelObject(self._filter_group_obj, self._channel_names[i], filtered[i, :]))
-        
-        self._tdms_writer.write_segment(channel_objects)
+            for i in range(len(self._channel_names)):
+                channel_objects.append(ChannelObject(self._raw_group_obj, self._channel_names[i], raw[i, :]))
+                channel_objects.append(ChannelObject(self._filter_group_obj, self._channel_names[i], filtered[i, :]))
+            
+            self._tdms_writer.write_segment(channel_objects)
+        except Exception as e:
+            self.logger.error(f"[DAQ] TDMS Writing exceptions : {e}")
 
     def _setup_filter(self):
         self.logger.debug(f"[DAQ] Setting up filter with config: {self._filter_config}")
@@ -268,3 +297,18 @@ class DAQ(GenericMQTT):
         self._b = b
         self.logger.debug(f"[DAQ] Highpass filter created with params: {self._high}")
 
+    @classmethod
+    def stop(cls, stop_event:Event): # type: ignore
+        stop_event.set()
+        print("stop")
+
+    @classmethod
+    def run(cls, daq_config : DAQConfig, stop_event:Event): # type: ignore
+
+        daq = DAQ.get_instance(daq_config)
+
+        while not stop_event.is_set():
+            daq.mqtt_client.loop(0.01)
+
+        print("stopping")
+        daq.close()
