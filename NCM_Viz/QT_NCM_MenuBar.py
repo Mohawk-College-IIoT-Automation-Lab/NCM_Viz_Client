@@ -1,19 +1,10 @@
 from PyQt5.QtWidgets import QToolBar, QMainWindow, QMenuBar, QStatusBar
+from PyQt5.QtCore import QObject
 from .Mqtt.actions_mqtt import ActionsMQTT
 from Constants.configs import LoggerConfig
 
-class M_QToolBar(QToolBar):
-    def __init__(self, parent:QMainWindow, status_bar:QStatusBar, logger_config:LoggerConfig):
-        super().__init__(parent)
-
-        actions_inst = ActionsMQTT.get_instance(status_bar=status_bar, logger_config=logger_config)
-
-        self.addAction(actions_inst.start_exp_action)
-        self.addAction(actions_inst.stop_exp_action)
-
-
 class M_QMenuBar(QMenuBar):
-    def __init__(self, parent:QMainWindow, status_bar:QStatusBar, logger_config:LoggerConfig):
+    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig, parent = None):
         super().__init__(parent)
 
         actions_inst = ActionsMQTT.get_instance(status_bar=status_bar, logger_config=logger_config)

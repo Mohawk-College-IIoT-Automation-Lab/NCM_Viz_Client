@@ -1,11 +1,11 @@
 import os
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget, QApplication
+from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget, QApplication, QSizePolicy
 from PyQt5.QtCore import QTimer, Qt
 from .Transform import Size
 from .QT_NCM_Status_Lights import StatusWidget
 from .Mqtt.actions_mqtt import ActionsMQTT
 from .QT_NCM_Sensors import SensorGraphWidget
-from .Qt_Toolbar import M_QMenuBar, M_QToolBar
+from .QT_NCM_MenuBar import M_QMenuBar
 
 from .Mqtt.GenericMqtteLogger.davids_logger import initialize_logging
 import logging
@@ -28,10 +28,8 @@ class MainWindow(QMainWindow):
         initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
         logging.debug(f"[Qt] Creating MainWindow")
 
-        menu_bar = M_QMenuBar(self, self.statusBar(), logger_config)
-        tool_bar = M_QToolBar(self, self.statusBar(), logger_config)
-        tool_bar.setAllowedAreas(Qt.TopToolBarArea) 
-
+        menu_bar = M_QMenuBar(self.statusBar(), logger_config, self)
+        self.setMenuBar(menu_bar)
         
         central_widget = QWidget(self)
         central_v_box_layout = QVBoxLayout(central_widget)
@@ -41,8 +39,6 @@ class MainWindow(QMainWindow):
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, sensor_config=SensorsConfig(), parent=self)
         sen_control_tab = QWidget()
-
-
 
         self.setCentralWidget(central_widget)
 

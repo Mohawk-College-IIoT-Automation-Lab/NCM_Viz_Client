@@ -115,6 +115,7 @@
 - Fixed many bugs
 - Adapted more or less everything to some sort of config file
 - Everything starts up nicely, and seems to be working. Need to finish implementing actions so I can do full func testing.
+- I setup the menu bar and it's working now, and fills the entire screen.
 
 
 

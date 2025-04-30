@@ -69,10 +69,14 @@ class DAQ(GenericMQTT):
         self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(self._task.in_stream)  # Efficient streaming reader
 
         # Condigure the ni-daqmx task and add channels
-        for c in config.channels:
-            self._task.ai_channels.add_ai_voltage_chan(c)
-        self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
-        self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
+        try: 
+            for c in config.channels:
+                self._task.ai_channels.add_ai_voltage_chan(c)
+            self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
+            self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
+        except Exception as e:
+            logging.error(f"[DAQ] DAQ setup exception: {e}")
+            raise e
 
         # setup buffers for raw and filtered data
         self._raw_data_buffer = np.zeros((len(config.channels), self._buffer_size), dtype=np.float32)
