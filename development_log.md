@@ -141,4 +141,10 @@
 - buddy gpt pointed out an issue with having multiple clients on one machine, they need to have names
 - so it's publishing but it's not receiving. Also the daq seems to be kinda responding. 
 	- Taking a break to head home will continue from there.
-
+- setup the mqtt broker on wsl, and it's working so far.
+	- I'm still trying to debug why messages don't seem to be coming in
+	- I'm curious if there is an outbound firewall issue or something like that
+	- The bug I'm playing with rn is caused by MQTTv5
+	- Also I was hanging the program by accident with `.loop_forever()`
+- omg it worked kinda, the exp start and stop toggled the gui
+- Okay so I tested the alarms and they work correctly, we just send a 1 or 0 to the corresponding topic and they go

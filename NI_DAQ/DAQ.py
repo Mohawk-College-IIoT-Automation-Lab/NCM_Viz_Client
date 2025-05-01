@@ -18,7 +18,7 @@ from multiprocessing import Event
 from Constants.base_models import SensorData, SensorReadings
 from Constants.configs import DAQConfig, FilterConfig, LowPassConfig, HighPassConfig, BandPassConfig, SensorsConfig, ExperimentMqttConfig, LoggerConfig
 from .GenericMqtteLogger.davids_logger import initialize_logging
-from .GenericMqtteLogger.generic_mqtt import GenericMQTT  # For MQTT communication
+from .GenericMqtteLogger.generic_mqtt import GenericMQTT, Client  # For MQTT communication
 
 class DAQ(GenericMQTT):
 
@@ -85,44 +85,43 @@ class DAQ(GenericMQTT):
         self._start_timer = None
     
         logging.debug(f"[DAQ][MQTT][init] Connecting to MQTT")
+        self.mqtt_client.on_connect = self._on_connect
         self.mqtt_connect()        
 
-    def _mqtt_connect_disconnect(self, client, userdata, flags, reason_code):
-        super()._mqtt_connect_disconnect(client, userdata, flags, reason_code)
+    def _on_connect(self, client, userdata, flags, rc, pros=None):
+        
+        client.subscribe(f"{ExperimentMqttConfig.base_topic}#") # sub to all topics
 
-        if self.connected:
-            self.mqtt_client.subscribe(f"{ExperimentMqttConfig.base_topic}#") # sub to all topics
+        topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
+        client.message_callback_add(topic, self._mqtt_start_callback)
+        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
 
-            topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
-            self.mqtt_client.message_callback_add(topic, self._mqtt_start_callback)
-            logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
-
-            topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
-            self.mqtt_client.message_callback_add(topic, self._mqtt_stop_callback)
-            logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
-            
-            topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}"
-            self.mqtt_client.message_callback_add(topic, self._mqtt_rename_callback)
-            logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
+        topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
+        client.message_callback_add(topic, self._mqtt_stop_callback)
+        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
+        
+        topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}"
+        client.message_callback_add(topic, self._mqtt_rename_callback)
+        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
 
 
-    def _mqtt_start_callback(self, client, userdata, message):
+    def _mqtt_start_callback(self, client, userdata, msg):
         logging.debug(f"[DAQ][MQTT] Start recording command received")
         if not self.is_recording:
             self._start_recording()
         else:
             logging.debug("[DAQ][MQTT]  DAQ task is already running.")
 
-    def _mqtt_stop_callback(self, client, userdata, message):
+    def _mqtt_stop_callback(self, client, userdata, msg):
         logging.debug(f"[DAQ][MQTT]  Stop recording command received")
         if self.is_recording:
             self._stop_recording()
         else:
             logging.debug("[DAQ][MQTT]  DAQ task is not running.")
 
-    def _mqtt_rename_callback(self, client, userdata, message):
-        logging.debug(f"[DAQ][MQTT]  Rename command received, data received: {message.payload.decode()}")
-        data = json.loads(message.payload.decode())
+    def _mqtt_rename_callback(self, client, userdata, msg):
+        logging.debug(f"[DAQ][MQTT]  Rename command received, data received: {msg.payload.decode()}")
+        data = json.loads(msg.payload.decode())
         file_name = data.get("file_name", None)
         if file_name is not None:
             self._stop_recording()
@@ -247,6 +246,7 @@ class DAQ(GenericMQTT):
             return filtered_data
         else:
             return data
+    
     def close(self):
         # Close the DAQ task
         logging.debug("[DAQ] Closing DAQ task...")

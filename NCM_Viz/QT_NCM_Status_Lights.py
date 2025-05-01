@@ -45,7 +45,8 @@ class StatusWidget(QWidget):
     @pyqtSlot(str, bool)
     def alarm_status_set(self, alarm_name:str, status:bool):
         for al in self.alarm_labels:
-            if alarm_name in al:
+            if alarm_name in al.name:
+                print(status)
                 al.set_state(status)
                 logging.debug(f"[Qt][Status Lights] Setting Alarms: {alarm_name}")
                 return
@@ -57,16 +58,19 @@ class StatusWidget(QWidget):
 class AlarmLabel(QLabel):
 
     DEFAULT_SIZE = Size(100, 25)
+    ON_COLOUR = QColor("lightgreen")
+    OFF_COLOUR = QColor("lightcoral")
 
-    def __init__(self, text="", parent=None):
-        super().__init__(text, parent)
+    def __init__(self, name="", parent=None):
+        super().__init__(name, parent)
+        self._name = name
         self.setAutoFillBackground(True)
         self.state = False
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.update_style()
         self.setMinimumSize(AlarmLabel.DEFAULT_SIZE.w, AlarmLabel.DEFAULT_SIZE.h)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
+        
     @pyqtSlot(bool)
     def set_state(self, state:bool):
         self.state = state
@@ -74,6 +78,12 @@ class AlarmLabel(QLabel):
     
     def update_style(self):
         palette = self.palette()
-        color = QColor("lightgreen") if self.state else QColor("lightcoral")
-        palette.setColor(QPalette.Window, color)
+        if self.state:
+            palette.setColor(QPalette.Window, AlarmLabel.ON_COLOUR)
+        else:
+            palette.setColor(QPalette.Window, AlarmLabel.OFF_COLOUR)
         self.setPalette(palette)
+
+    @property
+    def name(self):
+        return self._name

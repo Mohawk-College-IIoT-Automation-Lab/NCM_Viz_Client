@@ -4,6 +4,8 @@ from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
 from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsConfig, ExperimentMqttConfig
 
+import ast
+
 class StatusLightsMqtt(GenericMQTT, QObject):
 
     alarm_signal = pyqtSignal(str, bool)
@@ -33,46 +35,44 @@ class StatusLightsMqtt(GenericMQTT, QObject):
 
         self.mqtt_connect()
 
-    def _mqtt_connect_disconnect(self, client, userdata, flags, reason_code):
-        super()._mqtt_connect_disconnect(client, userdata, flags, reason_code)
+    def _on_connect(self, client, userdata, flags, rc, props=None):
 
         if self.connected:  
-            self.mqtt_client.subscribe(f"{StatusLightsConfig.alarm_base_topic}#")
-            self.mqtt_client.subscribe(f"{ExperimentMqttConfig.base_topic}#")
+            client.subscribe(f"{StatusLightsConfig.alarm_base_topic}#")
+            client.subscribe(f"{ExperimentMqttConfig.base_topic}#")
 
             for topic in StatusLightsConfig.alarm_topics:
                 topic = f"{StatusLightsConfig.alarm_base_topic}{topic}"
                 logging.debug(f"[QT][MQTT][Status Lights][init] Subscribing to topic: {topic}")
-                self.mqtt_client.message_callback_add(topic, self.mqtt_alarm_callback)
+                client.message_callback_add(topic, self.mqtt_alarm_callback)
 
             topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
             logging.debug(f"[QT][MQTT][Experiment Control][init] Subscribing to topic: {topic}")
-            self.mqtt_client.message_callback_add(topic, self.mqtt_experiment_callback)
+            client.message_callback_add(topic, self.mqtt_experiment_callback)
 
             topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
             logging.debug(f"[QT][MQTT][Experiment Control][init] Subscribing to topic: {topic}")
-            self.mqtt_client.message_callback_add(topic, self.mqtt_experiment_callback)
+            client.message_callback_add(topic, self.mqtt_experiment_callback)
     
 
     
-    def mqtt_experiment_callback(self, client:Client, userdata, message:MQTTMessage):
-        if ExperimentMqttConfig.start_topic in message.topic:
+    def mqtt_experiment_callback(self, client, userdata, msg):
+        if ExperimentMqttConfig.start_topic in msg.topic:
             self.experiment_running.emit(True)
             logging.info(f"[MQTT][Experiment Control] Experiment Started")
-        elif ExperimentMqttConfig.stop_topic in message.topic:
+        elif ExperimentMqttConfig.stop_topic in msg.topic:
             self.experiment_running.emit(False)
             logging.info(f"[MQTT][Experiment Control] Experiment Stopped")
-        elif ExperimentMqttConfig.elapsed_topic in message.topic:
+        elif ExperimentMqttConfig.elapsed_topic in msg.topic:
             try:
-                elapsed_time = int(message.payload.decode())
+                elapsed_time = int(msg.payload.decode())
                 self.experiment_elapsed_time.emit(elapsed_time)
                 logging.debug(f"[MQTT][Experiment Control] Received data: {elapsed_time}")
             except ValueError:
-                logging.error(f"[MQTT][Experiment Control] Failed to decode elapsed time: {message.payload.decode()}")
-        else:
-            self._mqtt_default_callback(client, userdata, message)
+                logging.error(f"[MQTT][Experiment Control] Failed to decode elapsed time: {msg.payload.decode()}")
 
-    def mqtt_alarm_callback(self, client:Client, userdata, message:MQTTMessage):
-        topic = message.topic.replace(StatusLightsConfig.alarm_base_topic)
-        self.alarm_signal.emit(topic, message.payload.decode())
+
+    def mqtt_alarm_callback(self, client, userdata, msg):
+        topic = msg.topic.replace(StatusLightsConfig.alarm_base_topic, "")
+        self.alarm_signal.emit(topic, ast.literal_eval(msg.payload.decode()))
         logging.debug(f"[QT][MQTT][Status Lights] Received alarm: {topic}")

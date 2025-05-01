@@ -27,7 +27,7 @@ if __name__ == "__main__":
 
     set_start_method("spawn") # Requird for Py QT on Windows
 
-    mqtt_config = MQTTConfig(host_name="10.4.8.5", host_port=1883)
+    mqtt_config = MQTTConfig(host_name="localhost", host_port=1883)
 
     initialize_logging(process_name="Main", broker=mqtt_config.host_name, port=mqtt_config.host_port)
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     logging.debug(f"[Main] Starting DAQ Process")
     daq_logger = LoggerConfig(log_name="DAQ", mqtt_config=mqtt_config)
-    daq_process = Process(target=DAQ.run, args=(daq_logger, stop_event))
+    daq_process = Process(target=DAQ.run, args=(daq_logger, stop_event), daemon=True)
     daq_process.start()
 
     

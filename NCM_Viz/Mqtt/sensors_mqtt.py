@@ -38,13 +38,11 @@ class SensorsMQTT(GenericMQTT, QObject):
         self.mqtt_connect()
 
 
-    def _mqtt_connect_disconnect(self, client, userdata, flags, reason_code):
-        super()._mqtt_connect_disconnect(client, userdata, flags, reason_code)
+    def _mqtt_connect(self, client, userdata, flags, rc, props=None):
 
-        if self.connected:
-            logging.debug(f"[QT][Sensors] Subscribing to topic: {SensorsConfig.display_data_topic}")
-            self.mqtt_client.subscribe(SensorsConfig.display_data_topic)
-            self.mqtt_client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
+        logging.debug(f"[QT][Sensors] Subscribing to topic: {SensorsConfig.display_data_topic}")
+        client.subscribe(SensorsConfig.display_data_topic)
+        client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
 
     def mqtt_display_callback(self, client:Client, userdata, message:MQTTMessage):
         try:
