@@ -63,16 +63,23 @@ class Q2SensorsGraph(pg.PlotWidget):
         self.time_data = np.zeros(self.buffer_size)
 
         self.data_1_plot = self.plotItem.plot(pen=pg.mkPen(color='y', width=2))
-        self.data_2_plot = self.plotItem.plot(pen=pg.mkPen(color='y', width=2))
-
+        self.data_2_plot = self.plotItem.plot(pen=pg.mkPen(color='r', width=2))
 
         self.data_1 = np.zeros(self.buffer_size, dtype=np.float32)
         self.data_2 = np.zeros(self.buffer_size, dtype=np.float32)
 
+        self.clear_plot()
+
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-
     @pyqtSlot()
+    def clear_plot(self):
+        self.data_1 = np.zeros(self.buffer_size, dtype=np.float32)
+        self.data_2 = np.zeros(self.buffer_size, dtype=np.float32)
+        self.time_data = np.zeros(self.buffer_size)
+        self.time_data_ticker = 0
+
+    @pyqtSlot(float, float)
     def update_plot(self, data_1:float, data_2:float):
         self.data_1 = np.roll(self.data_1, -1)
         self.data_1[-1] = data_1

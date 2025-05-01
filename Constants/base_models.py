@@ -12,5 +12,5 @@ class StandingWave(BaseModel):
 
 class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
-    Standing_Wave: StandingWave
     Anemometer: SensorReadings
+    Standing_Wave: StandingWave

@@ -148,3 +148,6 @@
 	- Also I was hanging the program by accident with `.loop_forever()`
 - omg it worked kinda, the exp start and stop toggled the gui
 - Okay so I tested the alarms and they work correctly, we just send a 1 or 0 to the corresponding topic and they go
+- Logging is working now! 
+- Time to turn the GUI back on and make the graphs work
+- Everything works but the graphs! 

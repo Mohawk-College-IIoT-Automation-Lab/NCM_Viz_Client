@@ -12,10 +12,9 @@ from typing import List
 import logging
 import time
 
-import asyncio
 from multiprocessing import Event
 
-from Constants.base_models import SensorData, SensorReadings
+from Constants.base_models import SensorData, SensorReadings, StandingWave
 from Constants.configs import DAQConfig, FilterConfig, LowPassConfig, HighPassConfig, BandPassConfig, SensorsConfig, ExperimentMqttConfig, LoggerConfig
 from .GenericMqtteLogger.davids_logger import initialize_logging
 from .GenericMqtteLogger.generic_mqtt import GenericMQTT, Client  # For MQTT communication
@@ -55,8 +54,8 @@ class DAQ(GenericMQTT):
 
         # Used by the TDMS file
         self._group_obj = GroupObject("NCM")  # TDMS group that holds related channels
-        self._raw_group_obj = GroupObject("Raw")  # TDMS group for raw data
-        self._filter_group_obj = GroupObject("Filtered")  # TDMS group for filtered data
+        self._raw_group_obj = GroupObject("Raw")  # TDMS group that holds related channels
+        self._filt_group_obj = GroupObject("Filtered")  # TDMS group that holds related channels
         self._root_obj = RootObject(properties={"description": "NIDAQmx Acquisition"})  # TDMS root metadata
 
         # Place holders for the tdms file and writer
@@ -79,8 +78,8 @@ class DAQ(GenericMQTT):
             raise e
 
         # setup buffers for raw and filtered data
-        self._raw_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float32)
-        self._filter_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float32)
+        self._raw_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float64)
+        self._filter_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float64)
 
         self._start_timer = None
     
@@ -90,17 +89,18 @@ class DAQ(GenericMQTT):
 
     def _on_connect(self, client, userdata, flags, rc, pros=None):
         
-        client.subscribe(f"{ExperimentMqttConfig.base_topic}#") # sub to all topics
-
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
+        client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_start_callback)
         logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
 
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
+        client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_stop_callback)
         logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
         
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}"
+        client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_rename_callback)
         logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
 
@@ -132,29 +132,37 @@ class DAQ(GenericMQTT):
 
     def _raw_data_callback(self, task_idx, event_type, num_samples, callback_data=None):
         timer = time.time() - self._start_timer
-        self.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.elapsed_topic}", timer)
+        self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.elapsed_topic}", timer)
 
-        # Get Data
-        self._input_reader.read_many_sample(self._raw_data_buffer, self._buffer_size, timeout=nidaqmx.constants.WAIT_INFINITELY)
+        try:
+            # Get Data
+   
+            self._input_reader.read_many_sample(self._raw_data_buffer, self._buffer_size)
+ 
+            # Filter
+            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
 
-        # Filter
-        self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
+            # Write to TDMS in a coroutine
+            self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
-        # Write to TDMS in a coroutine
-        self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
+            # Calculate display avg
+            avg = np.mean(self._filter_data_buffer, axis=0)
 
-        # Calculate display avg
-        avg = np.mean(self._filter_data_buffer, axis=0)
 
-        # Create SensorData object
-        sensor_data = SensorData(
-            Ultra_Sonic_Distance=SensorReadings(LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]),
-            Anemometer=SensorReadings(LL=avg[4], LQ=avg[5], RQ=avg[6], RR=avg[7])
-        )
+            # Create SensorData object
+            sensor_data = SensorData(
+                Ultra_Sonic_Distance=SensorReadings(LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]),
+                Anemometer=SensorReadings(LL=avg[4], LQ=avg[5], RQ=avg[6], RR=avg[7]),
+                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2])
+            )
+            
+            # push to mqtt
+            self.mqtt_client.publish(SensorsConfig.display_data_topic, sensor_data.model_dump_json())
         
-        # push to mqtt
-        self.publish(SensorsConfig.display_data_topic, sensor_data.model_dump_json())
+        except Exception as e:
+            logging.error(f"[DAQ] Exception: {e}")
 
+        return 0 # this is a must have apparently 
 
     def _start_recording(self):
         if self._task.is_task_done():
@@ -170,11 +178,6 @@ class DAQ(GenericMQTT):
         self._task.stop()
         self._close_tdms()
 
-    async def publish(self, topic: str, payload: str):
-        if self.connected:
-            self.mqtt_client.publish(topic, payload)
-            logging.debug(f"[DAQ][MQTT]  Publishing to topic: {topic} with payload: {payload}")
-
     @property
     def is_recording(self):
         return not self._task.is_task_done()
@@ -186,6 +189,8 @@ class DAQ(GenericMQTT):
             self._tdms_file = open(self._file_name, 'wb')
             self._tdms_writer = TdmsWriter(self._tdms_file)
             self._tdms_writer.write_segment([self._root_obj, self._group_obj])
+            self._tdms_writer.write_segment([self._root_obj, self._raw_group_obj])
+            self._tdms_writer.write_segment([self._root_obj, self._filt_group_obj])
             logging.debug(f"[DAQ] Created new TDMS file: {file_name}")
         except Exception as e:
             logging.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
@@ -201,16 +206,17 @@ class DAQ(GenericMQTT):
         except Exception as e:
             logging.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
 
-    async def _write_tdms(self, raw:np.ndarray, filtered:np.ndarray):
+    def _write_tdms(self, raw:np.ndarray, filtered:np.ndarray):
         # Create a TDMS-compatible list of ChannelObjects with filtered data
         try:
             channel_objects = []
 
             for i in range(len(DAQConfig.channel_names)):
-                channel_objects.append(ChannelObject(self._raw_group_obj, DAQConfig.channel_names[i], raw[i, :]))
-                channel_objects.append(ChannelObject(self._filter_group_obj, DAQConfig.channel_names[i], filtered[i, :]))
-            
+                channel_objects.append(ChannelObject(self._raw_group_obj.group, DAQConfig.channel_names[i], raw[i, :]))
+                channel_objects.append(ChannelObject(self._filt_group_obj.group, DAQConfig.channel_names[i], filtered[i, :]))
+
             self._tdms_writer.write_segment(channel_objects)
+
         except Exception as e:
             logging.error(f"[DAQ] TDMS Writing exceptions : {e}")
 

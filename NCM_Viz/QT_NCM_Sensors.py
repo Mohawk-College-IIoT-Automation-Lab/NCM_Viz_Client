@@ -5,7 +5,7 @@ from PyQt5.QtCore import pyqtSlot, pyqtSignal
 from .Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
 
-from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig
+from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, DAQConfig
 
 
 class SensorGraphWidget(QWidget):
@@ -42,10 +42,18 @@ class SensorGraphWidget(QWidget):
         self.mqtt_client = SensorsMQTT.get_instance(logger_config=logger_config)
         self.mqtt_client.distance_data_ready.connect(self.update_usd_plot)
         self.mqtt_client.anemometer_data_ready.connect(self.update_an_plot)
-        
+    
+    @pyqtSlot()
+    def clear_plots(self):
+        self.usd_ll_lq_graph.clear_plot()
+        self.usd_rq_rr_graph.clear_plot()
+        self.an_ll_lq_graph.clear_plot()
+        self.an_rq_rr_graph.clear_plot()
+        self.standing_wave_graph.clear_plot()
 
     @pyqtSlot(float, float, float, float)
     def update_usd_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):
+        print("HEre")
         left_standing_wave = ll_value - lq_value
         right_standing_wave = rr_value - rq_value
         

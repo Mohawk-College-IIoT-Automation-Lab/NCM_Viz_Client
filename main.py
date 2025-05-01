@@ -38,7 +38,6 @@ if __name__ == "__main__":
     daq_logger = LoggerConfig(log_name="DAQ", mqtt_config=mqtt_config)
     daq_process = Process(target=DAQ.run, args=(daq_logger, stop_event), daemon=True)
     daq_process.start()
-
     
     logging.debug(f"[Main] Starting QApp and Mainwindow")
     gui_logger = LoggerConfig(log_name="Qt", mqtt_config=mqtt_config)

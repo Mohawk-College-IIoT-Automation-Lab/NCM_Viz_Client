@@ -28,6 +28,8 @@ class MainWindow(QMainWindow):
         initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
         logging.debug(f"[Qt] Creating MainWindow")
 
+        actions = ActionsMQTT.get_instance(self.statusBar(), logger_config)
+
         menu_bar = M_QMenuBar(self.statusBar(), logger_config, self)
         self.setMenuBar(menu_bar)
         
@@ -38,6 +40,7 @@ class MainWindow(QMainWindow):
 
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, parent=self)
+        actions.start_exp_action.triggered.connect(sensor_tab.clear_plots)
         sen_control_tab = QWidget()
 
         self.setCentralWidget(central_widget)

@@ -41,6 +41,10 @@ class DAQConfig:
     filter_config: FilterConfig = BandPassConfig()
     mqtt_config: MQTTConfig
     log_config: LoggerConfig
+    min_usd_value: float = 30.5
+    max_usd_value: float = 300
+    min_anm_value: float = 0.001
+    max_anm_value: float = 5.0
 
 class StatusLightsConfig:
     alarm_names: List[str] = ["Alarm1", "Alarm2", "Alarm3", "Alarm4"]

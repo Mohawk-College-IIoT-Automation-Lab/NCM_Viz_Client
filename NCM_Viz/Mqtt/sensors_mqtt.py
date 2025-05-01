@@ -37,17 +37,15 @@ class SensorsMQTT(GenericMQTT, QObject):
 
         self.mqtt_connect()
 
-
-    def _mqtt_connect(self, client, userdata, flags, rc, props=None):
-
+    def _on_connect(self, client, userdata, flags, rc, props=None):
         logging.debug(f"[QT][Sensors] Subscribing to topic: {SensorsConfig.display_data_topic}")
         client.subscribe(SensorsConfig.display_data_topic)
         client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
 
-    def mqtt_display_callback(self, client:Client, userdata, message:MQTTMessage):
+    def mqtt_display_callback(self, client:Client, userdata, msg:MQTTMessage):
+        print("Here")
         try:
-            payload = json.load(message.payload.decode())
-            sensor_data = SensorData(**payload)
+            sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
 
             logging.info(f"[QT][MQTT][SensorData] Received data: {sensor_data}")
 
@@ -55,4 +53,4 @@ class SensorsMQTT(GenericMQTT, QObject):
             self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
             
         except json.JSONDecodeError:
-            logging.error(f"[QT][MQTT][SensorData] Failed to decode JSON payload: {message.payload.decode()}")
+            logging.error(f"[QT][MQTT][SensorData] Failed to decode JSON payload: {msg.payload.decode()}")

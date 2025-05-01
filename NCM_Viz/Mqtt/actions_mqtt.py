@@ -4,6 +4,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 from .GenericMqtteLogger import GenericMQTT
 import logging
 from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, ExperimentMqttConfig
+import json
 
 class ActionsMQTT(GenericMQTT, QObject):
 
@@ -100,7 +101,7 @@ class ActionsMQTT(GenericMQTT, QObject):
         new_name, ok = QInputDialog.getText(None, "Rename Experiment", "Enter a new experiment name:")
         if ok and new_name:
             self.status_and_log(f"[QT][Action] Renaming Experiment: {new_name}")
-            self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}", new_name)
+            self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}", json.dumps({"file_name":new_name}))
         else:
             self.status_and_log("[QT][Action] Rename Experiment canceled")
 

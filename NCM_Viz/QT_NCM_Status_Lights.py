@@ -51,8 +51,8 @@ class StatusWidget(QWidget):
                 logging.debug(f"[Qt][Status Lights] Setting Alarms: {alarm_name}")
                 return
 
-    @pyqtSlot(int)
-    def set_experiment_time(self, elapsed_time:int):
+    @pyqtSlot(float)
+    def set_experiment_time(self, elapsed_time:float):
         self.experiment_timer.setText(f"Elapsed Time: {elapsed_time} s")
 
 class AlarmLabel(QLabel):
