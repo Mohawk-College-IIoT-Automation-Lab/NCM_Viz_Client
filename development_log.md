@@ -151,3 +151,4 @@
 - Logging is working now! 
 - Time to turn the GUI back on and make the graphs work
 - Everything works but the graphs! 
+- The graphs work, but now I'm getting some weird mqtt behaviours
