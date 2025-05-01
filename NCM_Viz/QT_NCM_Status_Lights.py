@@ -4,23 +4,23 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStatusBar, QSizePolicy
 from .Transform import Size
 from .Mqtt.status_lights_mqtt import StatusLightsMqtt
-from Constants.configs import StatusLightsConfig, LoggerConfig, MQTTConfig
+from Constants.configs import StatusLightsConfig, LoggerConfig
+import logging
 
 class StatusWidget(QWidget):
 
     ELAPSED_SIZE = Size(200, 25)
 
-    def __init__(self, status_bar:QStatusBar, status_lights_config:StatusLightsConfig = StatusLightsConfig, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
-        self.status_light_config = status_lights_config
         self.central_layout = QVBoxLayout(self)
         self.experiment_layout = QHBoxLayout()
         self.alarms_layout = QHBoxLayout()
-        self.mqtt_client = StatusLightsMqtt(status_lights_config=status_lights_config, logger_config=logger_config)
+        self.mqtt_client = StatusLightsMqtt.get_instance(logger_config=logger_config)
 
         self.alarm_labels = []
 
-        for an in status_lights_config.alarm_names:
+        for an in StatusLightsConfig.alarm_names:
             self.alarm_labels.append(AlarmLabel(an))
 
         experiment_status = AlarmLabel("Experiment Status")
@@ -35,6 +35,7 @@ class StatusWidget(QWidget):
 
         for a in self.alarm_labels:
             self.alarms_layout.addWidget(a)
+            
         self.experiment_layout.addWidget(experiment_status)
         self.experiment_layout.addWidget(self.experiment_timer)
 
@@ -46,7 +47,8 @@ class StatusWidget(QWidget):
         for al in self.alarm_labels:
             if alarm_name in al:
                 al.set_state(status)
-
+                logging.debug(f"[Qt][Status Lights] Setting Alarms: {alarm_name}")
+                return
 
     @pyqtSlot(int)
     def set_experiment_time(self, elapsed_time:int):

@@ -36,8 +36,7 @@ if __name__ == "__main__":
 
     logging.debug(f"[Main] Starting DAQ Process")
     daq_logger = LoggerConfig(log_name="DAQ", mqtt_config=mqtt_config)
-    daq_config = DAQConfig(log_config=daq_logger, mqtt_config=mqtt_config)
-    daq_process = Process(target=DAQ.run, args=(daq_config,stop_event))
+    daq_process = Process(target=DAQ.run, args=(daq_logger, stop_event))
     daq_process.start()
 
     

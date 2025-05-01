@@ -10,7 +10,7 @@ from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig
 
 class SensorGraphWidget(QWidget):
 
-    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig = LoggerConfig, sensor_config:SensorsConfig = SensorsConfig, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
 
         main_h_box = QHBoxLayout(self)
@@ -18,12 +18,12 @@ class SensorGraphWidget(QWidget):
         right_v_box = QVBoxLayout()
         left_h_box = QHBoxLayout()
 
-        self.usd_ll_lq_graph = Q2SensorsGraph(title=sensor_config.usd_left_title)
-        self.usd_rq_rr_graph = Q2SensorsGraph(title=sensor_config.usd_right_title)
-        self.standing_wave_graph = Q2SensorsGraph(title=sensor_config.standing_wave_title)
+        self.usd_ll_lq_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title)
+        self.usd_rq_rr_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title)
+        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title)
 
-        self.an_ll_lq_graph = Q2SensorsGraph(title=sensor_config.anm_left_title)
-        self.an_rq_rr_graph = Q2SensorsGraph(title=sensor_config.anm_right_title)
+        self.an_ll_lq_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title)
+        self.an_rq_rr_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title)
 
         left_h_box.addWidget(self.usd_ll_lq_graph)
         left_h_box.addWidget(self.usd_rq_rr_graph)
@@ -39,11 +39,10 @@ class SensorGraphWidget(QWidget):
 
         self.setLayout(main_h_box)
 
-        self.sensor_m_qobject = SensorsMQTT(logger_config=logger_config, sensors_config=sensor_config)
-        self.sensor_m_qobject.distance_data_ready.connect(self.update_usd_plot)
-        self.sensor_m_qobject.anemometer_data_ready.connect(self.update_an_plot)
+        self.mqtt_client = SensorsMQTT.get_instance(logger_config=logger_config)
+        self.mqtt_client.distance_data_ready.connect(self.update_usd_plot)
+        self.mqtt_client.anemometer_data_ready.connect(self.update_an_plot)
         
-        # self.sensor_object.mqtt_connect()
 
     @pyqtSlot(float, float, float, float)
     def update_usd_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):

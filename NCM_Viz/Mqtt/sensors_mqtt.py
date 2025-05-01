@@ -17,40 +17,44 @@ class SensorsMQTT(GenericMQTT, QObject):
     _instance = None
 
     @classmethod
-    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, sensors_config:SensorsConfig = SensorsConfig, parent=None):
+    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, parent=None):
         if cls._instance is None:
             cls._instance = cls(logger_config, parent)
         return cls._instance
 
-    def __init__(self, logger_config:LoggerConfig, sensors_config:SensorsConfig, parent=None):
+    def __init__(self, logger_config:LoggerConfig, parent=None):
 
         if SensorsMQTT._instance is not None:
             logging.error("[QT][Sensors] Runtime Error: Trying to re-init Sensors. use SensorsMQTT.get_instance(...)")
             raise RuntimeError("Use SensorsMQTT.get_instance() to access the singleton.")
         
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+        GenericMQTT.__init__(self, client_name="SensorsMQTT", log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
 
         initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
 
-        logging.debug("Creating SensorsMQTT object")
+        logging.debug("[QT][MQTT][Sensors] Creating SensorsMQTT object")
 
-        self.display_data_topic = "NCM/SensorData"
+        self.mqtt_connect()
 
-        logging.debug(f"Subscribing to topic: {self.display_data_topic}")
-        
-        self.mqtt_client.message_callback_add(self.display_data_topic, self.mqtt_display_callback)
-        self.mqtt_client.subscribe(self.display_data_topic)
-        
+
+    def _mqtt_connect_disconnect(self, client, userdata, flags, reason_code):
+        super()._mqtt_connect_disconnect(client, userdata, flags, reason_code)
+
+        if self.connected:
+            logging.debug(f"[QT][Sensors] Subscribing to topic: {SensorsConfig.display_data_topic}")
+            self.mqtt_client.subscribe(SensorsConfig.display_data_topic)
+            self.mqtt_client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
+
     def mqtt_display_callback(self, client:Client, userdata, message:MQTTMessage):
         try:
             payload = json.load(message.payload.decode())
             sensor_data = SensorData(**payload)
 
-            logging.info(f"[MQTT][SensorData] Received data: {sensor_data}")
+            logging.info(f"[QT][MQTT][SensorData] Received data: {sensor_data}")
 
             self.distance_data_ready.emit(sensor_data.Ultra_Sonic_Distance.LL, sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
             self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
             
         except json.JSONDecodeError:
-            logging.error(f"[MQTT][SensorData] Failed to decode JSON payload: {message.payload.decode()}")
+            logging.error(f"[QT][MQTT][SensorData] Failed to decode JSON payload: {message.payload.decode()}")

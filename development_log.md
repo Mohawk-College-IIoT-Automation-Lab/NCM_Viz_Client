@@ -117,6 +117,28 @@
 - Everything starts up nicely, and seems to be working. Need to finish implementing actions so I can do full func testing.
 - I setup the menu bar and it's working now, and fills the entire screen.
 
-
-
+## 05-01-2025
+- Setting up a config for the topic names for the different sections. 
+- Chaning the static configs to be properly static for now. In the future we may want these to be configurable, but for now they will be static.
+	- updated StatusLightsMqtt and QT_NCM_Status_Lights
+	- upadted SensorsMqtt and QT_NCM_Sensrs
+	- updated DAQ
+- Testing everything
+- Removed the exit action
+- Fixing some things, I noticed that data is being published but nothing was being subbed to
+	- I asked buddygpt and it suggested that I put the sub call backs in an on_connect
+	- buddy is also suggesting I sub the add callbacks
+- Callbacks are working now, now I need to fix the DAQ.
+	- However things are looking good, it made a tdms file!!!
+- Double checking that my broker is setup correctly, because I'm eeing some weirdness
+	- In file `/etc/mosquitto/mosquitto.conf` added:
+	```
+	listener 1883
+	bind_address 0.0.0.0
+	allow_anonymous true
+	```
+	- allowing on firewall `sudo ufw allow 1883/tcp`
+- buddy gpt pointed out an issue with having multiple clients on one machine, they need to have names
+- so it's publishing but it's not receiving. Also the daq seems to be kinda responding. 
+	- Taking a break to head home will continue from there.
 

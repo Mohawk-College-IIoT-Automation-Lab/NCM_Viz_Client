@@ -2,7 +2,7 @@ from .GenericMqtteLogger.generic_mqtt import GenericMQTT, initialize_logging
 import logging
 from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
-from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsConfig
+from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsConfig, ExperimentMqttConfig
 
 class StatusLightsMqtt(GenericMQTT, QObject):
 
@@ -13,59 +13,66 @@ class StatusLightsMqtt(GenericMQTT, QObject):
     _instance = None
     
     @classmethod
-    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, status_lights_config:StatusLightsConfig = StatusLightsConfig, parent=None):
+    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, parent=None):
         if cls._instance is None:
-            cls._instance = cls(logger_config, status_lights_config, parent)
+            cls._instance = cls(logger_config, parent)
         return cls._instance
 
-    def __init__(self, logger_config:LoggerConfig, status_lights_config:StatusLightsConfig, parent=None):
+    def __init__(self, logger_config:LoggerConfig, parent=None):
 
         if StatusLightsMqtt._instance is not None:
             logging.error("[QT][Status Lights] Runtime Error: Trying to re-init Status Lights. use StatusLightsMqtt.get_instance(...)")
             raise RuntimeError("Use StatusLightsMqtt.get_instance() to access the singleton.")
 
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+        GenericMQTT.__init__(self, client_name="StatusMQTT", log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
 
         initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
 
-        logging.debug("Creating StatusLightsMqtt object")
+        logging.debug("[QT][MQTT][Status Lights][init] Creating StatusLightsMqtt object")
 
-        self.status_lights_config = status_lights_config
+        self.mqtt_connect()
 
-        for topic in status_lights_config.alarm_topics:
-            topic = f"{status_lights_config.alarm_base_topic}{topic}"
-            logging.debug(f"Subscribing to topic: {topic}")
-            self.mqtt_client.message_callback_add(topic, self.mqtt_alarm_callback)
-            self.mqtt_client.subscribe(topic)
+    def _mqtt_connect_disconnect(self, client, userdata, flags, reason_code):
+        super()._mqtt_connect_disconnect(client, userdata, flags, reason_code)
 
-        for topic in status_lights_config.experiment_topics:
-            topic = f"{status_lights_config.experiment_base_topic}{topic}"
-            logging.debug(f"Subscribing to topic: {topic}")
+        if self.connected:  
+            self.mqtt_client.subscribe(f"{StatusLightsConfig.alarm_base_topic}#")
+            self.mqtt_client.subscribe(f"{ExperimentMqttConfig.base_topic}#")
+
+            for topic in StatusLightsConfig.alarm_topics:
+                topic = f"{StatusLightsConfig.alarm_base_topic}{topic}"
+                logging.debug(f"[QT][MQTT][Status Lights][init] Subscribing to topic: {topic}")
+                self.mqtt_client.message_callback_add(topic, self.mqtt_alarm_callback)
+
+            topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
+            logging.debug(f"[QT][MQTT][Experiment Control][init] Subscribing to topic: {topic}")
             self.mqtt_client.message_callback_add(topic, self.mqtt_experiment_callback)
-            self.mqtt_client.subscribe(topic)
+
+            topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
+            logging.debug(f"[QT][MQTT][Experiment Control][init] Subscribing to topic: {topic}")
+            self.mqtt_client.message_callback_add(topic, self.mqtt_experiment_callback)
+    
+
     
     def mqtt_experiment_callback(self, client:Client, userdata, message:MQTTMessage):
-        if message.topic == "Running":
-            self.experiment_running.emit(bool(message.payload))
-            logging.info(f"[MQTT][ExperimentControl] Experiment Running: {message.payload}")
-
-        elif message.topic == "ElapsedTime":
+        if ExperimentMqttConfig.start_topic in message.topic:
+            self.experiment_running.emit(True)
+            logging.info(f"[MQTT][Experiment Control] Experiment Started")
+        elif ExperimentMqttConfig.stop_topic in message.topic:
+            self.experiment_running.emit(False)
+            logging.info(f"[MQTT][Experiment Control] Experiment Stopped")
+        elif ExperimentMqttConfig.elapsed_topic in message.topic:
             try:
                 elapsed_time = int(message.payload.decode())
                 self.experiment_elapsed_time.emit(elapsed_time)
-                logging.debug(f"[MQTT][ExperimentControl] Received data: {elapsed_time}")
+                logging.debug(f"[MQTT][Experiment Control] Received data: {elapsed_time}")
             except ValueError:
-                logging.error(f"[MQTT][ExperimentControl] Failed to decode elapsed time: {message.payload.decode()}")
+                logging.error(f"[MQTT][Experiment Control] Failed to decode elapsed time: {message.payload.decode()}")
         else:
             self._mqtt_default_callback(client, userdata, message)
 
     def mqtt_alarm_callback(self, client:Client, userdata, message:MQTTMessage):
-        for word in self.status_lights_config.alarm_topics:
-            if word in message.topic:
-                self.alarm_signal.emit(word, message.payload.decode())
-                logging.warning(f"[QT][Status Lights][MQTT] Alarm: {word} status: {message.payload.decode()}")
-                return 
-        else:
-            logging.debug(f"[QT][Status Lights][MQTT] Missed a message?")
-            self._mqtt_default_callback(client, userdata, message)
+        topic = message.topic.replace(StatusLightsConfig.alarm_base_topic)
+        self.alarm_signal.emit(topic, message.payload.decode())
+        logging.debug(f"[QT][MQTT][Status Lights] Received alarm: {topic}")

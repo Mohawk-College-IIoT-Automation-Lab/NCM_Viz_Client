@@ -1,6 +1,6 @@
 import os
 from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget, QApplication, QSizePolicy
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer, Qt, pyqtSlot
 from .Transform import Size
 from .QT_NCM_Status_Lights import StatusWidget
 from .Mqtt.actions_mqtt import ActionsMQTT
@@ -10,7 +10,7 @@ from .QT_NCM_MenuBar import M_QMenuBar
 from .Mqtt.GenericMqtteLogger.davids_logger import initialize_logging
 import logging
 from multiprocessing import Event
-from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, StatusLightsConfig
+from Constants.configs import LoggerConfig
 
 if os.name != 'nt':
     os.environ["QT_QPA_PLATFORM"] = "xcb" # required for drop down to work
@@ -34,10 +34,10 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         central_v_box_layout = QVBoxLayout(central_widget)
 
-        alarms = StatusWidget(status_bar=self.statusBar(), logger_config=logger_config, status_lights_config=StatusLightsConfig())
+        alarms = StatusWidget(status_bar=self.statusBar(), logger_config=logger_config)
 
         tab_widget = QTabWidget()
-        sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, sensor_config=SensorsConfig(), parent=self)
+        sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, parent=self)
         sen_control_tab = QWidget()
 
         self.setCentralWidget(central_widget)
@@ -54,11 +54,11 @@ class MainWindow(QMainWindow):
         
         self.showMaximized()
     
+    
     def closeEvent(self, event):
         logging.info("[QT] Closing windows and issuing exit event set")
         self.exit_event.set()
         event.accept()
-
 
 
         

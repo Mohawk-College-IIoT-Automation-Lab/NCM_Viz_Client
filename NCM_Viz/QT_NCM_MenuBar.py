@@ -13,8 +13,8 @@ class M_QMenuBar(QMenuBar):
         exp_menu = self.addMenu("Experiment")
         mould_menu = self.addMenu("Mould")
 
-        file_menu.addAction(actions_inst.quit_action)
         file_menu.addAction(actions_inst.help_action)
 
         exp_menu.addAction(actions_inst.start_exp_action)
         exp_menu.addAction(actions_inst.stop_exp_action)
+        exp_menu.addAction(actions_inst.rename_exp_action)

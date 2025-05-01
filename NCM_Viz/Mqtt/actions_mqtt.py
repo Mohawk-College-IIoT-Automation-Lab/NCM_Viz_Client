@@ -1,32 +1,15 @@
-from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar
+from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar, QInputDialog
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from .GenericMqtteLogger import GenericMQTT
 import logging
-from Constants.configs import LoggerConfig, MQTTConfig
+from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, ExperimentMqttConfig
 
 class ActionsMQTT(GenericMQTT, QObject):
 
-    start_exp_signal = pyqtSignal()
-    stop_exp_signal = pyqtSignal()
-    reset_exp_signal = pyqtSignal()
-    quit_signal = pyqtSignal()
     help_signal = pyqtSignal()
     settings_signal = pyqtSignal()
-    sen_tuning_signal = pyqtSignal()
-    sensor_tuning_signal = pyqtSignal()
-    stopper_rod_tuning_signal = pyqtSignal()
-    mould_fill_signal = pyqtSignal()
-    mould_drain_signal = pyqtSignal()
-    tundish_fill_signal = pyqtSignal()
-    tundish_drain_signal = pyqtSignal()
-    fill_all_signal = pyqtSignal()
-    drain_all_signal = pyqtSignal()
-    stopper_rod_closed_signal = pyqtSignal()
-    stopper_rod_open_signal = pyqtSignal()
-    sen_full_open_signal = pyqtSignal()
-    sen_full_closed_signal = pyqtSignal()
-
+    
     _instance = None
 
     @classmethod
@@ -41,7 +24,7 @@ class ActionsMQTT(GenericMQTT, QObject):
             raise RuntimeError("Use Actions.get_instance() to access the singleton.")
         
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+        GenericMQTT.__init__(self, client_name="ActionsMQTT", log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
 
         self.status_bar = status_bar
         logging.debug("Creating M_ActionsSingleton object")
@@ -49,9 +32,8 @@ class ActionsMQTT(GenericMQTT, QObject):
         # Create all the actions
         self.start_exp_action = QAction("Start Experiment", self)
         self.stop_exp_action = QAction("Stop Experiment", self)
-        self.reset_exp_action = QAction("Reset Experiment", self)
+        self.rename_exp_action = QAction("Rename Experiment", self)
 
-        self.quit_action = QAction("Quit", self)
         self.help_action = QAction("Help", self)
         self.settings_action = QAction("Settings", self)
 
@@ -75,9 +57,8 @@ class ActionsMQTT(GenericMQTT, QObject):
         # Connect actions to slots
         self.start_exp_action.triggered.connect(self.start_exp)
         self.stop_exp_action.triggered.connect(self.stop_exp)
-        self.reset_exp_action.triggered.connect(self.reset_exp)
+        self.rename_exp_action.triggered.connect(self.rename_exp)
 
-        self.quit_action.triggered.connect(self.quit)
         self.help_action.triggered.connect(self.help)
         self.settings_action.triggered.connect(self.settings)
 
@@ -97,7 +78,7 @@ class ActionsMQTT(GenericMQTT, QObject):
         self.sen_full_open_action.triggered.connect(self.sen_full_open)
         self.sen_full_closed_action.triggered.connect(self.sen_full_closed)
 
-        # self.mqtt_connect()
+        self.mqtt_connect()
 
     def status_and_log(self, message:str, duration:int=1000):
         logging.info(message)
@@ -105,26 +86,23 @@ class ActionsMQTT(GenericMQTT, QObject):
 
     @pyqtSlot()
     def start_exp(self):
-        self.start_exp_signal.emit()
         self.status_and_log("[QT][Action] Start Experiment")
-        self.mqtt_client.publish("NCM/Experiment_Control", "Start")
+        self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}", "Start")
     
     @pyqtSlot()
     def stop_exp(self):
-        self.stop_exp_signal.emit()
         self.status_and_log("[QT][Action] Stop Experiment")
-        self.mqtt_client.publish("NCM/Experiment_Control", "Stop")
+        self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}", "Stop")
 
     @pyqtSlot()
-    def reset_exp(self):
-        self.reset_exp_signal.emit()
-        self.status_and_log("[QT][Action] Reset Experiment")
-        self.mqtt_client.publish("NCM/Experiment_Control", "Reset")
-
-    @pyqtSlot()
-    def quit(self):
-        self.status_and_log("[QT][Action] Quit")
-        self.mqtt_client.publish("NCM/App_Status", "Quit")
+    def rename_exp(self):
+        self.stop_exp()
+        new_name, ok = QInputDialog.getText(None, "Rename Experiment", "Enter a new experiment name:")
+        if ok and new_name:
+            self.status_and_log(f"[QT][Action] Renaming Experiment: {new_name}")
+            self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}", new_name)
+        else:
+            self.status_and_log("[QT][Action] Rename Experiment canceled")
 
     @pyqtSlot()
     def help(self):
