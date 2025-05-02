@@ -48,6 +48,7 @@ class SensorGraphWidget(QWidget):
         self.mqtt_client.distance_data_ready.connect(self.update_usd_plot)
         self.mqtt_client.anemometer_data_ready.connect(self.update_an_plot)
         self.mqtt_client.standing_wave_ready.connect(self.update_standing_plot)
+        self.mqtt_client.clear_plots_signal.connect(self.clear_plots)
     
     @pyqtSlot()
     def clear_plots(self):

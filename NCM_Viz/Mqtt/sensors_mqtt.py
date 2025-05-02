@@ -6,7 +6,7 @@ from PyQt5.QtCore import pyqtSignal, QObject
 import json
 from pydantic import BaseModel
 from Constants.base_models import SensorData, SensorReadings
-from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig
+from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, ExperimentMqttConfig
 
 
 class SensorsMQTT(GenericMQTT, QObject):
@@ -14,6 +14,7 @@ class SensorsMQTT(GenericMQTT, QObject):
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
     standing_wave_ready = pyqtSignal(float, float)
+    clear_plots_signal = pyqtSignal()
 
     _instance = None
 
@@ -43,6 +44,11 @@ class SensorsMQTT(GenericMQTT, QObject):
         client.subscribe(SensorsConfig.display_data_topic)
         client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
 
+        topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
+        logging.debug(f"[QT][Sensors] Subscribing to topic: {topic}")
+        client.subscribe(topic)
+        client.message_callback_add(topic, self.mqtt_clear_plots_callback)
+
     def mqtt_display_callback(self, client:Client, userdata, msg:MQTTMessage):
         try:
             sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
@@ -52,3 +58,7 @@ class SensorsMQTT(GenericMQTT, QObject):
             
         except json.JSONDecodeError:
             logging.error(f"[QT][MQTT][SensorData] Failed to decode JSON payload: {msg.payload.decode()}")
+
+    def mqtt_clear_plots_callback(self, client:Client, userdata, msg:MQTTMessage):
+        logging.debug(f"[QT][Sensors] Clearing plots")
+        self.clear_plots_signal.emit()

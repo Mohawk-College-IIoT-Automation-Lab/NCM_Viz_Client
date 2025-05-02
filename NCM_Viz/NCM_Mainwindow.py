@@ -40,7 +40,6 @@ class MainWindow(QMainWindow):
 
         tab_widget = QTabWidget()
         sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, parent=self)
-        actions.start_exp_action.triggered.connect(sensor_tab.clear_plots)
         sen_control_tab = QWidget()
 
         self.setCentralWidget(central_widget)
