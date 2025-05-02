@@ -152,3 +152,13 @@
 - Time to turn the GUI back on and make the graphs work
 - Everything works but the graphs! 
 - The graphs work, but now I'm getting some weird mqtt behaviours
+	- I just needed to kill & restart the broker
+- I need to properly set the scale for the graphs cuz it makes the data look like crap
+- Need to scale the data after it's being
+	- doing the scaling manually with numpy
+- Setting the chart ranges, they're done
+- I should add a lengend but I'll do it later
+	- legend isn't working so I'm colour coding, will include the colouring in the help pop up
+- It's as done as it needs to be for tomorrow.
+- Pushing and putting it to bed for the evening
+

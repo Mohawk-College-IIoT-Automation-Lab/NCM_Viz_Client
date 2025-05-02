@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar, QInputDialog
+from PyQt5.QtWidgets import QStatusBar, QToolBar, QMainWindow, QAction, QMenuBar, QInputDialog, QMessageBox
 from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from .GenericMqtteLogger import GenericMQTT
@@ -108,6 +108,12 @@ class ActionsMQTT(GenericMQTT, QObject):
     @pyqtSlot()
     def help(self):
         self.status_and_log("[QT][Action] Help")
+        msg = QMessageBox()
+        msg.setText(f'This window displays helpful messages \n \n LL - pink \n LQ - cyan \n RQ - orange \n RR - brown \n Left Standing Wave - red \n Right Standing Wave - green')
+        msg.setWindowTitle("Help Window")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
+
 
     @pyqtSlot()
     def settings(self):

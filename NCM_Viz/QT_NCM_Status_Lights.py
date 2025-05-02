@@ -53,7 +53,7 @@ class StatusWidget(QWidget):
 
     @pyqtSlot(float)
     def set_experiment_time(self, elapsed_time:float):
-        self.experiment_timer.setText(f"Elapsed Time: {elapsed_time} s")
+        self.experiment_timer.setText(f"Elapsed Time: {elapsed_time:.3f} s")
 
 class AlarmLabel(QLabel):
 

@@ -33,18 +33,20 @@ class BandPassConfig(FilterConfig):
 
 class DAQConfig:
     device_name: str = "Dev2"
-    channels: List[str] = ["Dev2/ai0", "Dev2/ai1", "Dev2/ai2", "Dev2/ai3"]
-    channel_names: List[str] = ["USD1", "USD2", "USD3", "USD4"]
+    physical_names: List[str] = ["ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7"]
+    channel_names: List[str] = ["USD-LL", "USD-LQ", "USD-RQ", "USD-RR", "ANM-LL", "ANM-LQ", "ANM-RQ", "ANM-RR"]
+    usd_min: float = 0.0
+    usd_max: float = 500.0
+    anm_min: float = 0.0
+    anm_max: float = 12.0
+    v_min = 0
+    v_max = 10
     file_name: str = "default.tdms"
     fs: int = 1000
     fs_disp: int = 10
     filter_config: FilterConfig = BandPassConfig()
     mqtt_config: MQTTConfig
     log_config: LoggerConfig
-    min_usd_value: float = 30.5
-    max_usd_value: float = 300
-    min_anm_value: float = 0.001
-    max_anm_value: float = 5.0
 
 class StatusLightsConfig:
     alarm_names: List[str] = ["Alarm1", "Alarm2", "Alarm3", "Alarm4"]
@@ -57,6 +59,11 @@ class SensorsConfig:
     standing_wave_title: str = "Stating Wave Height (LL-LQ) (RR-RQ)"
     anm_left_title: str = "ANM - Left Mould (LL, LQ)"
     anm_right_title: str = "ANM - Right Mould (RQ, RR)"
+    colors: List[List[str]] = [
+        ['pink', 'c'],
+        ['orange', 'brown'],
+        ['r', 'g']
+    ]
     display_data_topic: str = "NCM/DisplayData"
 
 class ExperimentMqttConfig:

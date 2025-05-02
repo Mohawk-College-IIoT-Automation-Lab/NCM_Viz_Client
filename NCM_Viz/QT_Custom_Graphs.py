@@ -47,13 +47,13 @@ class Q2SensorsGraph(pg.PlotWidget):
 
     DEFAULT_SIZE = Size(300, 300)
 
-    def __init__(self, size:Size=DEFAULT_SIZE, buffer_size = 600, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
+    def __init__(self, size:Size=DEFAULT_SIZE, color_1:str='r', color_2:str='y', buffer_size = 600, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
-        disp_int = 1 / approx_display_rate
+        self.disp_int = 1 / approx_display_rate
 
         self.plotItem.setLabel("left", "Distance", units="mm")
-        self.plotItem.setLabel("bottom", "Duration", units=f"{disp_int:.3}s")
+        self.plotItem.setLabel("bottom", "Duration", units=f"{self.disp_int:.3}s")
 
         self.plotItem.setTitle(title)
         self.plotItem.showGrid(True, True, 0.5) # 0.5 oppacity
@@ -62,8 +62,8 @@ class Q2SensorsGraph(pg.PlotWidget):
         self.time_data_ticker = 0
         self.time_data = np.zeros(self.buffer_size)
 
-        self.data_1_plot = self.plotItem.plot(pen=pg.mkPen(color='y', width=2))
-        self.data_2_plot = self.plotItem.plot(pen=pg.mkPen(color='r', width=2))
+        self.data_1_plot = self.plotItem.plot(pen=pg.mkPen(color=color_1, width=2))
+        self.data_2_plot = self.plotItem.plot(pen=pg.mkPen(color=color_2, width=2))
 
         self.data_1 = np.zeros(self.buffer_size, dtype=np.float32)
         self.data_2 = np.zeros(self.buffer_size, dtype=np.float32)

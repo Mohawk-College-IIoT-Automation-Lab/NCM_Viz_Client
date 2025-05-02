@@ -1,5 +1,7 @@
 import nidaqmx  # Library for interfacing with NI DAQ (Data Acquisition) devices
+from nidaqmx.scale import Scale
 import nidaqmx.constants  # Contains configuration enums like AcquisitionType, FilterType, etc.
+from nidaqmx.constants import ScaleType, VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
 from scipy.signal import butter, filtfilt, medfilt  # For filtering operations
@@ -67,10 +69,16 @@ class DAQ(GenericMQTT):
         self._task = nidaqmx.Task()  # Main acquisition task
         self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(self._task.in_stream)  # Efficient streaming reader
 
+        usd_scale_name = "V to MM"
+        anm_scale_name = "V to MM/S"
+
         # Condigure the ni-daqmx task and add channels
         try: 
-            for c in DAQConfig.channels:
-                self._task.ai_channels.add_ai_voltage_chan(c)
+            for i in range(len(DAQConfig.physical_names)):
+                self._task.ai_channels.add_ai_voltage_chan(physical_channel=f"{DAQConfig.device_name}/{DAQConfig.physical_names[i]}",
+                                                       min_val= DAQConfig.v_min, max_val=DAQConfig.v_max)
+                                                       
+
             self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
             self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
         except Exception as e:
@@ -78,8 +86,9 @@ class DAQ(GenericMQTT):
             raise e
 
         # setup buffers for raw and filtered data
-        self._raw_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float64)
-        self._filter_data_buffer = np.zeros((len(DAQConfig.channels), self._buffer_size), dtype=np.float64)
+        self._raw_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
+        self._scaled_raw_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
+        self._filter_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
 
         self._start_timer = None
     
@@ -138,9 +147,13 @@ class DAQ(GenericMQTT):
             # Get Data
    
             self._input_reader.read_many_sample(self._raw_data_buffer, self._buffer_size)
- 
+
+            self._scaled_raw_data_buffer[:4] = DAQ._map_data(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
+            self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
+
             # Filter
             self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
+
 
             # Write to TDMS in a coroutine
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
@@ -186,6 +199,8 @@ class DAQ(GenericMQTT):
         logging.debug(f"[DAQ] Trying to cerate TDMS file {self._file_name}")
         try:
             self._file_name = file_name
+            if not self._file_name.endswith(".tdms"):
+                self._file_name += ".tdms"
             self._tdms_file = open(self._file_name, 'wb')
             self._tdms_writer = TdmsWriter(self._tdms_file)
             self._tdms_writer.write_segment([self._root_obj, self._group_obj])
@@ -252,6 +267,9 @@ class DAQ(GenericMQTT):
             return filtered_data
         else:
             return data
+        
+    def _map_data(input, in_min, in_max, out_min, out_max):
+        return (input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
     
     def close(self):
         # Close the DAQ task

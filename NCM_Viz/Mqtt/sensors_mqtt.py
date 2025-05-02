@@ -13,6 +13,7 @@ class SensorsMQTT(GenericMQTT, QObject):
 
     distance_data_ready = pyqtSignal(float, float, float, float)
     anemometer_data_ready = pyqtSignal(float, float, float, float)
+    standing_wave_ready = pyqtSignal(float, float)
 
     _instance = None
 
@@ -43,14 +44,11 @@ class SensorsMQTT(GenericMQTT, QObject):
         client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
 
     def mqtt_display_callback(self, client:Client, userdata, msg:MQTTMessage):
-        print("Here")
         try:
             sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
-
-            logging.info(f"[QT][MQTT][SensorData] Received data: {sensor_data}")
-
             self.distance_data_ready.emit(sensor_data.Ultra_Sonic_Distance.LL, sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
             self.anemometer_data_ready.emit(sensor_data.Anemometer.LL, sensor_data.Anemometer.LQ, sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
+            self.standing_wave_ready.emit(sensor_data.Standing_Wave.Left, sensor_data.Standing_Wave.Right)
             
         except json.JSONDecodeError:
             logging.error(f"[QT][MQTT][SensorData] Failed to decode JSON payload: {msg.payload.decode()}")

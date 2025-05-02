@@ -18,21 +18,26 @@ class SensorGraphWidget(QWidget):
         right_v_box = QVBoxLayout()
         left_h_box = QHBoxLayout()
 
-        self.usd_ll_lq_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title)
-        self.usd_rq_rr_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title)
-        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title)
+        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
+        self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
+        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[2][0], color_2=SensorsConfig.colors[2][1])
 
-        self.an_ll_lq_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title)
-        self.an_rq_rr_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title)
+        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
+        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
 
-        left_h_box.addWidget(self.usd_ll_lq_graph)
-        left_h_box.addWidget(self.usd_rq_rr_graph)
+        self.usd_left_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
+        self.usd_right_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
+        self.anm_left_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
+        self.anm_right_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
+
+        left_h_box.addWidget(self.usd_left_graph)
+        left_h_box.addWidget(self.usd_right_graph)
 
         left_v_box.addWidget(self.standing_wave_graph)
         left_v_box.addLayout(left_h_box)
 
-        right_v_box.addWidget(self.an_ll_lq_graph)
-        right_v_box.addWidget(self.an_rq_rr_graph)
+        right_v_box.addWidget(self.anm_left_graph)
+        right_v_box.addWidget(self.anm_right_graph)
         
         main_h_box.addLayout(left_v_box)
         main_h_box.addLayout(right_v_box)
@@ -42,26 +47,26 @@ class SensorGraphWidget(QWidget):
         self.mqtt_client = SensorsMQTT.get_instance(logger_config=logger_config)
         self.mqtt_client.distance_data_ready.connect(self.update_usd_plot)
         self.mqtt_client.anemometer_data_ready.connect(self.update_an_plot)
+        self.mqtt_client.standing_wave_ready.connect(self.update_standing_plot)
     
     @pyqtSlot()
     def clear_plots(self):
-        self.usd_ll_lq_graph.clear_plot()
-        self.usd_rq_rr_graph.clear_plot()
-        self.an_ll_lq_graph.clear_plot()
-        self.an_rq_rr_graph.clear_plot()
+        self.usd_left_graph.clear_plot()
+        self.usd_right_graph.clear_plot()
+        self.anm_left_graph.clear_plot()
+        self.anm_right_graph.clear_plot()
         self.standing_wave_graph.clear_plot()
 
     @pyqtSlot(float, float, float, float)
-    def update_usd_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):
-        print("HEre")
-        left_standing_wave = ll_value - lq_value
-        right_standing_wave = rr_value - rq_value
-        
-        self.usd_ll_lq_graph.update_plot(lq_value, ll_value)
-        self.usd_rq_rr_graph.update_plot(rq_value, rr_value)
-        self.standing_wave_graph.update_plot(left_standing_wave, right_standing_wave)
+    def update_usd_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):       
+        self.usd_left_graph.update_plot(lq_value, ll_value)
+        self.usd_right_graph.update_plot(rq_value, rr_value)
+
+    @pyqtSlot(float, float)
+    def update_standing_plot(self, left_value:float, right_value:float):
+        self.standing_wave_graph.update_plot(left_value, right_value)
 
     @pyqtSlot(float, float, float, float)
     def update_an_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):
-        self.an_ll_lq_graph.update_plot(lq_value, ll_value)
-        self.an_rq_rr_graph.update_plot(rq_value, rr_value)
+        self.anm_left_graph.update_plot(lq_value, ll_value)
+        self.anm_right_graph.update_plot(rq_value, rr_value)
