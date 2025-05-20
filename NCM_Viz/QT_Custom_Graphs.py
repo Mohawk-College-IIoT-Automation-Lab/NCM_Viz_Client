@@ -9,7 +9,7 @@ class QSingleSensorGraph(pg.PlotWidget):
 
     DEFAULT_SIZE = Size(600, 300)
 
-    def __init__(self, buffer_size:int=600, approx_display_rate:int=30, title:str="Default Title", parent=None, background='default', plotItem=None, **kargs):
+    def __init__(self, buffer_size:int=300, approx_display_rate:int=30, title:str="Default Title", parent=None, background='default', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
         disp_int = 1 / approx_display_rate
@@ -47,7 +47,7 @@ class Q2SensorsGraph(pg.PlotWidget):
 
     DEFAULT_SIZE = Size(300, 300)
 
-    def __init__(self, size:Size=DEFAULT_SIZE, color_1:str='r', color_2:str='y', buffer_size = 600, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
+    def __init__(self, size:Size=DEFAULT_SIZE, color_1:str='r', color_2:str='y', buffer_size = 300, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
         self.disp_int = 1 / approx_display_rate

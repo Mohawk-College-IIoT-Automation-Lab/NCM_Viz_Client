@@ -9,6 +9,7 @@ class LoggerConfig(BaseModel):
     log_name: str = "Log"
     mqtt_config: MQTTConfig
 
+
 class FilterConfig:
     type: str = "none"
     order: int = 0
@@ -27,18 +28,18 @@ class HighPassConfig(FilterConfig):
 
 class BandPassConfig(FilterConfig):
     type: str = "bandpass"
-    order: int = 5
-    lpf_cutoff: float = 500.0
-    hpf_cutoff: float = 0.5
+    order: int = 4
+    lpf_cutoff: float = 250.0
+    hpf_cutoff: float = 0.005
 
 class DAQConfig:
-    device_name: str = "Dev2"
+    device_name: str = "cDAQ9185-2304EC6Mod3"
     physical_names: List[str] = ["ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7"]
     channel_names: List[str] = ["USD-LL", "USD-LQ", "USD-RQ", "USD-RR", "ANM-LL", "ANM-LQ", "ANM-RQ", "ANM-RR"]
-    usd_min: float = 0.0
-    usd_max: float = 500.0
-    anm_min: float = 0.0
-    anm_max: float = 12.0
+    usd_min: float = 0
+    usd_max: float = 100
+    anm_min: float = 0.04
+    anm_max: float = 5.0
     v_min = 0
     v_max = 10
     file_name: str = "default.tdms"

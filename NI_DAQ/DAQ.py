@@ -74,9 +74,27 @@ class DAQ(GenericMQTT):
 
         # Condigure the ni-daqmx task and add channels
         try: 
-            for i in range(len(DAQConfig.physical_names)):
-                self._task.ai_channels.add_ai_voltage_chan(physical_channel=f"{DAQConfig.device_name}/{DAQConfig.physical_names[i]}",
-                                                       min_val= DAQConfig.v_min, max_val=DAQConfig.v_max)
+
+            #self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="ultrasonic", slope=80, y_intercept=100)
+            #self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="anemometer", slope=4.96, y_intercept=0.04)
+
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai0", name_to_assign_to_channel="USD-LL", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai1", name_to_assign_to_channel="USD-LQ", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE)#, custom_scale_name="ultrasonic")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai2", name_to_assign_to_channel="USD-RQ", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")            
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai3", name_to_assign_to_channel="USD-RR", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai4", name_to_assign_to_channel="ANM-LL", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai5", name_to_assign_to_channel="ANM-LQ", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai6", name_to_assign_to_channel="ANM-RQ", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
+            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai7", name_to_assign_to_channel="ANM-RR", 
+                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
+                                                       
                                                        
 
             self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
@@ -148,8 +166,8 @@ class DAQ(GenericMQTT):
    
             self._input_reader.read_many_sample(self._raw_data_buffer, self._buffer_size)
 
-            self._scaled_raw_data_buffer[:4] = DAQ._map_data(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
-            self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
+            #self._scaled_raw_data_buffer[:4] = DAQ._map_data(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
+            #self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
 
             # Filter
             self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
@@ -159,7 +177,7 @@ class DAQ(GenericMQTT):
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            avg = np.mean(self._filter_data_buffer, axis=0)
+            avg = np.mean(self._raw_data_buffer, axis=0)
 
 
             # Create SensorData object
