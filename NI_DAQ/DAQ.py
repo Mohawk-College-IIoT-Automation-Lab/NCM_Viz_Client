@@ -1,12 +1,17 @@
 import nidaqmx  # Library for interfacing with NI DAQ (Data Acquisition) devices
 from nidaqmx.scale import Scale
 import nidaqmx.constants  # Contains configuration enums like AcquisitionType, FilterType, etc.
-from nidaqmx.constants import ScaleType, VoltageUnits, TerminalConfiguration
+from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
 from scipy.signal import butter, filtfilt, medfilt  # For filtering operations
 
-from nptdms import TdmsWriter, ChannelObject, RootObject, GroupObject  # For TDMS file structure and writing
+from nptdms import (
+    TdmsWriter,
+    ChannelObject,
+    RootObject,
+    GroupObject,
+)  # For TDMS file structure and writing
 
 import json
 from pydantic import BaseModel
@@ -17,9 +22,22 @@ import time
 from multiprocessing import Event
 
 from Constants.base_models import SensorData, SensorReadings, StandingWave
-from Constants.configs import DAQConfig, FilterConfig, LowPassConfig, HighPassConfig, BandPassConfig, SensorsConfig, ExperimentMqttConfig, LoggerConfig
+from Constants.configs import (
+    DAQConfig,
+    FilterConfig,
+    LowPassConfig,
+    HighPassConfig,
+    BandPassConfig,
+    SensorsConfig,
+    ExperimentMqttConfig,
+    LoggerConfig,
+)
 from .GenericMqtteLogger.davids_logger import initialize_logging
-from .GenericMqtteLogger.generic_mqtt import GenericMQTT, Client  # For MQTT communication
+from .GenericMqtteLogger.generic_mqtt import (
+    GenericMQTT,
+    Client,
+)  # For MQTT communication
+
 
 class DAQ(GenericMQTT):
 
@@ -27,25 +45,32 @@ class DAQ(GenericMQTT):
     _instance = None
 
     @classmethod
-    def get_instance(cls, logger_config:LoggerConfig):
+    def get_instance(cls, logger_config: LoggerConfig):
         if cls._instance is None:
             cls._instance = cls(logger_config)
         return cls._instance
 
-    def __init__(self, logger_config:LoggerConfig):
+    def __init__(self, logger_config: LoggerConfig):
 
-        if getattr(self, '_initialized', False):
+        if getattr(self, "_initialized", False):
             return
-        
+
         self._initialized = True
 
-        super().__init__(client_name="DAQMQTT", log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+        super().__init__(
+            client_name="DAQMQTT",
+            log_name=logger_config.log_name,
+            host_name=logger_config.mqtt_config.host_name,
+            host_port=logger_config.mqtt_config.host_port,
+        )
         logging.debug("[DAQ] Initializing DAQ...")
 
         # Calculate the sample rate and buffer sizes
         self._fs_sample = DAQConfig.fs * 2
         self._buffer_size = int(self._fs_sample / DAQConfig.fs_disp)
-        logging.debug(f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Sample: {self._fs_sample}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}")
+        logging.debug(
+            f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Sample: {self._fs_sample}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
+        )
 
         # Place holders for the filter coefficients
         self._a = None
@@ -56,81 +81,162 @@ class DAQ(GenericMQTT):
 
         # Used by the TDMS file
         self._group_obj = GroupObject("NCM")  # TDMS group that holds related channels
-        self._raw_group_obj = GroupObject("Raw")  # TDMS group that holds related channels
-        self._filt_group_obj = GroupObject("Filtered")  # TDMS group that holds related channels
-        self._root_obj = RootObject(properties={"description": "NIDAQmx Acquisition"})  # TDMS root metadata
+        self._raw_group_obj = GroupObject(
+            "Raw"
+        )  # TDMS group that holds related channels
+        self._filt_group_obj = GroupObject(
+            "Filtered"
+        )  # TDMS group that holds related channels
+        self._root_obj = RootObject(
+            properties={"description": "NIDAQmx Acquisition"}
+        )  # TDMS root metadata
 
         # Place holders for the tdms file and writer
         self._file_name = DAQConfig.file_name
         self._tdms_file = None
         self._tdms_writer = None
 
-        # Setup Ni-daqmx task   
+        # Setup Ni-daqmx task
         self._task = nidaqmx.Task()  # Main acquisition task
-        self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(self._task.in_stream)  # Efficient streaming reader
-
-        usd_scale_name = "V to MM"
-        anm_scale_name = "V to MM/S"
+        self._input_reader = nidaqmx.stream_readers.AnalogMultiChannelReader(
+            self._task.in_stream
+        )  # Efficient streaming reader
 
         # Condigure the ni-daqmx task and add channels
-        try: 
+        try:
+            
+            ultra_sonic_scale = Scale.create_map_scale(scale_name="ultrasonic", prescaled_min=0, prescaled_max=10, scaled_min=200, scaled_max=450, pre_scaled_units=VoltageUnits, scaled_units="mm")
+            anemometer_scale = Scale.create_map_scale(scale_name="anemometer", prescaled_min=0, prescaled_max=1, scaled_min=0.04, scaled_max=5, pre_scaled_units=VoltageUnits, scaled_units="m/s")
 
-            #self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="ultrasonic", slope=80, y_intercept=100)
-            #self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="anemometer", slope=4.96, y_intercept=0.04)
 
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai0", name_to_assign_to_channel="USD-LL", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai1", name_to_assign_to_channel="USD-LQ", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE)#, custom_scale_name="ultrasonic")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai2", name_to_assign_to_channel="USD-RQ", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")            
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai3", name_to_assign_to_channel="USD-RR", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=10)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="ultrasonic")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai4", name_to_assign_to_channel="ANM-LL", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai5", name_to_assign_to_channel="ANM-LQ", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai6", name_to_assign_to_channel="ANM-RQ", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
-            self._task.ai_channels.add_ai_voltage_chan(physical_channel="cDAQ9185-2304EC6Mod3/ai7", name_to_assign_to_channel="ANM-RR", 
-                                                       terminal_config=TerminalConfiguration.DIFF, min_val=0, max_val=1)#, units=VoltageUnits.FROM_CUSTOM_SCALE, custom_scale_name="anemometer")
-                                                       
-                                                       
+            # self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="ultrasonic", slope=80, y_intercept=100)
+            # self._custom_scale = nidaqmx.Scale.create_lin_scale(scale_name="anemometer", slope=4.96, y_intercept=0.04)
 
-            self._task.timing.cfg_samp_clk_timing(self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS, samps_per_chan=self._buffer_size)
-            self._task.register_every_n_samples_acquired_into_buffer_event(self._buffer_size, self._raw_data_callback)
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai0",
+                name_to_assign_to_channel="USD-LL",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=200,
+                max_val=450,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="ultrasonic")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai1",
+                name_to_assign_to_channel="USD-LQ",
+                min_val=200,
+                max_val=450,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                terminal_config=TerminalConfiguration.DIFF,
+                custom_scale_name="ultrasonic")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai2",
+                name_to_assign_to_channel="USD-RQ",
+                min_val=200,
+                max_val=450,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                terminal_config=TerminalConfiguration.DIFF,
+                custom_scale_name="ultrasonic")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai3",
+                name_to_assign_to_channel="USD-RR",
+                min_val=200,
+                max_val=450,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                terminal_config=TerminalConfiguration.DIFF,
+                custom_scale_name="ultrasonic")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai4",
+                name_to_assign_to_channel="USD-LL",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=0.04,
+                max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="anemometer")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai5",
+                name_to_assign_to_channel="USD-LQ",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=0.04,
+                max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="anemometer")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai6",
+                name_to_assign_to_channel="USD-RQ",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=0.04,
+                max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="anemometer")
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai7",
+                name_to_assign_to_channel="USD-RR",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=0.04,
+                max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="anemometer")
+                
+
+
+            self._task.timing.cfg_samp_clk_timing(
+                self._fs_sample,
+                sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
+                samps_per_chan=self._buffer_size,
+            )
+            self._task.register_every_n_samples_acquired_into_buffer_event(
+                self._buffer_size, self._raw_data_callback
+            )
         except Exception as e:
             logging.error(f"[DAQ] DAQ setup exception: {e}")
             raise e
 
         # setup buffers for raw and filtered data
-        self._raw_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
-        self._scaled_raw_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
-        self._filter_data_buffer = np.zeros((len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64)
+        self._raw_data_buffer = np.zeros(
+            (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
+        )
+        self._scaled_raw_data_buffer = np.zeros(
+            (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
+        )
+        self._filter_data_buffer = np.zeros(
+            (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
+        )
 
         self._start_timer = None
-    
+
         logging.debug(f"[DAQ][MQTT][init] Connecting to MQTT")
         self.mqtt_client.on_connect = self._on_connect
-        self.mqtt_connect()        
+        self.mqtt_connect()
 
     def _on_connect(self, client, userdata, flags, rc, pros=None):
-        
+
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
         client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_start_callback)
-        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
+        logging.debug(
+            f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}"
+        )
 
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.stop_topic}"
         client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_stop_callback)
-        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
-        
+        logging.debug(
+            f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}"
+        )
+
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.rename_topic}"
         client.subscribe(topic)
         client.message_callback_add(topic, self._mqtt_rename_callback)
-        logging.debug(f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}")
-
+        logging.debug(
+            f"[DAQ][MQTT][init] Subbing and setting up callback for topic: {topic}"
+        )
 
     def _mqtt_start_callback(self, client, userdata, msg):
         logging.debug(f"[DAQ][MQTT] Start recording command received")
@@ -147,7 +253,9 @@ class DAQ(GenericMQTT):
             logging.debug("[DAQ][MQTT]  DAQ task is not running.")
 
     def _mqtt_rename_callback(self, client, userdata, msg):
-        logging.debug(f"[DAQ][MQTT]  Rename command received, data received: {msg.payload.decode()}")
+        logging.debug(
+            f"[DAQ][MQTT]  Rename command received, data received: {msg.payload.decode()}"
+        )
         data = json.loads(msg.payload.decode())
         file_name = data.get("file_name", None)
         if file_name is not None:
@@ -159,41 +267,50 @@ class DAQ(GenericMQTT):
 
     def _raw_data_callback(self, task_idx, event_type, num_samples, callback_data=None):
         timer = time.time() - self._start_timer
-        self.mqtt_client.publish(f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.elapsed_topic}", timer)
+        self.mqtt_client.publish(
+            f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.elapsed_topic}",
+            timer,
+        )
 
         try:
             # Get Data
-   
-            self._input_reader.read_many_sample(self._raw_data_buffer, self._buffer_size)
 
-            #self._scaled_raw_data_buffer[:4] = DAQ._map_data(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
-            #self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
+            self._input_reader.read_many_sample(
+                self._raw_data_buffer, self._buffer_size
+            )
+
+            # self._scaled_raw_data_buffer[:4] = DAQ._map_data​(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
+            # self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
 
             # Filter
             self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
-
 
             # Write to TDMS in a coroutine
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            avg = np.mean(self._raw_data_buffer, axis=0)
-
+            avg = []
+            for n 
+            avg.append(np.mean(self._raw_data_buffer, axis=0))
 
             # Create SensorData object
             sensor_data = SensorData(
-                Ultra_Sonic_Distance=SensorReadings(LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]),
+                Ultra_Sonic_Distance=SensorReadings(
+                    LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]
+                ),
                 Anemometer=SensorReadings(LL=avg[4], LQ=avg[5], RQ=avg[6], RR=avg[7]),
-                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2])
+                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2]),
             )
-            
+
             # push to mqtt
-            self.mqtt_client.publish(SensorsConfig.display_data_topic, sensor_data.model_dump_json())
-        
+            self.mqtt_client.publish(
+                SensorsConfig.display_data_topic, sensor_data.model_dump_json()
+            )
+
         except Exception as e:
             logging.error(f"[DAQ] Exception: {e}")
 
-        return 0 # this is a must have apparently 
+        return 0  # this is a must have apparently
 
     def _start_recording(self):
         if self._task.is_task_done():
@@ -212,14 +329,14 @@ class DAQ(GenericMQTT):
     @property
     def is_recording(self):
         return not self._task.is_task_done()
-    
+
     def _new_tdms(self, file_name: str):
         logging.debug(f"[DAQ] Trying to cerate TDMS file {self._file_name}")
         try:
             self._file_name = file_name
             if not self._file_name.endswith(".tdms"):
                 self._file_name += ".tdms"
-            self._tdms_file = open(self._file_name, 'wb')
+            self._tdms_file = open(self._file_name, "wb")
             self._tdms_writer = TdmsWriter(self._tdms_file)
             self._tdms_writer.write_segment([self._root_obj, self._group_obj])
             self._tdms_writer.write_segment([self._root_obj, self._raw_group_obj])
@@ -227,7 +344,6 @@ class DAQ(GenericMQTT):
             logging.debug(f"[DAQ] Created new TDMS file: {file_name}")
         except Exception as e:
             logging.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
-
 
     def _close_tdms(self):
         # Close the TDMS file
@@ -239,14 +355,24 @@ class DAQ(GenericMQTT):
         except Exception as e:
             logging.error(f"[DAQ] Exception when closing TDMS {self._file_name}: {e}")
 
-    def _write_tdms(self, raw:np.ndarray, filtered:np.ndarray):
+    def _write_tdms(self, raw: np.ndarray, filtered: np.ndarray):
         # Create a TDMS-compatible list of ChannelObjects with filtered data
         try:
             channel_objects = []
 
             for i in range(len(DAQConfig.channel_names)):
-                channel_objects.append(ChannelObject(self._raw_group_obj.group, DAQConfig.channel_names[i], raw[i, :]))
-                channel_objects.append(ChannelObject(self._filt_group_obj.group, DAQConfig.channel_names[i], filtered[i, :]))
+                channel_objects.append(
+                    ChannelObject(
+                        self._raw_group_obj.group, DAQConfig.channel_names[i], raw[i, :]
+                    )
+                )
+                channel_objects.append(
+                    ChannelObject(
+                        self._filt_group_obj.group,
+                        DAQConfig.channel_names[i],
+                        filtered[i, :],
+                    )
+                )
 
             self._tdms_writer.write_segment(channel_objects)
 
@@ -254,7 +380,9 @@ class DAQ(GenericMQTT):
             logging.error(f"[DAQ] TDMS Writing exceptions : {e}")
 
     def _setup_filter(self):
-        logging.debug(f"[DAQ] Setting up filter with config: {DAQConfig.filter_config.type}")
+        logging.debug(
+            f"[DAQ] Setting up filter with config: {DAQConfig.filter_config.type}"
+        )
         low = DAQConfig.filter_config.lpf_cutoff / DAQConfig.fs
         high = DAQConfig.filter_config.hpf_cutoff / DAQConfig.fs
 
@@ -266,18 +394,20 @@ class DAQ(GenericMQTT):
             high = 0
 
         elif DAQConfig.filter_config.__class__ == BandPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [high, low], btype='bandpass') 
+            b, a = butter(DAQConfig.filter_config.order, [high, low], btype="bandpass")
 
         elif DAQConfig.filter_config.__class__ == LowPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [low], btype='lowpass') 
+            b, a = butter(DAQConfig.filter_config.order, [low], btype="lowpass")
 
         elif DAQConfig.filter_config.__class__ == BandPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [high], btype='highpass') 
-    
+            b, a = butter(DAQConfig.filter_config.order, [high], btype="highpass")
+
         self._a = a
         self._b = b
-        logging.debug(f"[DAQ] Low: {DAQConfig.filter_config.lpf_cutoff} : {low}, High: {DAQConfig.filter_config.hpf_cutoff} : {high} created")
-        
+        logging.debug(
+            f"[DAQ] Low: {DAQConfig.filter_config.lpf_cutoff} : {low}, High: {DAQConfig.filter_config.hpf_cutoff} : {high} created"
+        )
+
     def _filter_data(self, data: np.ndarray):
         if self._a is not None and self._b is not None:
             # Apply the filter to the data
@@ -285,15 +415,15 @@ class DAQ(GenericMQTT):
             return filtered_data
         else:
             return data
-        
+
     def _map_data(input, in_min, in_max, out_min, out_max):
         return (input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-    
+
     def close(self):
         # Close the DAQ task
         logging.debug("[DAQ] Closing DAQ task...")
         self._task.close()
-        
+
         logging.debug("[DAQ] Disconnecting from MQTT...")
         self.mqtt_disconnect()
 
@@ -301,8 +431,12 @@ class DAQ(GenericMQTT):
         self._close_tdms()
 
     @classmethod
-    def run(cls, logger_config:LoggerConfig, stop_event:Event): # type: ignore
-        initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
+    def run(cls, logger_config: LoggerConfig, stop_event: Event):  # type: ignore
+        initialize_logging(
+            process_name=logger_config.log_name,
+            broker=logger_config.mqtt_config.host_name,
+            port=logger_config.mqtt_config.host_port,
+        )
 
         logging.debug("[DAQ] Starting the DAQ Worker")
         daq = DAQ.get_instance(logger_config=logger_config)

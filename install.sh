@@ -25,14 +25,14 @@ if ! command -v pip3 &> /dev/null; then
     sudo apt-get install python3-pip
 fi
 
-python3 -m pip install --upgrade setuptools
+sudo python3 -m pip install --upgrade setuptools
 
 
 # Check if pip is up to date
 PIP_VERSION=$(pip3 --version 2>&1 | awk '{print $2}')
 if ! [[ $(echo -e "$PIP_VERSION\n$REQUIRED_VERSION" | sort -V | head -n1) == "$REQUIRED_VERSION" ]]; then
     echo "pip is not up to date. Updating pip..."
-    python3 -m pip install --upgrade pip
+    sudo python3 -m pip install --upgrade pip
 fi
 
 # Ask the user if they want to use a virtual environment
@@ -63,10 +63,11 @@ fi
 
 # Install required packages
 echo "Installing required packages..."
-python3 -m pip install -r requirements.txt
+sudo python3 -m pip install -r requirements.txt --break-system-packages
 
 echo "Getting submodules ... "
 git submodule update --init --recursive
 
-
+echo "Installed Ni-DAQmx ... "
+sudo python3 -m nidaqmx installdriver
 
