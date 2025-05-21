@@ -289,9 +289,7 @@ class DAQ(GenericMQTT):
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            avg = []
-            for n 
-            avg.append(np.mean(self._raw_data_buffer, axis=0))
+            avg = np.mean(self._raw_data_buffer, axis=0)
 
             # Create SensorData object
             sensor_data = SensorData(
