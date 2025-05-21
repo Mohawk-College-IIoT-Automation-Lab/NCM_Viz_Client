@@ -4,7 +4,8 @@ import nidaqmx.constants  # Contains configuration enums like AcquisitionType, F
 from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
-from scipy.signal import butter, filtfilt, medfilt  # For filtering operations
+from scipy.signal import butter, filtfilt, medfilt, # For filtering operations
+from scipy.ndimage import median_filter
 
 from nptdms import (
     TdmsWriter,
@@ -405,6 +406,10 @@ class DAQ(GenericMQTT):
         )
 
     def _filter_data(self, data: np.ndarray):
+        return median_filter(input=data, size=10, mode="reflect", axes=0) 
+
+
+
         if self._a is not None and self._b is not None:
             # Apply the filter to the data
             filtered_data = filtfilt(self._b, self._a, data)
