@@ -289,15 +289,13 @@ class DAQ(GenericMQTT):
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            avg = np.mean(self._raw_data_buffer, axis=0)
+            avg = np.mean(self._filter_data_buffer, axis=0)
 
             # Create SensorData object
             sensor_data = SensorData(
-                Ultra_Sonic_Distance=SensorReadings(
-                    LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]
-                ),
+                Ultra_Sonic_Distance=SensorReadings(LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]),
                 Anemometer=SensorReadings(LL=avg[4], LQ=avg[5], RQ=avg[6], RR=avg[7]),
-                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2]),
+                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2])
             )
 
             # push to mqtt
