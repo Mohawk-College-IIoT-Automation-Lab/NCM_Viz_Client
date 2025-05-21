@@ -105,7 +105,7 @@ class DAQ(GenericMQTT):
         # Condigure the ni-daqmx task and add channels
         try:
             
-            ultra_sonic_scale = Scale.create_map_scale(scale_name="ultrasonic", prescaled_min=0, prescaled_max=10, scaled_min=200, scaled_max=450, pre_scaled_units=VoltageUnits, scaled_units="mm")
+            ultra_sonic_scale = Scale.create_map_scale(scale_name="ultrasonic", prescaled_min=0, prescaled_max=10, scaled_min=0, scaled_max=900, pre_scaled_units=VoltageUnits, scaled_units="mm")
             anemometer_scale = Scale.create_map_scale(scale_name="anemometer", prescaled_min=0, prescaled_max=1, scaled_min=0.04, scaled_max=5, pre_scaled_units=VoltageUnits, scaled_units="m/s")
 
 
@@ -116,16 +116,16 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
                 name_to_assign_to_channel="USD-LL",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=200,
-                max_val=450,
+                min_val=0,
+                max_val=900,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic")
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
                 name_to_assign_to_channel="USD-LQ",
-                min_val=200,
-                max_val=450,
+                min_val=0,
+                max_val=900,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 terminal_config=TerminalConfiguration.DIFF,
                 custom_scale_name="ultrasonic")
@@ -133,8 +133,8 @@ class DAQ(GenericMQTT):
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai2",
                 name_to_assign_to_channel="USD-RQ",
-                min_val=200,
-                max_val=450,
+                min_val=0,
+                max_val=900,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 terminal_config=TerminalConfiguration.DIFF,
                 custom_scale_name="ultrasonic")
@@ -142,8 +142,8 @@ class DAQ(GenericMQTT):
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai3",
                 name_to_assign_to_channel="USD-RR",
-                min_val=200,
-                max_val=450,
+                min_val=0,
+                max_val=900,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 terminal_config=TerminalConfiguration.DIFF,
                 custom_scale_name="ultrasonic")

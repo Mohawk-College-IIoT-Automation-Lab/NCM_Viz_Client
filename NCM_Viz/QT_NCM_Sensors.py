@@ -25,11 +25,11 @@ class SensorGraphWidget(QWidget):
         self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
         self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
 
-        self.usd_left_graph.setYRange(0, 10)
-        self.usd_right_graph.setYRange(0, 10)
-        self.anm_left_graph.setYRange(0, 10)
-        self.anm_right_graph.setYRange(0, 10)
-
+        # self.usd_left_graph.setYRange(0, 10)
+        # self.usd_right_graph.setYRange(0, 10)
+        # self.anm_left_graph.setYRange(0, 10)
+        # self.anm_right_graph.setYRange(0, 10)
+        #
         left_h_box.addWidget(self.usd_left_graph)
         left_h_box.addWidget(self.usd_right_graph)
 
