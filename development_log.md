@@ -162,3 +162,13 @@
 - It's as done as it needs to be for tomorrow.
 - Pushing and putting it to bed for the evening
 
+# 05-21-2025
+- Did a site visit yesterday to UofT, the filtering in labview sucked, but also so did mine
+- Working on adding median filter
+- Fixing how the channels are setups and correctly setting the scales for the sensors 
+- It runs right now but there are still spikes
+- Noticed that all of the channels are reporting the same values, so there are potentially 2 problems:
+    1. That the avg isn't working and is only operating on one columns and then using the same data for the others 
+    2. That the median filtering is doing something similar
+    - The fix is to explicity do it on each filter.
+- I also noticed that the data is doing a weird pattern, I'm not sure if that's me averaging out the spikes or if there is something going on at the GLB, however those values should be very steady, and they were in the labview so something is up. However, they are also fucked now in the labview, so it could be the filtering and something that David changed in the labview that is making them weird. It is also entirely possible that Ian was doing things to make it not weird. 

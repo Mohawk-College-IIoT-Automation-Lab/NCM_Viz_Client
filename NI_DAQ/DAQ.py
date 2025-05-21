@@ -4,7 +4,7 @@ import nidaqmx.constants  # Contains configuration enums like AcquisitionType, F
 from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
-from scipy.signal import butter, filtfilt, medfilt, # For filtering operations
+from scipy.signal import butter, filtfilt, medfilt # For filtering operations
 from scipy.ndimage import median_filter
 
 from nptdms import (
