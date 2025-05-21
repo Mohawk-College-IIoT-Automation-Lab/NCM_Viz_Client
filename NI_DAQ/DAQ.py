@@ -150,7 +150,7 @@ class DAQ(GenericMQTT):
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
-                name_to_assign_to_channel="USD-LL",
+                name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
@@ -159,7 +159,7 @@ class DAQ(GenericMQTT):
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai5",
-                name_to_assign_to_channel="USD-LQ",
+                name_to_assign_to_channel="ANM-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
@@ -168,7 +168,7 @@ class DAQ(GenericMQTT):
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
-                name_to_assign_to_channel="USD-RQ",
+                name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
@@ -177,7 +177,7 @@ class DAQ(GenericMQTT):
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai7",
-                name_to_assign_to_channel="USD-RR",
+                name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
