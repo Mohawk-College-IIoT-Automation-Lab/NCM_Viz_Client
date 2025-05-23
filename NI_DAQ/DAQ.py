@@ -90,15 +90,15 @@ class DAQ(GenericMQTT):
 
         # Condigure the ni-daqmx task and add channels
         try:
-
-            ultra_sonic_scale = Scale.create_map_scale(
-                scale_name="ultrasonic",
-                prescaled_min=0,
-                prescaled_max=10,
-                scaled_min=DAQConfig.usd_min,
-                scaled_max=DAQConfig.usd_max,
-                scaled_units="mm",
-            )
+            ultra_sonic_scale = Scale.create_lin_scale(scale_name="ultrasonic", slope=80, y_intercept=DAQConfig.usd_offset, scaled_units="mm")
+            # ultra_sonic_scale = Scale.create_map_scale(
+            #     scale_name="ultrasonic",
+            #     prescaled_min=0,
+            #     prescaled_max=10,
+            #     scaled_min=DAQConfig.usd_min,
+            #     scaled_max=DAQConfig.usd_max,
+            #     scaled_units="mm",
+            # )
 
             anemometer_scale = Scale.create_map_scale(
                 scale_name="anemometer",

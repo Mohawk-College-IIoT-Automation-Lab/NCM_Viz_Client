@@ -47,12 +47,12 @@ class Q2SensorsGraph(pg.PlotWidget):
 
     DEFAULT_SIZE = Size(300, 300)
 
-    def __init__(self, size:Size=DEFAULT_SIZE, color_1:str='r', color_2:str='y', buffer_size = 300, approx_display_rate = 30, title = "Default Title", parent=None, background='default', plotItem=None, **kargs):
+    def __init__(self, size:Size=DEFAULT_SIZE, color_1:str='r', color_2:str='y', buffer_size = 300, approx_display_rate = 30, title = "Default Title", parent=None, background='default', label:str = "Distance", units:str = "mm", plotItem=None, **kargs):
         super().__init__(parent, background, plotItem, **kargs)
         
         self.disp_int = 1 / approx_display_rate
 
-        self.plotItem.setLabel("left", "Distance", units="mm")
+        self.plotItem.setLabel("left", label, units=units)
         self.plotItem.setLabel("bottom", "Duration", units=f"{self.disp_int:.3}s")
 
         self.plotItem.setTitle(title)

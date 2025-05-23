@@ -24,8 +24,8 @@ class SensorGraphWidget(QWidget):
         self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
         self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[2][0], color_2=SensorsConfig.colors[2][1])
 
-        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
-        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
+        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1], label="Velocity", units="m/s")
+        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1], label="Velocity", units="m/s")
 
         self.usd_left_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
         self.usd_right_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)

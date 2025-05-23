@@ -188,3 +188,5 @@
 - Sidebar - I noticed neovim was acting weird, it's not highlighting my the NCM_Viz stuff
 - Added the ranges for the sensors to the DAQconfig, and set the graphs and DAQ to have the same ranges using that constant.
 - Based on the verbosity of the python I'm using for the DAQ, it may make more sense to write the DAQ code in c, it'll perform way better and allow us to run things way faster. 
+- Fixing the offset, of the sensors using a linear scale, I set the y_int to the measured offset.
+- Fixed the label on the graph because it bothered Dong hui that it was wrong
