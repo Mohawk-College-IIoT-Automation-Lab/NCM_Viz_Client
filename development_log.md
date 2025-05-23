@@ -177,4 +177,5 @@
 - Currently on the train and a bunch of the changes I made the other day are lost, so time to do them all again.
 - manually calculating each individual avg and median filter, I'm not 100% certain that the ranges were working correctly.
 - I need to talk to Dong Hui about the sensors, I believe that the datasheet tells us that the reso is 1mm regardless of the range, and we have $2^16$ resolution, so we can measure 0.0001v when all we need to measure is $\frac{10}{800} = 0.0125 \frac{V}{mm}$
-- 
+- Threw an error because I removed `units=VoltageUnits.FROM_CUSTOM_UNITS` from the channel init. It's weird that it does that even though it knows that I'm using a custom scale.
+    - Regardless I set it back
