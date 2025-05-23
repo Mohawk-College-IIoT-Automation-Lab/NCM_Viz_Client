@@ -117,18 +117,8 @@ class DAQ(GenericMQTT):
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai3",
-                name_to_assign_to_channel="USD-LL",
-                terminal_config=TerminalConfiguration.DIFF,
-                min_val=100,
-                max_val=900,
-                units=VoltageUnits.FROM_CUSTOM_SCALE,
-                custom_scale_name="ultrasonic",
-            )
-
-            self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai2",
-                name_to_assign_to_channel="USD-LQ",
+                physical_channel="cDAQ9185-2304EC6Mod3/ai0",
+                name_to_assign_to_channel="USD-RR",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
@@ -147,8 +137,8 @@ class DAQ(GenericMQTT):
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai0",
-                name_to_assign_to_channel="USD-RR",
+                physical_channel="cDAQ9185-2304EC6Mod3/ai2",
+                name_to_assign_to_channel="USD-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
@@ -157,18 +147,18 @@ class DAQ(GenericMQTT):
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai7",
-                name_to_assign_to_channel="ANM-LL",
+                physical_channel="cDAQ9185-2304EC6Mod3/ai3",
+                name_to_assign_to_channel="USD-LL",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=0.04,
-                max_val=5,
+                min_val=100,
+                max_val=900,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
-                custom_scale_name="anemometer",
+                custom_scale_name="ultrasonic",
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai6",
-                name_to_assign_to_channel="ANM-LQ",
+                physical_channel="cDAQ9185-2304EC6Mod3/ai4",
+                name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
@@ -187,8 +177,18 @@ class DAQ(GenericMQTT):
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
-                physical_channel="cDAQ9185-2304EC6Mod3/ai4",
-                name_to_assign_to_channel="ANM-RR",
+                physical_channel="cDAQ9185-2304EC6Mod3/ai6",
+                name_to_assign_to_channel="ANM-LQ",
+                terminal_config=TerminalConfiguration.DIFF,
+                min_val=0.04,
+                max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
+                custom_scale_name="anemometer",
+            )
+
+            self._task.ai_channels.add_ai_voltage_chan(
+                physical_channel="cDAQ9185-2304EC6Mod3/ai7",
+                name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
@@ -290,7 +290,7 @@ class DAQ(GenericMQTT):
             # Filter
             kernel = 21
 #            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
-            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel)
+            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel) #
             self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
             self._filter_data_buffer[2] = medfilt(self._raw_data_buffer[2], kernel)
             self._filter_data_buffer[3] = medfilt(self._raw_data_buffer[3], kernel)
@@ -303,21 +303,21 @@ class DAQ(GenericMQTT):
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            LL_usd_avg = np.mean(self._filter_data_buffer[0])
-            LQ_usd_avg = np.mean(self._filter_data_buffer[1])
-            RQ_usd_avg = np.mean(self._filter_data_buffer[2])
-            RR_usd_avg = np.mean(self._filter_data_buffer[3])
+            RR_usd_avg = np.mean(self._filter_data_buffer[0])
+            RQ_usd_avg = np.mean(self._filter_data_buffer[1])
+            LQ_usd_avg = np.mean(self._filter_data_buffer[2])
+            LL_usd_avg = np.mean(self._filter_data_buffer[3])
 
-            LL_anm_avg = np.mean(self._filter_data_buffer[4])
-            LQ_anm_avg = np.mean(self._filter_data_buffer[5])
-            RQ_amn_avg = np.mean(self._filter_data_buffer[6])
-            RR_amn_avg = np.mean(self._filter_data_buffer[7])
+            RR_anm_avg = np.mean(self._filter_data_buffer[4])
+            RQ_anm_avg = np.mean(self._filter_data_buffer[5])
+            LQ_anm_avg = np.mean(self._filter_data_buffer[6])
+            LL_anm_avg = np.mean(self._filter_data_buffer[7])
 
 
             # Create SensorData object
             sensor_data = SensorData(
                 Ultra_Sonic_Distance=SensorReadings(LL=LL_usd_avg, LQ=LQ_usd_avg, RQ=RQ_usd_avg, RR=RR_usd_avg),
-                Anemometer=SensorReadings(LL=LL_anm_avg, LQ=LQ_anm_avg, RQ=RQ_amn_avg, RR=RR_amn_avg),
+                Anemometer=SensorReadings(LL=LL_anm_avg, LQ=LQ_anm_avg, RQ=RQ_anm_avg, RR=RR_anm_avg),
                 Standing_Wave=StandingWave(Left=LL_usd_avg - LQ_usd_avg, Right=RR_usd_avg - RQ_usd_avg),
                 )
 

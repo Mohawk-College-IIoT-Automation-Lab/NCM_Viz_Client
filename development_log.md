@@ -183,3 +183,4 @@
 - The inputs into the DAQ were wrong, but the sensors seem to be responding all correctly or atleast similar to the labview now.
     - The anemometers are still behving weird
     - The scaling is still wrong as well.
+- The values were still reporting for the wrong sensors, so I fixed it more thuroughly. Also had to make the sure the averages were going to the right place.
