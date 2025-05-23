@@ -29,8 +29,8 @@ class SensorGraphWidget(QWidget):
 
         self.usd_left_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
         self.usd_right_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
-        self.anm_left_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
-        self.anm_right_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
+        self.anm_left_graph.setYRange(DAQConfig.anm_min, 1)
+        self.anm_right_graph.setYRange(DAQConfig.anm_min, 1)
         
         left_h_box.addWidget(self.usd_left_graph)
         left_h_box.addWidget(self.usd_right_graph)
