@@ -40,7 +40,7 @@ class DAQConfig:
     usd_max: float = 400
     anm_min: float = 0.04
     anm_max: float = 5.0
-    usd_offset: float = 220
+    usd_offset: float = -220
     v_min = 0
     v_max = 10
     file_name: str = "default.tdms"
