@@ -190,3 +190,6 @@
 - Based on the verbosity of the python I'm using for the DAQ, it may make more sense to write the DAQ code in c, it'll perform way better and allow us to run things way faster. 
 - Fixing the offset, of the sensors using a linear scale, I set the y_int to the measured offset.
 - Fixed the label on the graph because it bothered Dong hui that it was wrong
+- Everything is working right now and the values that it's reporting seem very correct.
+    - I need to spend sometime tuning the filters on Wednesday. 
+- Dong Hui would like it if we can do that offset automatically.
