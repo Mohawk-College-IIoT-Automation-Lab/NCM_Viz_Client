@@ -187,3 +187,4 @@
 - Changed the scales on the graphs to be set correctly. I need to grab this stuff from MQTT, eventually.
 - Sidebar - I noticed neovim was acting weird, it's not highlighting my the NCM_Viz stuff
 - Added the ranges for the sensors to the DAQconfig, and set the graphs and DAQ to have the same ranges using that constant.
+- Based on the verbosity of the python I'm using for the DAQ, it may make more sense to write the DAQ code in c, it'll perform way better and allow us to run things way faster. 

@@ -145,6 +145,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=DAQConfig.usd_min,
                 max_val=DAQConfig.usd_max,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
