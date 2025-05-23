@@ -180,3 +180,6 @@
 - Threw an error because I removed `units=VoltageUnits.FROM_CUSTOM_UNITS` from the channel init. It's weird that it does that even though it knows that I'm using a custom scale.
     - Regardless I set it back
 - Kernel needs to be odd for median filter set it from `20` to `21`
+- The inputs into the DAQ were wrong, but the sensors seem to be responding all correctly or atleast similar to the labview now.
+    - The anemometers are still behving weird
+    - The scaling is still wrong as well.
