@@ -24,6 +24,7 @@ from Constants.configs import (
     DAQConfig,
     ExperimentMqttConfig,
     LoggerConfig,
+    SensorsConfig,
 )
 from .GenericMqtteLogger.davids_logger import initialize_logging
 from .GenericMqtteLogger.generic_mqtt import (
