@@ -145,7 +145,6 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=DAQConfig.usd_min,
                 max_val=DAQConfig.usd_max,
-                min_val=100,
                 custom_scale_name="ultrasonic",
             )
 
@@ -153,7 +152,7 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
                 name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=DAQConfig.anm_min
+                min_val=DAQConfig.anm_min,
                 max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
@@ -164,7 +163,7 @@ class DAQ(GenericMQTT):
                 name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
-                min_val=DAQConfig.anm_min
+                min_val=DAQConfig.anm_min,
                 max_val=DAQConfig.anm_max,
                 custom_scale_name="anemometer",
             )
@@ -173,7 +172,7 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
                 name_to_assign_to_channel="ANM-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=DAQConfig.anm_min
+                min_val=DAQConfig.anm_min,
                 max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
@@ -183,7 +182,7 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai7",
                 name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=DAQConfig.anm_min
+                min_val=DAQConfig.anm_min,
                 max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
