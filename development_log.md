@@ -184,3 +184,5 @@
     - The anemometers are still behving weird
     - The scaling is still wrong as well.
 - The values were still reporting for the wrong sensors, so I fixed it more thuroughly. Also had to make the sure the averages were going to the right place.
+- Changed the scales on the graphs to be set correctly. I need to grab this stuff from MQTT, eventually.
+- Sidebar - I noticed neovim was acting weird, it's not highlighting my the NCM_Viz stuff

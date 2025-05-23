@@ -1,10 +1,10 @@
 import nidaqmx  # Library for interfacing with NI DAQ (Data Acquisition) devices
 from nidaqmx.scale import Scale
 import nidaqmx.constants  # Contains configuration enums like AcquisitionType, FilterType, etc.
-from nidaqmx.constants import ScaleType, VoltageUnits, TerminalConfiguration
+from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
-from scipy.signal import butter, filtfilt, medfilt  # For filtering operations
+from scipy.signal import butter,  medfilt  # For filtering operations
 
 from nptdms import (
     TdmsWriter,
@@ -14,8 +14,6 @@ from nptdms import (
 )  # For TDMS file structure and writing
 
 import json
-from pydantic import BaseModel
-from typing import List
 import logging
 import time
 
@@ -24,18 +22,12 @@ from multiprocessing import Event
 from Constants.base_models import SensorData, SensorReadings, StandingWave
 from Constants.configs import (
     DAQConfig,
-    FilterConfig,
-    LowPassConfig,
-    HighPassConfig,
-    BandPassConfig,
-    SensorsConfig,
     ExperimentMqttConfig,
     LoggerConfig,
 )
 from .GenericMqtteLogger.davids_logger import initialize_logging
 from .GenericMqtteLogger.generic_mqtt import (
     GenericMQTT,
-    Client,
 )  # For MQTT communication
 
 
