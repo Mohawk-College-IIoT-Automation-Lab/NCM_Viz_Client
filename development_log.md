@@ -171,4 +171,10 @@
     1. That the avg isn't working and is only operating on one columns and then using the same data for the others 
     2. That the median filtering is doing something similar
     - The fix is to explicity do it on each filter.
-- I also noticed that the data is doing a weird pattern, I'm not sure if that's me averaging out the spikes or if there is something going on at the GLB, however those values should be very steady, and they were in the labview so something is up. However, they are also fucked now in the labview, so it could be the filtering and something that David changed in the labview that is making them weird. It is also entirely possible that Ian was doing things to make it not weird. 
+- I also noticed that the data is doing a weird pattern, I'm not sure if that's me averaging out the spikes or if there is something going on at the GLB, however those values should be very steady, and they were in the labview so something is up. However, they are also fucked now in the labview, so it could be the filtering and something that David changed in the labview that is making them weird. It is also entirely possible that Ian was doing things to make it not weird.
+
+# 05-23-2025
+- Currently on the train and a bunch of the changes I made the other day are lost, so time to do them all again.
+- manually calculating each individual avg and median filter, I'm not 100% certain that the ranges were working correctly.
+- I need to talk to Dong Hui about the sensors, I believe that the datasheet tells us that the reso is 1mm regardless of the range, and we have $2^16$ resolution, so we can measure 0.0001v when all we need to measure is $\frac{10}{800} = 0.0125 \frac{V}{mm}$
+- 
