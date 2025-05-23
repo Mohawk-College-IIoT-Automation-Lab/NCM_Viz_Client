@@ -72,13 +72,6 @@ class DAQ(GenericMQTT):
             f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Sample: {self._fs_sample}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
         )
 
-        # Place holders for the filter coefficients
-        self._a = None
-        self._b = None
-
-        # Setup filters
-        self._setup_filter()
-
         # Used by the TDMS file
         self._group_obj = GroupObject("NCM")  # TDMS group that holds related channels
         self._raw_group_obj = GroupObject(
@@ -104,10 +97,24 @@ class DAQ(GenericMQTT):
 
         # Condigure the ni-daqmx task and add channels
         try:
-            
-            ultra_sonic_scale = Scale.create_map_scale(scale_name="ultrasonic", prescaled_min=0, prescaled_max=10, scaled_min=100, scaled_max=900, scaled_units="mm")
 
-            anemometer_scale = Scale.create_map_scale(scale_name="anemometer", prescaled_min=0, prescaled_max=1, scaled_min=0.04, scaled_max=5, scaled_units="mm")
+            ultra_sonic_scale = Scale.create_map_scale(
+                scale_name="ultrasonic",
+                prescaled_min=0,
+                prescaled_max=10,
+                scaled_min=100,
+                scaled_max=900,
+                scaled_units="mm",
+            )
+
+            anemometer_scale = Scale.create_map_scale(
+                scale_name="anemometer",
+                prescaled_min=0,
+                prescaled_max=1,
+                scaled_min=0.04,
+                scaled_max=5,
+                scaled_units="mm",
+            )
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
@@ -115,44 +122,44 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
-                custom_scale_name="ultrasonic"
-            )  
-            
+                custom_scale_name="ultrasonic",
+            )
+
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
                 name_to_assign_to_channel="USD-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
-                custom_scale_name="ultrasonic"
-            ) 
-            
+                custom_scale_name="ultrasonic",
+            )
+
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai2",
                 name_to_assign_to_channel="USD-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
-                custom_scale_name="ultrasonic"
-            )  
-            
+                custom_scale_name="ultrasonic",
+            )
+
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai3",
                 name_to_assign_to_channel="USD-RR",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
-                custom_scale_name="ultrasonic"
-            ) 
-            
+                custom_scale_name="ultrasonic",
+            )
+
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
                 name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
-                custom_scale_name="anemometer"
-            ) 
+                custom_scale_name="anemometer",
+            )
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai5",
@@ -160,16 +167,16 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
-                custom_scale_name="anemometer"
-            ) 
- 
+                custom_scale_name="anemometer",
+            )
+
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
                 name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
-                custom_scale_name="anemometer"
+                custom_scale_name="anemometer",
             )
 
             self._task.ai_channels.add_ai_voltage_chan(
@@ -178,10 +185,12 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
-                custom_scale_name="anemometer"
-            ) 
+                custom_scale_name="anemometer",
+            )
 
-            self._task.timing.cfg_samp_clk_timing( self._fs_sample, sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
+            self._task.timing.cfg_samp_clk_timing(
+                self._fs_sample,
+                sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
                 samps_per_chan=self._buffer_size,
             )
             self._task.register_every_n_samples_acquired_into_buffer_event(
@@ -195,9 +204,7 @@ class DAQ(GenericMQTT):
         self._raw_data_buffer = np.zeros(
             (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
         )
-        self._scaled_raw_data_buffer = np.zeros(
-            (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
-        )
+   
         self._filter_data_buffer = np.zeros(
             (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
         )
@@ -272,26 +279,39 @@ class DAQ(GenericMQTT):
                 self._raw_data_buffer, self._buffer_size
             )
 
-            # self._scaled_raw_data_buffer[:4] = DAQ._map_data(self._raw_data_buffer[:4], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.usd_min, DAQConfig.usd_max)
-            # self._scaled_raw_data_buffer[-4:] = DAQ._map_data(self._raw_data_buffer[-4:], DAQConfig.v_min, DAQConfig.v_max, DAQConfig.anm_min, DAQConfig.anm_max)
-
             # Filter
-            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
+            kernel = 20
+#            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
+            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel)
+            self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
+            self._filter_data_buffer[2] = medfilt(self._raw_data_buffer[2], kernel)
+            self._filter_data_buffer[3] = medfilt(self._raw_data_buffer[3], kernel)
+            self._filter_data_buffer[4] = medfilt(self._raw_data_buffer[4], kernel)
+            self._filter_data_buffer[5] = medfilt(self._raw_data_buffer[5], kernel)
+            self._filter_data_buffer[6] = medfilt(self._raw_data_buffer[6], kernel)
+            self._filter_data_buffer[7] = medfilt(self._raw_data_buffer[7], kernel)
 
             # Write to TDMS in a coroutine
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            avg = np.mean(self._raw_data_buffer, axis=0)
+            LL_usd_avg = np.mean(self._filter_data_buffer[0])
+            LQ_usd_avg = np.mean(self._filter_data_buffer[1])
+            RQ_usd_avg = np.mean(self._filter_data_buffer[2])
+            RR_usd_avg = np.mean(self._filter_data_buffer[3])
+
+            LL_anm_avg = np.mean(self._filter_data_buffer[4])
+            LQ_anm_avg = np.mean(self._filter_data_buffer[5])
+            RQ_amn_avg = np.mean(self._filter_data_buffer[6])
+            RR_amn_avg = np.mean(self._filter_data_buffer[7])
+
 
             # Create SensorData object
             sensor_data = SensorData(
-                Ultra_Sonic_Distance=SensorReadings(
-                    LL=avg[0], LQ=avg[1], RQ=avg[2], RR=avg[3]
-                ),
-                Anemometer=SensorReadings(LL=avg[4], LQ=avg[5], RQ=avg[6], RR=avg[7]),
-                Standing_Wave=StandingWave(Left=avg[0] - avg[1], Right=avg[3] - avg[2]),
-            )
+                Ultra_Sonic_Distance=SensorReadings(LL=LL_usd_avg, LQ=LQ_usd_avg, RQ=RQ_usd_avg, RR=RR_usd_avg),
+                Anemometer=SensorReadings(LL=LL_anm_avg, LQ=LQ_anm_avg, RQ=RQ_amn_avg, RR=RR_amn_avg),
+                Standing_Wave=StandingWave(Left=LL_usd_avg - LQ_usd_avg, Right=RR_usd_avg - RQ_usd_avg),
+                )
 
             # push to mqtt
             self.mqtt_client.publish(
@@ -370,45 +390,6 @@ class DAQ(GenericMQTT):
         except Exception as e:
             logging.error(f"[DAQ] TDMS Writing exceptions : {e}")
 
-    def _setup_filter(self):
-        logging.debug(
-            f"[DAQ] Setting up filter with config: {DAQConfig.filter_config.type}"
-        )
-        low = DAQConfig.filter_config.lpf_cutoff / DAQConfig.fs
-        high = DAQConfig.filter_config.hpf_cutoff / DAQConfig.fs
-
-        if DAQConfig.filter_config.__class__ == FilterConfig:
-            # No filter
-            self._a = None
-            self._b = None
-            low = 0
-            high = 0
-
-        elif DAQConfig.filter_config.__class__ == BandPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [high, low], btype="bandpass")
-
-        elif DAQConfig.filter_config.__class__ == LowPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [low], btype="lowpass")
-
-        elif DAQConfig.filter_config.__class__ == BandPassConfig:
-            b, a = butter(DAQConfig.filter_config.order, [high], btype="highpass")
-
-        self._a = a
-        self._b = b
-        logging.debug(
-            f"[DAQ] Low: {DAQConfig.filter_config.lpf_cutoff} : {low}, High: {DAQConfig.filter_config.hpf_cutoff} : {high} created"
-        )
-
-    def _filter_data(self, data: np.ndarray):
-        if self._a is not None and self._b is not None:
-            # Apply the filter to the data
-            filtered_data = filtfilt(self._b, self._a, data)
-            return filtered_data
-        else:
-            return data
-
-    def _map_data(input, in_min, in_max, out_min, out_max):
-        return (input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
     def close(self):
         # Close the DAQ task
