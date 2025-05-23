@@ -288,7 +288,7 @@ class DAQ(GenericMQTT):
             )
 
             # Filter
-            kernel = 20
+            kernel = 21
 #            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
             self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel)
             self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
