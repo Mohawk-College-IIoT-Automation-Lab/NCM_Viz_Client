@@ -36,8 +36,8 @@ class DAQConfig:
     device_name: str = "cDAQ9185-2304EC6Mod3"
     physical_names: List[str] = ["ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7"]
     channel_names: List[str] = ["USD-LL", "USD-LQ", "USD-RQ", "USD-RR", "ANM-LL", "ANM-LQ", "ANM-RQ", "ANM-RR"]
-    usd_min: float = 0
-    usd_max: float = 100
+    usd_min: float = 100
+    usd_max: float = 400
     anm_min: float = 0.04
     anm_max: float = 5.0
     v_min = 0

@@ -2,6 +2,8 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot, pyqtSignal
 
+from NI_DAQ.DAQ import DAQ
+
 from .Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
 
@@ -25,10 +27,10 @@ class SensorGraphWidget(QWidget):
         self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
         self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
 
-        self.usd_left_graph.setYRange(0, 900)
-        self.usd_right_graph.setYRange(0, 900)
-        self.anm_left_graph.setYRange(0, 5)
-        self.anm_right_graph.setYRange(0, 5)
+        self.usd_left_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
+        self.usd_right_graph.setYRange(DAQConfig.usd_min, DAQConfig.usd_max)
+        self.anm_left_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
+        self.anm_right_graph.setYRange(DAQConfig.anm_min, DAQConfig.anm_max)
         
         left_h_box.addWidget(self.usd_left_graph)
         left_h_box.addWidget(self.usd_right_graph)

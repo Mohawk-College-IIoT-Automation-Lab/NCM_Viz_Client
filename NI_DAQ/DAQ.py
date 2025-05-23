@@ -95,8 +95,8 @@ class DAQ(GenericMQTT):
                 scale_name="ultrasonic",
                 prescaled_min=0,
                 prescaled_max=10,
-                scaled_min=100,
-                scaled_max=900,
+                scaled_min=DAQConfig.usd_min,
+                scaled_max=DAQConfig.usd_max,
                 scaled_units="mm",
             )
 
@@ -104,8 +104,8 @@ class DAQ(GenericMQTT):
                 scale_name="anemometer",
                 prescaled_min=0,
                 prescaled_max=1,
-                scaled_min=0.04,
-                scaled_max=5,
+                scaled_min=DAQConfig.anm_min,
+                scaled_max=DAQConfig.anm_max,
                 scaled_units="mm",
             )
 
@@ -113,8 +113,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
                 name_to_assign_to_channel="USD-RR",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=100,
-                max_val=900,
+                min_val=DAQConfig.usd_min,
+                max_val=DAQConfig.usd_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
@@ -123,8 +123,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
                 name_to_assign_to_channel="USD-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=100,
-                max_val=900,
+                min_val=DAQConfig.usd_min,
+                max_val=DAQConfig.usd_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
@@ -133,8 +133,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai2",
                 name_to_assign_to_channel="USD-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=100,
-                max_val=900,
+                min_val=DAQConfig.usd_min,
+                max_val=DAQConfig.usd_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
@@ -143,9 +143,9 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai3",
                 name_to_assign_to_channel="USD-LL",
                 terminal_config=TerminalConfiguration.DIFF,
+                min_val=DAQConfig.usd_min,
+                max_val=DAQConfig.usd_max,
                 min_val=100,
-                max_val=900,
-                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
@@ -153,8 +153,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
                 name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=0.04,
-                max_val=5,
+                min_val=DAQConfig.anm_min
+                max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
@@ -163,9 +163,9 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai5",
                 name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=0.04,
-                max_val=5,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
+                min_val=DAQConfig.anm_min
+                max_val=DAQConfig.anm_max,
                 custom_scale_name="anemometer",
             )
 
@@ -173,8 +173,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
                 name_to_assign_to_channel="ANM-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=0.04,
-                max_val=5,
+                min_val=DAQConfig.anm_min
+                max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
@@ -183,8 +183,8 @@ class DAQ(GenericMQTT):
                 physical_channel="cDAQ9185-2304EC6Mod3/ai7",
                 name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
-                min_val=0.04,
-                max_val=5,
+                min_val=DAQConfig.anm_min
+                max_val=DAQConfig.anm_max,
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
