@@ -122,6 +122,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
@@ -131,6 +132,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
@@ -140,6 +142,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
@@ -149,6 +152,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=100,
                 max_val=900,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
 
@@ -158,6 +162,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
 
@@ -167,6 +172,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
 
@@ -176,6 +182,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
 
@@ -185,6 +192,7 @@ class DAQ(GenericMQTT):
                 terminal_config=TerminalConfiguration.DIFF,
                 min_val=0.04,
                 max_val=5,
+                units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
 
