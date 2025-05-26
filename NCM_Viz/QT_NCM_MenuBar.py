@@ -1,5 +1,4 @@
-from PyQt5.QtWidgets import QToolBar, QMainWindow, QMenuBar, QStatusBar
-from PyQt5.QtCore import QObject
+from PyQt5.QtWidgets import QMenuBar, QStatusBar
 from .Mqtt.actions_mqtt import ActionsMQTT
 from Constants.configs import LoggerConfig
 

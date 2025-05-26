@@ -1,18 +1,16 @@
 
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
-from PyQt5.QtCore import pyqtSlot, pyqtSignal
-
-from NI_DAQ.DAQ import DAQ
+from PyQt5.QtCore import pyqtSlot
 
 from .Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
 
-from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, DAQConfig
+from Constants.configs import LoggerConfig, SensorsConfig 
 
 
 class SensorGraphWidget(QWidget):
 
-    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
+    def __init__(self, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
 
         main_h_box = QHBoxLayout(self)

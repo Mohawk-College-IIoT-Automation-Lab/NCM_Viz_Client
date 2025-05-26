@@ -4,7 +4,7 @@ import nidaqmx.constants  # Contains configuration enums like AcquisitionType, F
 from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
-from scipy.signal import butter,  medfilt  # For filtering operations
+from scipy.signal import  medfilt  # For filtering operations
 
 from nptdms import (
     TdmsWriter,
@@ -90,15 +90,12 @@ class DAQ(GenericMQTT):
 
         # Condigure the ni-daqmx task and add channels
         try:
-            ultra_sonic_scale = Scale.create_lin_scale(scale_name="ultrasonic", slope=80, y_intercept=DAQConfig.usd_offset, scaled_units="mm")
-            # ultra_sonic_scale = Scale.create_map_scale(
-            #     scale_name="ultrasonic",
-            #     prescaled_min=0,
-            #     prescaled_max=10,
-            #     scaled_min=DAQConfig.usd_min,
-            #     scaled_max=DAQConfig.usd_max,
-            #     scaled_units="mm",
-            # )
+            ultra_sonic_scale = Scale.create_lin_scale(
+                scale_name="ultrasonic",
+                slope=80,
+                y_intercept=DAQConfig.usd_offset,
+                scaled_units="mm",
+            )
 
             anemometer_scale = Scale.create_map_scale(
                 scale_name="anemometer",
@@ -109,7 +106,7 @@ class DAQ(GenericMQTT):
                 scaled_units="mm",
             )
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
                 name_to_assign_to_channel="USD-RR",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -118,6 +115,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
+
+            channel.ai_lowpass_cutoff_freq = DAQConfig.lpf_cutoff
+            channel.ai_lowpass_enable = True
 
             self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
@@ -205,7 +205,7 @@ class DAQ(GenericMQTT):
         self._raw_data_buffer = np.zeros(
             (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
         )
-   
+
         self._filter_data_buffer = np.zeros(
             (len(DAQConfig.physical_names), self._buffer_size), dtype=np.float64
         )
@@ -282,8 +282,8 @@ class DAQ(GenericMQTT):
 
             # Filter
             kernel = 21
-#            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
-            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel) #
+            #            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
+            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel)  #
             self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
             self._filter_data_buffer[2] = medfilt(self._raw_data_buffer[2], kernel)
             self._filter_data_buffer[3] = medfilt(self._raw_data_buffer[3], kernel)
@@ -306,13 +306,18 @@ class DAQ(GenericMQTT):
             LQ_anm_avg = np.mean(self._filter_data_buffer[6])
             LL_anm_avg = np.mean(self._filter_data_buffer[7])
 
-
             # Create SensorData object
             sensor_data = SensorData(
-                Ultra_Sonic_Distance=SensorReadings(LL=LL_usd_avg, LQ=LQ_usd_avg, RQ=RQ_usd_avg, RR=RR_usd_avg),
-                Anemometer=SensorReadings(LL=LL_anm_avg, LQ=LQ_anm_avg, RQ=RQ_anm_avg, RR=RR_anm_avg),
-                Standing_Wave=StandingWave(Left=LL_usd_avg - LQ_usd_avg, Right=RR_usd_avg - RQ_usd_avg),
-                )
+                Ultra_Sonic_Distance=SensorReadings(
+                    LL=LL_usd_avg, LQ=LQ_usd_avg, RQ=RQ_usd_avg, RR=RR_usd_avg
+                ),
+                Anemometer=SensorReadings(
+                    LL=LL_anm_avg, LQ=LQ_anm_avg, RQ=RQ_anm_avg, RR=RR_anm_avg
+                ),
+                Standing_Wave=StandingWave(
+                    Left=LL_usd_avg - LQ_usd_avg, Right=RR_usd_avg - RQ_usd_avg
+                ),
+            )
 
             # push to mqtt
             self.mqtt_client.publish(
@@ -390,7 +395,6 @@ class DAQ(GenericMQTT):
 
         except Exception as e:
             logging.error(f"[DAQ] TDMS Writing exceptions : {e}")
-
 
     def close(self):
         # Close the DAQ task

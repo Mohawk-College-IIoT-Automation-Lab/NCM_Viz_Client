@@ -9,35 +9,12 @@ class LoggerConfig(BaseModel):
     log_name: str = "Log"
     mqtt_config: MQTTConfig
 
-
-class FilterConfig:
-    type: str = "none"
-    order: int = 0
-    lpf_cutoff: float = 0
-    hpf_cutoff: float = 0
-
-class LowPassConfig(FilterConfig):
-    type: str = "lowpass"
-    order: int = 5
-    lpf_cutoff: float = 500.0
-
-class HighPassConfig(FilterConfig):
-    type: str = "highpass"
-    order: int = 5
-    hpf_cutoff: float = 1.0
-
-class BandPassConfig(FilterConfig):
-    type: str = "bandpass"
-    order: int = 4
-    lpf_cutoff: float = 250.0
-    hpf_cutoff: float = 0.005
-
 class DAQConfig:
     device_name: str = "cDAQ9185-2304EC6Mod3"
     physical_names: List[str] = ["ai0", "ai1", "ai2", "ai3", "ai4", "ai5", "ai6", "ai7"]
     channel_names: List[str] = ["USD-LL", "USD-LQ", "USD-RQ", "USD-RR", "ANM-LL", "ANM-LQ", "ANM-RQ", "ANM-RR"]
     usd_min: float = 100
-    usd_max: float = 400
+    usd_max: float = 900
     anm_min: float = 0.04
     anm_max: float = 5.0
     usd_offset: float = -300 # this should be automated in the new system
@@ -46,7 +23,7 @@ class DAQConfig:
     file_name: str = "default.tdms"
     fs: int = 1000
     fs_disp: int = 10
-    filter_config: FilterConfig = BandPassConfig()
+    lpf_cutoff: int = 500
     mqtt_config: MQTTConfig
     log_config: LoggerConfig
 

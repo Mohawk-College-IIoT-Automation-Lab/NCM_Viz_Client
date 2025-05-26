@@ -1,6 +1,5 @@
 import os
-from PyQt5.QtWidgets import QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QTabWidget, QApplication, QSizePolicy
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTabWidget
 from .Transform import Size
 from .QT_NCM_Status_Lights import StatusWidget
 from .Mqtt.actions_mqtt import ActionsMQTT

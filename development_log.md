@@ -1,3 +1,10 @@
+---
+id: development_log
+aliases:
+  - "05-21-2025"
+tags: []
+---
+
 ### To do
  - [ ] Make a base object `M_QWidget` that has all of the built-in stuff I want
     - [x] Logging
@@ -193,3 +200,9 @@
 - Everything is working right now and the values that it's reporting seem very correct.
     - I need to spend sometime tuning the filters on Wednesday. 
 - Dong Hui would like it if we can do that offset automatically.
+
+## 05-26-2025
+- refactoring, removing unused imports and what note
+- Asked Paul to remove the taught ranges on the sensors, we have more than enough resolution on the sensors to read it correctly.
+- turned on the built-in LPF in the NI-9202 ai modules
+- 

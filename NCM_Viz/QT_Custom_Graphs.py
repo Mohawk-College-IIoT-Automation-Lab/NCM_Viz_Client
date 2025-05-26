@@ -1,5 +1,4 @@
-import PyQt5.Qt
-from PyQt5.QtCore import Qt, pyqtSlot, pyqtSignal
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QSizePolicy
 from .Transform import Size
 import pyqtgraph as pg
