@@ -194,7 +194,7 @@ class DAQ(GenericMQTT):
                 custom_scale_name="anemometer",
             )
             
-            self._task.ai_channels.all.ai_lowpass_enable = true
+            self._task.ai_channels.all.ai_lowpass_enable = True
             self._task.ai_channels.all.ai_lowpass_cutoff_freq = self._lpf_cuttof
 
             self._task.timing.cfg_samp_clk_timing(
