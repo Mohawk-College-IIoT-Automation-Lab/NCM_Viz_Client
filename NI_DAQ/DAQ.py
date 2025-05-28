@@ -194,14 +194,16 @@ class DAQ(GenericMQTT):
                 custom_scale_name="anemometer",
             )
             
-            self._task.ai_channels.all.ai_lowpass_enable = True
-            self._task.ai_channels.all.ai_lowpass_cutoff_freq = self._lpf_cuttof
-
             self._task.timing.cfg_samp_clk_timing(
                 DAQConfig.fs,
                 sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
                 samps_per_chan=self._buffer_size,
             )
+
+            self._task.ai_channels.all.ai_lowpass_enable = True
+            self._task.ai_channels.all.ai_lowpass_cutoff_freq = self._lpf_cuttof
+
+                                
             self._task.register_every_n_samples_acquired_into_buffer_event(
                 self._buffer_size, self._raw_data_callback
             )
