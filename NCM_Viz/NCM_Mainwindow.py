@@ -38,8 +38,8 @@ class MainWindow(QMainWindow):
         alarms = StatusWidget(status_bar=self.statusBar(), logger_config=logger_config)
 
         tab_widget = QTabWidget()
-        sensor_tab = SensorGraphWidget(self.statusBar(), logger_config=logger_config, parent=self)
-        sen_control_tab = QWidget()
+        sensor_tab = SensorGraphWidget(logger_config=logger_config, parent=self)
+        sen_control_tab = QWidget() 
 
         self.setCentralWidget(central_widget)
 
