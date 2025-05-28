@@ -4,7 +4,7 @@ import nidaqmx.constants  # Contains configuration enums like AcquisitionType, F
 from nidaqmx.constants import VoltageUnits, TerminalConfiguration
 import nidaqmx.stream_readers  # For efficient reading of continuous data streams
 import numpy as np  # For efficient numerical operations and array handling'
-from scipy.signal import  medfilt  # For filtering operations
+from scipy.signal import  lfilter, medfilt, butter  # For filtering operations
 
 from nptdms import (
     TdmsWriter,
@@ -61,14 +61,15 @@ class DAQ(GenericMQTT):
         # Calculate the sample rate and buffer sizes
         self._buffer_size = int(DAQConfig.fs / DAQConfig.fs_disp)
         self._f_filt_nyq = int(round(DAQConfig.fs / 2, 0)) 
-        self._lpf_cuttof = self._f_filt_nyq if self._f_filt_nyq < 100000 else 0
-
+        
+        # filter Constants
+        self._b, self._a = butter(DAQConfig.lpf_order, self._f_filt_nyq, btype='lowpass')
         
         logging.debug(
             f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
         )
         logging.debug(
-            f"[DAQ][init] Fnyq: {self._f_filt_nyq}, LPF Cuttoff: {self._lpf_cuttof} "
+            f"[DAQ][init] Fnyq: {self._f_filt_nyq}"
         )
 
         # Used by the TDMS file
@@ -200,10 +201,6 @@ class DAQ(GenericMQTT):
                 samps_per_chan=self._buffer_size,
             )
 
-            self._task.ai_channels.all.ai_lowpass_enable = True
-            self._task.ai_channels.all.ai_lowpass_cutoff_freq = self._lpf_cuttof
-
-                                
             self._task.register_every_n_samples_acquired_into_buffer_event(
                 self._buffer_size, self._raw_data_callback
             )
@@ -290,10 +287,19 @@ class DAQ(GenericMQTT):
                 self._raw_data_buffer, self._buffer_size
             )
 
+            self._filter_data_buffer[0] = lfilter(self._b, self._a, self._raw_data_buffer[0])
+            self._filter_data_buffer[1] = lfilter(self._b, self._a, self._raw_data_buffer[1])
+            self._filter_data_buffer[2] = lfilter(self._b, self._a, self._raw_data_buffer[2])
+            self._filter_data_buffer[3] = lfilter(self._b, self._a, self._raw_data_buffer[3])
+            self._filter_data_buffer[4] = lfilter(self._b, self._a, self._raw_data_buffer[4])
+            self._filter_data_buffer[5] = lfilter(self._b, self._a, self._raw_data_buffer[5])
+            self._filter_data_buffer[6] = lfilter(self._b, self._a, self._raw_data_buffer[6])
+            self._filter_data_buffer[7] = lfilter(self._b, self._a, self._raw_data_buffer[7])
+
             # Filter
             kernel = 21
             #            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
-            self._filter_data_buffer[0] = medfilt(self._raw_data_buffer[0], kernel)  #
+            self._filter_data_buffer[0] = medfilt(self._filter_data_buffer[0], kernel)  #
             self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
             self._filter_data_buffer[2] = medfilt(self._raw_data_buffer[2], kernel)
             self._filter_data_buffer[3] = medfilt(self._raw_data_buffer[3], kernel)

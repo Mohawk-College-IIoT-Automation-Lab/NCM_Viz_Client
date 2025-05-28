@@ -25,6 +25,7 @@ class DAQConfig:
     v_min = 0
     v_max = 10
     file_name: str = "default.tdms"
+    lpf_order: int = 2
     fs: int = 1000
     fs_disp: int = 10
     lpf_cutoff: int = 500
