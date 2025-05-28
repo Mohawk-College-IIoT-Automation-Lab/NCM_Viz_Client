@@ -19,7 +19,7 @@ class SensorsMQTT(GenericMQTT, QObject):
     _instance = None
 
     @classmethod
-    def get_instance(cls, logger_config:LoggerConfig = LoggerConfig, parent=None):
+    def get_instance(cls, logger_config:LoggerConfig, parent=None):
         if cls._instance is None:
             cls._instance = cls(logger_config, parent)
         return cls._instance

@@ -11,7 +11,7 @@ class StatusWidget(QWidget):
 
     ELAPSED_SIZE = Size(200, 25)
 
-    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
+    def __init__(self, status_bar:QStatusBar, logger_config:LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
         self.central_layout = QVBoxLayout(self)
         self.experiment_layout = QHBoxLayout()

@@ -10,7 +10,7 @@ from Constants.configs import LoggerConfig, SensorsConfig
 
 class SensorGraphWidget(QWidget):
 
-    def __init__(self, logger_config:LoggerConfig = LoggerConfig, parent=None, **kargs):
+    def __init__(self, logger_config:LoggerConfig, parent=None, **kargs):
         super().__init__(parent, **kargs)
 
         main_h_box = QHBoxLayout(self)

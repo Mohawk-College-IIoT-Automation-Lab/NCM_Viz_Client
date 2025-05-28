@@ -18,7 +18,7 @@ class MainWindow(QMainWindow):
 
     GRAPH_WIDGET_SIZE = Size(400, 400)
 
-    def __init__(self, logger_config:LoggerConfig = LoggerConfig, exit_event:Event=None, *args, **kwargs):
+    def __init__(self, logger_config:LoggerConfig, exit_event:Event=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.exit_event = exit_event
 
