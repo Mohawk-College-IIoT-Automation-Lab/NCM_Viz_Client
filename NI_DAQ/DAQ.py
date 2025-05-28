@@ -61,15 +61,20 @@ class DAQ(GenericMQTT):
         self._buffer_size = int(DAQConfig.fs / DAQConfig.fs_disp)
         self._f_filt_nyq = DAQConfig.fs / 2
         self._f_lpf_norm = DAQConfig.lpf_cutoff / self._f_filt_nyq 
-        # filter Constants
-        self._b, self._a = butter(DAQConfig.lpf_order, self._f_lpf_norm, btype='lowpass')
-        
+
+
+
         logging.debug(
             f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
         )
         logging.debug(
             f"[DAQ][init] Fnyq: {self._f_filt_nyq}, LPF_cutoff {DAQConfig.lpf_cutoff}, LPF_Order {DAQConfig.lpf_order}, LPF_Norm {self._f_lpf_norm}" 
-        )
+        )   
+
+        # filter Constants
+        self._b, self._a = butter(DAQConfig.lpf_order, self._f_lpf_norm, btype='lowpass')
+        
+        
 
         # Used by the TDMS file
         self._group_obj = GroupObject("NCM")  # TDMS group that holds related channels
