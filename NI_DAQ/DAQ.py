@@ -59,10 +59,16 @@ class DAQ(GenericMQTT):
         logging.debug("[DAQ] Initializing DAQ...")
 
         # Calculate the sample rate and buffer sizes
-        self._fs_sample = DAQConfig.fs * 2
-        self._buffer_size = int(self._fs_sample / DAQConfig.fs_disp)
+        self._buffer_size = int(DAQConfig.fs / DAQConfig.fs_disp)
+        self._f_filt_nyq = int(round(DAQConfig.fs / 2, 0)) 
+        self._lpf_cuttof = self._f_filt_nyq if self._f_filt_nyq < 100000 else 0
+
+        
         logging.debug(
-            f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Sample: {self._fs_sample}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
+            f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
+        )
+        logging.debug(
+            f"[DAQ][init] Fnyq: {self._f_filt_nyq}, LPF Cuttoff: {self._lpf_cuttof} "
         )
 
         # Used by the TDMS file
@@ -90,21 +96,27 @@ class DAQ(GenericMQTT):
 
         # Condigure the ni-daqmx task and add channels
         try:
-            ultra_sonic_scale = Scale.create_lin_scale(
+            ultra_sonic_scale = Scale.create_map_scale(
                 scale_name="ultrasonic",
-                slope=80,
-                y_intercept=DAQConfig.usd_offset,
+                prescaled_min=DAQConfig.usd_pre_min,
+                prescaled_max=DAQConfig.usd_pre_max,
+                scaled_min=DAQConfig.usd_min,
+                scaled_max=DAQConfig.usd_max,
                 scaled_units="mm",
             )
 
             anemometer_scale = Scale.create_map_scale(
                 scale_name="anemometer",
-                prescaled_min=0,
-                prescaled_max=1,
+                prescaled_min=DAQConfig.anm_pre_min,
+                prescaled_max=DAQConfig.anm_pre_max,
                 scaled_min=DAQConfig.anm_min,
                 scaled_max=DAQConfig.anm_max,
                 scaled_units="mm",
             )
+
+            def setup_onboard_filt(channel):
+                channel.ai_lowpass_cutoff_freq = self._f_filt_nyq 
+                channel.ai_lowpass_enable = True
 
             channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
@@ -115,11 +127,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
+            setup_onboard_filt(channel)
 
-            channel.ai_lowpass_cutoff_freq = DAQConfig.lpf_cutoff
-            channel.ai_lowpass_enable = True
-
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
                 name_to_assign_to_channel="USD-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -128,8 +138,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
+            setup_onboard_filt(channel)
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai2",
                 name_to_assign_to_channel="USD-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -138,8 +149,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
+            setup_onboard_filt(channel)
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai3",
                 name_to_assign_to_channel="USD-LL",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -148,8 +160,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
+            setup_onboard_filt(channel)
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
                 name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -158,8 +171,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
-
-            self._task.ai_channels.add_ai_voltage_chan(
+            setup_onboard_filt(channel)
+        
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai5",
                 name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -168,8 +182,9 @@ class DAQ(GenericMQTT):
                 max_val=DAQConfig.anm_max,
                 custom_scale_name="anemometer",
             )
+            setup_onboard_filt(channel)
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
                 name_to_assign_to_channel="ANM-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -178,8 +193,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
+            setup_onboard_filt(channel)
 
-            self._task.ai_channels.add_ai_voltage_chan(
+            channel = self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai7",
                 name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -188,9 +204,10 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
+            setup_onboard_filt(channel)
 
             self._task.timing.cfg_samp_clk_timing(
-                self._fs_sample,
+                DAQConfig.fs,
                 sample_mode=nidaqmx.constants.AcquisitionType.CONTINUOUS,
                 samps_per_chan=self._buffer_size,
             )
