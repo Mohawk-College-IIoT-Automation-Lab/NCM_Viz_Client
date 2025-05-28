@@ -205,4 +205,9 @@ tags: []
 - refactoring, removing unused imports and what note
 - Asked Paul to remove the taught ranges on the sensors, we have more than enough resolution on the sensors to read it correctly.
 - turned on the built-in LPF in the NI-9202 ai modules
-- 
+
+## 05-27-2025
+- Changed how the sample rate is set
+    - Rather than multiplying the sampler ate by 2 we divide the filters by 2 
+- Enabled the oboard LPF for each channel we are using
+- Added the scaling constants to the config
