@@ -59,16 +59,16 @@ class DAQ(GenericMQTT):
 
         # Calculate the sample rate and buffer sizes
         self._buffer_size = int(DAQConfig.fs / DAQConfig.fs_disp)
-        self._f_filt_nyq = int(round(DAQConfig.fs / 2, 0)) 
-        
+        self._f_filt_nyq = DAQConfig.fs / 2
+        self._f_lpf_norm = DAQConfig.lpf_cutoff / self._f_filt_nyq 
         # filter Constants
-        self._b, self._a = butter(DAQConfig.lpf_order, DAQConfig.lpf_cutoff / self._f_filt_nyq, btype='lowpass')
+        self._b, self._a = butter(DAQConfig.lpf_order, self._f_lpf_norm, btype='lowpass')
         
         logging.debug(
             f"[DAQ][init] Fs: {DAQConfig.fs}, Fs Disp: {DAQConfig.fs_disp}, Buffer Size: {self._buffer_size}"
         )
         logging.debug(
-            f"[DAQ][init] Fnyq: {self._f_filt_nyq}"
+            f"[DAQ][init] Fnyq: {self._f_filt_nyq}, LPF_cutoff {DAQConfig.lpf_cutoff}, LPF_Order {DAQConfig.lpf_order}, LPF_Norm {self._f_lpf_norm}" 
         )
 
         # Used by the TDMS file
