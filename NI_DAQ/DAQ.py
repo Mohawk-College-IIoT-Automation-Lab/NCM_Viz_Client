@@ -114,11 +114,7 @@ class DAQ(GenericMQTT):
                 scaled_units="mm",
             )
 
-            def setup_onboard_filt(channel):
-                channel.ai_lowpass_cutoff_freq = self._f_filt_nyq 
-                channel.ai_lowpass_enable = True
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai0",
                 name_to_assign_to_channel="USD-RR",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -127,9 +123,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
-            setup_onboard_filt(channel)
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai1",
                 name_to_assign_to_channel="USD-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -138,9 +133,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
-            setup_onboard_filt(channel)
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+           
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai2",
                 name_to_assign_to_channel="USD-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -149,9 +143,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
-            setup_onboard_filt(channel)
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai3",
                 name_to_assign_to_channel="USD-LL",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -160,9 +153,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="ultrasonic",
             )
-            setup_onboard_filt(channel)
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai4",
                 name_to_assign_to_channel="ANM-RR",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -171,9 +163,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
-            setup_onboard_filt(channel)
-        
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai5",
                 name_to_assign_to_channel="ANM-RQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -182,9 +173,8 @@ class DAQ(GenericMQTT):
                 max_val=DAQConfig.anm_max,
                 custom_scale_name="anemometer",
             )
-            setup_onboard_filt(channel)
-
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai6",
                 name_to_assign_to_channel="ANM-LQ",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -193,9 +183,8 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
-            setup_onboard_filt(channel)
 
-            channel = self._task.ai_channels.add_ai_voltage_chan(
+            self._task.ai_channels.add_ai_voltage_chan(
                 physical_channel="cDAQ9185-2304EC6Mod3/ai7",
                 name_to_assign_to_channel="ANM-LL",
                 terminal_config=TerminalConfiguration.DIFF,
@@ -204,7 +193,9 @@ class DAQ(GenericMQTT):
                 units=VoltageUnits.FROM_CUSTOM_SCALE,
                 custom_scale_name="anemometer",
             )
-            setup_onboard_filt(channel)
+            
+            self._task.ai_channels.all.ai_lowpass_enable = true
+            self._task.ai_channels.all.ai_lowpass_cutoff_freq = self._lpf_cuttof
 
             self._task.timing.cfg_samp_clk_timing(
                 DAQConfig.fs,
