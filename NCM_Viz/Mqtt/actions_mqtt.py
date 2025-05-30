@@ -109,7 +109,7 @@ class ActionsMQTT(GenericMQTT, QObject):
     def help(self):
         self.status_and_log("[QT][Action] Help")
         msg = QMessageBox()
-        msg.setText(f'This window displays helpful messages \n \n LL - pink \n LQ - cyan \n RQ - orange \n RR - brown \n Left Standing Wave - red \n Right Standing Wave - green')
+        msg.setText(f'This window displays helpful messages \n \n LL - cyan \n LQ - pink \n RQ - orange \n RR - brown \n Left Standing Wave - red \n Right Standing Wave - green')
 
         msg.setWindowTitle("Help Window")
         msg.setStandardButtons(QMessageBox.Ok)
