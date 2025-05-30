@@ -211,3 +211,11 @@ tags: []
     - Rather than multiplying the sampler ate by 2 we divide the filters by 2 
 - Enabled the oboard LPF for each channel we are using
 - Added the scaling constants to the config
+
+## 05-30-2025
+- Added offset for each sensor 
+- Changed how the signals are processed
+    - I know loops are bad, but I put a loop 
+- I really want to do the math in C, I think it'll be much more performant
+    - I know that numpy is just C, but scipy is not, and I want to run the DAQ FAST 
+- Going to put each sensor in the jig and adjust them so they read the same values.

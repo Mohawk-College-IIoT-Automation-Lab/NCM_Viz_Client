@@ -290,28 +290,17 @@ class DAQ(GenericMQTT):
             self._input_reader.read_many_sample(
                 self._raw_data_buffer, self._buffer_size
             )
-
-            self._filter_data_buffer[0] = filtfilt(self._b, self._a, self._raw_data_buffer[0])
-            self._filter_data_buffer[1] = filtfilt(self._b, self._a, self._raw_data_buffer[1])
-            self._filter_data_buffer[2] = filtfilt(self._b, self._a, self._raw_data_buffer[2])
-            self._filter_data_buffer[3] = filtfilt(self._b, self._a, self._raw_data_buffer[3])
-            self._filter_data_buffer[4] = filtfilt(self._b, self._a, self._raw_data_buffer[4])
-            self._filter_data_buffer[5] = filtfilt(self._b, self._a, self._raw_data_buffer[5])
-            self._filter_data_buffer[6] = filtfilt(self._b, self._a, self._raw_data_buffer[6])
-            self._filter_data_buffer[7] = filtfilt(self._b, self._a, self._raw_data_buffer[7])
-
-            # Filter
+            
+            # kernel for median filter
             kernel = 21
-            #            self._filter_data_buffer = self._filter_data(self._raw_data_buffer)
-            self._filter_data_buffer[0] = medfilt(self._filter_data_buffer[0], kernel)  #
-            self._filter_data_buffer[1] = medfilt(self._raw_data_buffer[1], kernel)
-            self._filter_data_buffer[2] = medfilt(self._raw_data_buffer[2], kernel)
-            self._filter_data_buffer[3] = medfilt(self._raw_data_buffer[3], kernel)
-            self._filter_data_buffer[4] = medfilt(self._raw_data_buffer[4], kernel)
-            self._filter_data_buffer[5] = medfilt(self._raw_data_buffer[5], kernel)
-            self._filter_data_buffer[6] = medfilt(self._raw_data_buffer[6], kernel)
-            self._filter_data_buffer[7] = medfilt(self._raw_data_buffer[7], kernel)
-
+            for i in range(0, len(DAQConfig.physical_names)):
+                # Add offsets to sensors 
+                self._raw_data_buffer[i] = self._raw_data_buffer[i] + DAQConfig.offsets[i]
+                # Apply low pass filter
+                self._filter_data_buffer[i] = filtfilt(self._b, self._a, self._raw_data_buffer[i])
+                # Apply median filter
+                self._filter_data_buffer[i] = medfilt(self._filter_data_buffer[i], kernel)
+            
             # Write to TDMS in a coroutine
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
@@ -320,7 +309,6 @@ class DAQ(GenericMQTT):
             RQ_usd_avg = np.mean(self._filter_data_buffer[1])
             LQ_usd_avg = np.mean(self._filter_data_buffer[2])
             LL_usd_avg = np.mean(self._filter_data_buffer[3])
-
             RR_anm_avg = np.mean(self._filter_data_buffer[4])
             RQ_anm_avg = np.mean(self._filter_data_buffer[5])
             LQ_anm_avg = np.mean(self._filter_data_buffer[6])

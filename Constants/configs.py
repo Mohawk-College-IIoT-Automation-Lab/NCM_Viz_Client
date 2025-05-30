@@ -21,12 +21,20 @@ class DAQConfig:
     anm_pre_max: float = 1
     anm_min: float = 0.04
     anm_max: float = 5.0
+    offsets: list[float] = [
+            0.0, # USD-RR
+            0.0, # USD-RQ
+            0.0, # USD-LQ
+            0.0, # USD-LL
+            0.0, # ANM-RR
+            0.0, # ANM-RQ
+            0.0, # ANM-LQ
+            0.0, # ANM-LL
+    ] 
     usd_offset: float = -300 # this should be automated in the new system
-    v_min = 0
-    v_max = 10
     file_name: str = "default.tdms"
     lpf_order: int = 2
-    fs: int = 1000
+    fs: int = 2000
     fs_disp: int = 10
     lpf_cutoff: int = 500
     mqtt_config: MQTTConfig
