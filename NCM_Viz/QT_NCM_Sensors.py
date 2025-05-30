@@ -18,7 +18,12 @@ class SensorGraphWidget(QWidget):
         right_v_box = QVBoxLayout()
         left_h_box = QHBoxLayout()
 
-        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][1], color_2=SensorsConfig.colors[0][0])
+        # color_1 => LQ => pink [0]
+        # color_2 => LL => cyan [1]
+        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
+
+        # color_1 => RQ => orange [2]
+        # color_2 => RR => brown [3]
         self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[0][2], color_2=SensorsConfig.colors[0][3])
         
         self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])

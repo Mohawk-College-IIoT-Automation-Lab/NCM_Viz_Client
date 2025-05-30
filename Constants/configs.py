@@ -53,7 +53,7 @@ class SensorsConfig:
     anm_left_title: str = "ANM - Left Mould (LL, LQ)"
     anm_right_title: str = "ANM - Right Mould (RQ, RR)"
     colors: List[List[str]] = [
-        ['c', 'pink', 'orange', 'brown'], # LL, LQ, RQ, RR
+        ['pink', 'c', 'orange', 'brown'], # LQ, LL, RQ, RR
         ['r', 'g'] # left, right
     ]
     display_data_topic: str = "NCM/DisplayData"
