@@ -16,7 +16,7 @@ class DAQConfig:
     usd_pre_min: float = 0
     usd_pre_max: float = 10
     usd_min: float = 100
-    usd_max: float = 900
+    usd_max: float = 780
     anm_pre_min: float = 0
     anm_pre_max: float = 1
     anm_min: float = 0.04
