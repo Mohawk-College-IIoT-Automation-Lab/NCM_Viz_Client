@@ -31,6 +31,7 @@ class DAQConfig:
             0.0, # ANM-LQ
             0.0, # ANM-LL
     ]
+    usd_zero: int = 220
     usd_sig_figs: int = 0 
     anm_sig_figs: int = 2
     file_name: str = "default.tdms"

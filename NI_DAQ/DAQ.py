@@ -295,7 +295,9 @@ class DAQ(GenericMQTT):
             kernel = 21
             for i in range(0, len(DAQConfig.physical_names)):
                 # Add offsets to sensors 
+                # self._raw_data_buffer[i] = DAQConfig.usd_zero - (self._raw_data_buffer[i] + DAQConfig.offsets[i])
                 self._raw_data_buffer[i] = self._raw_data_buffer[i] + DAQConfig.offsets[i]
+
                 # Apply low pass filter
                 self._filter_data_buffer[i] = filtfilt(self._b, self._a, self._raw_data_buffer[i])
                 # Apply median filter
