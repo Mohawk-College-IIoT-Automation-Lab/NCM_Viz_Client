@@ -18,12 +18,13 @@ class SensorGraphWidget(QWidget):
         right_v_box = QVBoxLayout()
         left_h_box = QHBoxLayout()
 
-        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
-        self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
-        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[2][0], color_2=SensorsConfig.colors[2][1])
+        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][1], color_2=SensorsConfig.colors[0][0])
+        self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[0][2], color_2=SensorsConfig.colors[0][3])
+        
+        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
 
-        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1], label="Velocity", units="m/s")
-        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1], label="Velocity", units="m/s")
+        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][1], color_2=SensorsConfig.colors[0][0], label="Velocity", units="m/s")
+        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[0][2], color_2=SensorsConfig.colors[0][3], label="Velocity", units="m/s")
 
         self.usd_left_graph.setYRange(0, 300)
         self.usd_right_graph.setYRange(0, 300)
