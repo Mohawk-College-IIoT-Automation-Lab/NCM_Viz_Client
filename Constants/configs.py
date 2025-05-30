@@ -22,10 +22,10 @@ class DAQConfig:
     anm_min: float = 0.04
     anm_max: float = 5.0
     offsets: list[float] = [
-            0.0, # USD-RR
+            3.0, # USD-RR
             0.0, # USD-RQ
             0.0, # USD-LQ
-            0.0, # USD-LL
+            6.0, # USD-LL
             0.0, # ANM-RR
             0.0, # ANM-RQ
             0.0, # ANM-LQ
