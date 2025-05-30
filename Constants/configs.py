@@ -30,8 +30,9 @@ class DAQConfig:
             0.0, # ANM-RQ
             0.0, # ANM-LQ
             0.0, # ANM-LL
-    ] 
-    usd_offset: float = -300 # this should be automated in the new system
+    ]
+    usd_sig_figs: int = 0 
+    anm_sig_figs: int = 2
     file_name: str = "default.tdms"
     lpf_order: int = 2
     fs: int = 2000

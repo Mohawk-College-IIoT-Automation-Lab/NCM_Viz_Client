@@ -305,14 +305,14 @@ class DAQ(GenericMQTT):
             self._write_tdms(self._raw_data_buffer, self._filter_data_buffer)
 
             # Calculate display avg
-            RR_usd_avg = np.mean(self._filter_data_buffer[0])
-            RQ_usd_avg = np.mean(self._filter_data_buffer[1])
-            LQ_usd_avg = np.mean(self._filter_data_buffer[2])
-            LL_usd_avg = np.mean(self._filter_data_buffer[3])
-            RR_anm_avg = np.mean(self._filter_data_buffer[4])
-            RQ_anm_avg = np.mean(self._filter_data_buffer[5])
-            LQ_anm_avg = np.mean(self._filter_data_buffer[6])
-            LL_anm_avg = np.mean(self._filter_data_buffer[7])
+            RR_usd_avg = round(np.mean(self._filter_data_buffer[0]), DAQConfig.usd_sig_figs)
+            RQ_usd_avg = round(np.mean(self._filter_data_buffer[1]), DAQConfig.usd_sig_figs)
+            LQ_usd_avg = round(np.mean(self._filter_data_buffer[2]), DAQConfig.usd_sig_figs)
+            LL_usd_avg = round(np.mean(self._filter_data_buffer[3]), DAQConfig.usd_sig_figs)
+            RR_anm_avg = round(np.mean(self._filter_data_buffer[4]), DAQConfig.anm_sig_figs)
+            RQ_anm_avg = round(np.mean(self._filter_data_buffer[5]), DAQConfig.anm_sig_figs)
+            LQ_anm_avg = round(np.mean(self._filter_data_buffer[6]), DAQConfig.anm_sig_figs)
+            LL_anm_avg = round(np.mean(self._filter_data_buffer[7]), DAQConfig.anm_sig_figs)
 
             # Create SensorData object
             sensor_data = SensorData(

@@ -219,3 +219,4 @@ tags: []
 - I really want to do the math in C, I think it'll be much more performant
     - I know that numpy is just C, but scipy is not, and I want to run the DAQ FAST 
 - Going to put each sensor in the jig and adjust them so they read the same values.
+- Added rounding to the anm & usd
