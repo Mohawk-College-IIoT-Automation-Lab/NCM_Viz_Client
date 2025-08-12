@@ -1,3 +1,0 @@
-[submodule "NCM_Viz/Mqtt/GenericMqtteLogger"]
-	path = NCM_Viz/Mqtt/GenericMqtteLogger
-	url = https://github.com/Mohawk-College-IIoT-Automation-Lab/GenericMqtteLogger.git
