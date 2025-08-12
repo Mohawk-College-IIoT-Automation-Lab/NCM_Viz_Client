@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List
 
 class MQTTConfig(BaseModel):
-    host_name: str = "localhost"
+    host_name: str = "ncm.local"
     host_port: int = 1883
 
 class LoggerConfig(BaseModel):

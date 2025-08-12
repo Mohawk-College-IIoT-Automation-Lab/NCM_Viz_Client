@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QApplication
 from NCM_Viz.NCM_Mainwindow import MainWindow
 from NCM_Viz.Mqtt.GenericMqtteLogger import initialize_logging
-from Constants import DAQConfig, LoggerConfig, MQTTConfig
+from Constants import LoggerConfig, MQTTConfig
 import logging
 import sys, signal
 
