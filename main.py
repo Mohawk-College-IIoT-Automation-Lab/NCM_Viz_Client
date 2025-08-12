@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     set_start_method("spawn") # Requird for Py QT on Windows
 
-    mqtt_config = MQTTConfig(host_name="localhost", host_port=1883)
+    mqtt_config = MQTTConfig()
 
     initialize_logging(process_name="Main", broker=mqtt_config.host_name, port=mqtt_config.host_port)
 
