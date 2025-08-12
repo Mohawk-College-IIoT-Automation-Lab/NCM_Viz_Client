@@ -29,7 +29,6 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGINT, handle_sigint)
     signal.signal(signal.SIGTERM, handle_sigint)
-    signal.signal(signal.SIGHUP, handle_sigint)
 
     window = MainWindow(logger_config=gui_logger, exit_event=stop_event)
 
