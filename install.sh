@@ -18,7 +18,6 @@ fi
 echo "Python 3.12 or greater detected. Proceeding with installation..."
 
 
-
 # Check if pip is installed
 if ! command -v pip3 &> /dev/null; then
     echo "pip is not installed. Installing pip..."
@@ -67,7 +66,4 @@ sudo python3 -m pip install -r requirements.txt --break-system-packages
 
 echo "Getting submodules ... "
 git submodule update --init --recursive
-
-echo "Installed Ni-DAQmx ... "
-sudo python3 -m nidaqmx installdriver
 
