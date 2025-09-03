@@ -5,6 +5,7 @@ from PyQt5.QtCore import pyqtSlot
 from .Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
 
+from Constants.base_models import SensorData
 from Constants.configs import LoggerConfig, SensorsConfig 
 
 
@@ -51,9 +52,7 @@ class SensorGraphWidget(QWidget):
         self.setLayout(main_h_box)
 
         self.mqtt_client = SensorsMQTT.get_instance(logger_config=logger_config)
-        self.mqtt_client.distance_data_ready.connect(self.update_usd_plot)
-        self.mqtt_client.anemometer_data_ready.connect(self.update_an_plot)
-        self.mqtt_client.standing_wave_ready.connect(self.update_standing_plot)
+        self.mqtt_client.sensor_data_signal.connect(self.update_plots)
         self.mqtt_client.clear_plots_signal.connect(self.clear_plots)
     
     @pyqtSlot()
@@ -64,16 +63,14 @@ class SensorGraphWidget(QWidget):
         self.anm_right_graph.clear_plot()
         self.standing_wave_graph.clear_plot()
 
-    @pyqtSlot(float, float, float, float)
-    def update_usd_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):       
-        self.usd_left_graph.update_plot(lq_value, ll_value)
-        self.usd_right_graph.update_plot(rq_value, rr_value)
+    @pyqtSlot(SensorData):
+    def update_plots(self, sensor_data: SensorData):
+        self.usd_left_graph.update_plot(sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.LL)
+        self.usd_right_graph.update_plot(sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
+        self.anm_left_graph.update_plot(sensor_data.Anemometer.LQ, sensor_data.Anemometer.LL)
+        self.anm_right_graph.update_plot(sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
 
-    @pyqtSlot(float, float)
-    def update_standing_plot(self, left_value:float, right_value:float):
-        self.standing_wave_graph.update_plot(left_value, right_value)
+        self.standing_wave_graph.update_plot(sensor_data.Standing_Wave.Left, sensor_data.Standing_Wave.Right)
 
-    @pyqtSlot(float, float, float, float)
-    def update_an_plot(self, ll_value:float, lq_value:float, rq_value:float, rr_value:float):
-        self.anm_left_graph.update_plot(lq_value, ll_value)
-        self.anm_right_graph.update_plot(rq_value, rr_value)
+
+

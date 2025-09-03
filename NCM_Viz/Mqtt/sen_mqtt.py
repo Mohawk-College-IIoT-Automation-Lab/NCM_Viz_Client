@@ -105,4 +105,11 @@ class SenMQTT(GenericMQTT, QObject):
            logging.error(f"[MQTT][SEN] Failed to decode JSON payload: {msg.payload.decode()}")
 
     def mqtt_config_callback(self, id: int, client: Client, userdata, msg: MQTTMessage):
-        pass
+        try: 
+            sen_config = XM430Config.model_validate(json.loads(msg.payload.decode()))
+            if id == 1 :
+                self.sen1_telemetery_data.emit(sen_config)
+            else: 
+                self.sen2_telemetery_data.emit(sen_config)
+        except json.JSONDecodeError:
+           logging.error(f"[MQTT][SEN] Failed to decode JSON payload: {msg.payload.decode()}")
