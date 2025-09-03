@@ -30,7 +30,7 @@ class SensorsMQTT(GenericMQTT, QObject):
             raise RuntimeError("Use SensorsMQTT.get_instance() to access the singleton.")
         
         QObject.__init__(self, parent)
-        GenericMQTT.__init__(self, client_name="SensorsMQTT", log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
+        GenericMQTT.__init__(self, client_name=self.__class__.__name__, log_name=logger_config.log_name, host_name=logger_config.mqtt_config.host_name, host_port=logger_config.mqtt_config.host_port)
 
         initialize_logging(process_name=logger_config.log_name, broker=logger_config.mqtt_config.host_name, port=logger_config.mqtt_config.host_port)
 
