@@ -12,24 +12,13 @@ class LoggerConfig(BaseModel):
     mqtt_config: MQTTConfig
 
 
-class StatusLightsConfig:
-    alarm_names: List[str] = ["Alarm1", "Alarm2", "Alarm3", "Alarm4"]
+class StatusLightsMqttConfig:
     alarm_base_topic: str = "NCM/Alarms/"
     alarm_topics: List[str] = ["Alarm1", "Alarm2", "Alarm3", "Alarm4"]
 
 
-class SensorsConfig:
-    usd_left_title: str = "USD - Left Mould (LL, LQ)"
-    usd_right_title: str = "USD - Right Mould (RQ, RR)"
-    standing_wave_title: str = "Stating Wave Height (LL-LQ) (RR-RQ)"
-    anm_left_title: str = "ANM - Left Mould (LL, LQ)"
-    anm_right_title: str = "ANM - Right Mould (RQ, RR)"
-    colors: List[List[str]] = [
-        ["pink", "c", "orange", "brown"],  # LQ, LL, RQ, RR
-        ["r", "g"],  # left, right
-    ]
+class SensorsMqttConfig:
     display_data_topic: str = "NCM/DisplayData"
-
 
 class ExperimentMqttConfig:
     base_topic: str = "NCM/Experiment/"

@@ -2,11 +2,13 @@
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QStatusBar
 from PyQt5.QtCore import pyqtSlot
 
-from .Mqtt.sensors_mqtt import SensorsMQTT
+from Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
+from .QT_Constants import SensorQTConfig
 
 from Constants.base_models import SensorData
-from Constants.configs import LoggerConfig, SensorsConfig 
+from Constants.configs import LoggerConfig
+
 
 
 class SensorGraphWidget(QWidget):
@@ -21,16 +23,16 @@ class SensorGraphWidget(QWidget):
 
         # color_1 => LQ => pink [0]
         # color_2 => LL => cyan [1]
-        self.usd_left_graph = Q2SensorsGraph(title=SensorsConfig.usd_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1])
+        self.usd_left_graph = Q2SensorsGraph(title=SensorQTConfig.usd_left_title, color_1=SensorQTConfig.colors[0][0], color_2=SensorQTConfig.colors[0][1])
 
         # color_1 => RQ => orange [2]
         # color_2 => RR => brown [3]
-        self.usd_right_graph = Q2SensorsGraph(title=SensorsConfig.usd_right_title, color_1=SensorsConfig.colors[0][2], color_2=SensorsConfig.colors[0][3])
+        self.usd_right_graph = Q2SensorsGraph(title=SensorQTConfig.usd_right_title, color_1=SensorQTConfig.colors[0][2], color_2=SensorQTConfig.colors[0][3])
         
-        self.standing_wave_graph = Q2SensorsGraph(title=SensorsConfig.standing_wave_title, color_1=SensorsConfig.colors[1][0], color_2=SensorsConfig.colors[1][1])
+        self.standing_wave_graph = Q2SensorsGraph(title=SensorQTConfig.standing_wave_title, color_1=SensorQTConfig.colors[1][0], color_2=SensorQTConfig.colors[1][1])
 
-        self.anm_left_graph = Q2SensorsGraph(title=SensorsConfig.anm_left_title, color_1=SensorsConfig.colors[0][0], color_2=SensorsConfig.colors[0][1], label="Velocity", units="m/s")
-        self.anm_right_graph = Q2SensorsGraph(title=SensorsConfig.anm_right_title, color_1=SensorsConfig.colors[0][2], color_2=SensorsConfig.colors[0][3], label="Velocity", units="m/s")
+        self.anm_left_graph = Q2SensorsGraph(title=SensorQTConfig.anm_left_title, color_1=SensorQTConfig.colors[0][0], color_2=SensorQTConfig.colors[0][1], label="Velocity", units="m/s")
+        self.anm_right_graph = Q2SensorsGraph(title=SensorQTConfig.anm_right_title, color_1=SensorQTConfig.colors[0][2], color_2=SensorQTConfig.colors[0][3], label="Velocity", units="m/s")
 
         self.usd_left_graph.setYRange(0, 300)
         self.usd_right_graph.setYRange(0, 300)

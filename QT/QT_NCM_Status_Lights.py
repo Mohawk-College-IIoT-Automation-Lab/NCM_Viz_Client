@@ -3,8 +3,9 @@ from PyQt5.QtCore import Qt, pyqtSlot
 from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStatusBar, QSizePolicy
 from .Transform import Size
-from .Mqtt.status_lights_mqtt import StatusLightsMqtt
-from Constants.configs import StatusLightsConfig, LoggerConfig
+from Mqtt.status_lights_mqtt import StatusLightsMqtt
+from Constants.configs import LoggerConfig
+from .QT_Constants import StatusLightsMqtt
 import logging
 
 class StatusWidget(QWidget):
