@@ -66,3 +66,33 @@ class ExperimentMqttConfig:
     rename_topic:str = "Rename"
     elapsed_topic:str = "Elapsed"
 
+class SenMqttConfig:
+    base_topic : str = "NCM/SENx/"
+    # Pubs
+    goal_position_topic : str = "goal/position"
+    goal_mm_topic : str = "goal/mm"
+    goal_index_topic : str = "goal/index"
+    jog_topic : str = "jog"
+    home_topic : str = "home"
+    set_home_topic : str = "set_home"
+    map_topic : str = "map"
+    get_config_topic : str = "get_config"
+
+    # Subs 
+    config_topic : str = "config"
+    telemetery_json_topic : str = "telemetery/json"
+
+class Sen1MqttConfig(SenMqttConfig):
+    base_topic : str = "NCM/SEN1/"
+
+class Sen2MqttConfig(SenMqttConfig):
+    base_topic : str = "NCM/SEN2"
+
+
+
+
+
+
+
+
+
