@@ -4,13 +4,13 @@ from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
 
 import json
-from Constants.base_models import SensorData
-from Constants.configs import LoggerConfig, SensorsConfig, ExperimentMqttConfig
+from Constants.base_models import DaqTelemetry
+from Constants.configs import LoggerConfig, ExperimentMqttConfig, SensorsMqttConfig
 
 
 class SensorsMQTT(GenericMQTT, QObject):
 
-    sensor_data_signal = pyqtSignal(SensorData)
+    sensor_data_signal = pyqtSignal(DaqTelemetry)
     clear_plots_signal = pyqtSignal()
 
     _instance = None
@@ -37,9 +37,9 @@ class SensorsMQTT(GenericMQTT, QObject):
         self.mqtt_connect()
 
     def _on_connect(self, client, userdata, flags, rc, props=None):
-        logging.debug(f"[MQTT][Sensors] Subscribing to topic: {SensorsConfig.display_data_topic}")
-        client.subscribe(SensorsConfig.display_data_topic)
-        client.message_callback_add(SensorsConfig.display_data_topic, self.mqtt_display_callback)
+        logging.debug(f"[MQTT][Sensors] Subscribing to topic: {SensorsMqttConfig.display_data_topic}")
+        client.subscribe(SensorsMqttConfig.display_data_topic)
+        client.message_callback_add(SensorsMqttConfig.display_data_topic, self.mqtt_display_callback)
 
         topic = f"{ExperimentMqttConfig.base_topic}{ExperimentMqttConfig.start_topic}"
         logging.debug(f"[MQTT][Sensors] Subscribing to topic: {topic}")
@@ -48,7 +48,7 @@ class SensorsMQTT(GenericMQTT, QObject):
 
     def mqtt_display_callback(self, client:Client, userdata, msg:MQTTMessage):
         try:
-            sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
+            sensor_data = DaqTelemetry.model_validate(json.loads(msg.payload.decode()))
             self.sensor_data_signal.emit(sensor_data)
             
         except json.JSONDecodeError:

@@ -2,7 +2,7 @@ from .GenericMqtteLogger.generic_mqtt import GenericMQTT, initialize_logging
 import logging
 from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
-from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsConfig, ExperimentMqttConfig
+from Constants.configs import LoggerConfig, MQTTConfig, StatusLightsMqttConfig, ExperimentMqttConfig
 
 import ast
 
@@ -37,11 +37,11 @@ class StatusLightsMqtt(GenericMQTT, QObject):
 
     def _on_connect(self, client, userdata, flags, rc, props=None):
  
-        client.subscribe(f"{StatusLightsConfig.alarm_base_topic}#")
+        client.subscribe(f"{StatusLightsMqttConfig.alarm_base_topic}#")
         client.subscribe(f"{ExperimentMqttConfig.base_topic}#")
 
-        for topic in StatusLightsConfig.alarm_topics:
-            topic = f"{StatusLightsConfig.alarm_base_topic}{topic}"
+        for topic in StatusLightsMqttConfig.alarm_topics:
+            topic = f"{StatusLightsMqttConfig.alarm_base_topic}{topic}"
             logging.debug(f"[QT][MQTT][Status Lights][init] Subscribing to topic: {topic}")
             client.message_callback_add(topic, self.mqtt_alarm_callback)
 
@@ -74,6 +74,6 @@ class StatusLightsMqtt(GenericMQTT, QObject):
 
 
     def mqtt_alarm_callback(self, client, userdata, msg):
-        topic = msg.topic.replace(StatusLightsConfig.alarm_base_topic, "")
+        topic = msg.topic.replace(StatusLightsMqttConfig.alarm_base_topic, "")
         self.alarm_signal.emit(topic, ast.literal_eval(msg.payload.decode()))
         logging.debug(f"[QT][MQTT][Status Lights] Received alarm: {topic}")

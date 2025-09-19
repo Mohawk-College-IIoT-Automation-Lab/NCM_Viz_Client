@@ -18,7 +18,7 @@ class StatusLightsMqttConfig:
 
 
 class SensorsMqttConfig:
-    display_data_topic: str = "NCM/DisplayData"
+    display_data_topic: str = "NCM/DAQ/TELEMETRY/JSON"
 
 class ExperimentMqttConfig:
     base_topic: str = "NCM/Experiment/"

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QMenuBar, QStatusBar
-from .Mqtt.actions_mqtt import ActionsMQTT
+from Mqtt.actions_mqtt import ActionsMQTT
 from Constants.configs import LoggerConfig
 
 class M_QMenuBar(QMenuBar):

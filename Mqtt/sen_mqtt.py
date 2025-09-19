@@ -5,14 +5,14 @@ from paho.mqtt.client import Client, MQTTMessage
 from PyQt5.QtCore import pyqtSignal, QObject
 
 import json
-from Constants.base_models import XM430Telemetery, XM430Config
+from Constants.base_models import XM430Telemetry, XM430Config
 from Constants.configs import LoggerConfig, Sen1MqttConfig, Sen2MqttConfig
 
 
 class SenMQTT(GenericMQTT, QObject):
     
-    sen1_telemetery_data = pyqtSignal(XM430Telemetery)
-    sen2_telemetery_data = pyqtSignal(XM430Telemetery)
+    sen1_telemetery_data = pyqtSignal(XM430Telemetry)
+    sen2_telemetery_data = pyqtSignal(XM430Telemetry)
     sen1_config_data = pyqtSignal(XM430Config)
     sen2_config_data = pyqtSignal(XM430Config)
 

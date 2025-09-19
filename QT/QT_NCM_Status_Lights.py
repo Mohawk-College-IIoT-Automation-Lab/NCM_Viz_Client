@@ -4,8 +4,7 @@ from PyQt5.QtGui import QColor, QPalette
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStatusBar, QSizePolicy
 from .Transform import Size
 from Mqtt.status_lights_mqtt import StatusLightsMqtt
-from Constants.configs import LoggerConfig
-from .QT_Constants import StatusLightsMqtt
+from Constants.configs import LoggerConfig, StatusLightsMqttConfig
 import logging
 
 class StatusWidget(QWidget):
@@ -21,7 +20,7 @@ class StatusWidget(QWidget):
 
         self.alarm_labels = []
 
-        for an in StatusLightsConfig.alarm_names:
+        for an in StatusLightsMqttConfig.alarm_topics:
             self.alarm_labels.append(AlarmLabel(an))
 
         experiment_status = AlarmLabel("Experiment Status")

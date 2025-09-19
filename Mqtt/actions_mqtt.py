@@ -3,7 +3,7 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, QObject
 
 from .GenericMqtteLogger import GenericMQTT
 import logging
-from Constants.configs import LoggerConfig, MQTTConfig, SensorsConfig, ExperimentMqttConfig
+from Constants.configs import LoggerConfig, MQTTConfig, ExperimentMqttConfig
 import json
 
 class ActionsMQTT(GenericMQTT, QObject):

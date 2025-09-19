@@ -2,11 +2,11 @@ import os
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTabWidget
 from .Transform import Size
 from .QT_NCM_Status_Lights import StatusWidget
-from .Mqtt.actions_mqtt import ActionsMQTT
+from Mqtt.actions_mqtt import ActionsMQTT
 from .QT_NCM_Sensors import SensorGraphWidget
 from .QT_NCM_MenuBar import M_QMenuBar
 
-from .Mqtt.GenericMqtteLogger.davids_logger import initialize_logging
+from Mqtt.GenericMqtteLogger import initialize_logging
 import logging
 from multiprocessing import Event
 from Constants.configs import LoggerConfig

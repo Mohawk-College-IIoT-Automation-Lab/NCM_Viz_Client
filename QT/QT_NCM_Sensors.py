@@ -6,7 +6,7 @@ from Mqtt.sensors_mqtt import SensorsMQTT
 from .QT_Custom_Graphs import Q2SensorsGraph
 from .QT_Constants import SensorQTConfig
 
-from Constants.base_models import SensorData
+from Constants.base_models import DaqTelemetry
 from Constants.configs import LoggerConfig
 
 
@@ -65,12 +65,12 @@ class SensorGraphWidget(QWidget):
         self.anm_right_graph.clear_plot()
         self.standing_wave_graph.clear_plot()
 
-    @pyqtSlot(SensorData):
-    def update_plots(self, sensor_data: SensorData):
-        self.usd_left_graph.update_plot(sensor_data.Ultra_Sonic_Distance.LQ, sensor_data.Ultra_Sonic_Distance.LL)
-        self.usd_right_graph.update_plot(sensor_data.Ultra_Sonic_Distance.RQ, sensor_data.Ultra_Sonic_Distance.RR)
-        self.anm_left_graph.update_plot(sensor_data.Anemometer.LQ, sensor_data.Anemometer.LL)
-        self.anm_right_graph.update_plot(sensor_data.Anemometer.RQ, sensor_data.Anemometer.RR)
+    @pyqtSlot(DaqTelemetry)
+    def update_plots(self, sensor_data: DaqTelemetry):
+        self.usd_left_graph.update_plot(sensor_data.USD.LQ, sensor_data.USD.LL)
+        self.usd_right_graph.update_plot(sensor_data.USD.RQ, sensor_data.USD.RR)
+        self.anm_left_graph.update_plot(sensor_data.ANM.LQ, sensor_data.ANM.LL)
+        self.anm_right_graph.update_plot(sensor_data.ANM.RQ, sensor_data.ANM.RR)
 
         self.standing_wave_graph.update_plot(sensor_data.Standing_Wave.Left, sensor_data.Standing_Wave.Right)
 
