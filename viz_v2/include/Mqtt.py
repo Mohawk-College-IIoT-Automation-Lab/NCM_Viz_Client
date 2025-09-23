@@ -13,6 +13,9 @@ class MqttClient(QWidget):
     StopExpTopic = f"{CmdTopic}/STOP_EXP"
     RenameExpTopic = f"{CmdTopic}/RENAME_EXP"
 
+    LOG_FMT_STR = f"[Mqtt] - %s"
+
+
     _instance = None
 
     @classmethod
@@ -30,6 +33,7 @@ class MqttClient(QWidget):
     ):
         super().__init__(parent)
 
+
         self._h_name = host_name
         self._h_port = host_port
         self._client = Client(client_id=client_name, protocol=MQTTv5)
@@ -42,7 +46,7 @@ class MqttClient(QWidget):
         return self._client.is_connected()
 
     def _on_connect(self, client, userdata, flags, rc, props=None):
-        logging.info("Connected to broker")
+        logging.info(MqttClient.LOG_FMT_STR, "Connected to broker")
         self._sub_all_topcis()
 
     def _on_disconnect(self, client, userdata, rc, props=None):

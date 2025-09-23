@@ -1,9 +1,9 @@
-from re import DEBUG
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
 import time
 
 from .MenuBar import MenuBar
 import logging
+
 
 
 class StatusBarHandler(logging.Handler):
@@ -22,33 +22,32 @@ class StatusBarHandler(logging.Handler):
 
 def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar=None):
     log_file = f"{log_name}.log"
-    logger = logging.getLogger(log_name)
-    if not logger.handlers:
-        fmtter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s]: %(message)s')
+    logger = logging.getLogger()
+    fmtter = logging.Formatter('[%(asctime)s]-[%(levelname)s]: %(message)s')
 
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.DEBUG)
-        stream_handler.setFormatter(fmtter)
-        logger.addHandler(stream_handler)
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    stream_handler.setFormatter(fmtter)
+    logger.addHandler(stream_handler)
 
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(fmtter)
-        logger.addHandler(file_handler)
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(fmtter)
+    logger.addHandler(file_handler)
 
-        if status_bar is not None:
-            status_handler = StatusBarHandler(status_bar)
-            status_handler.setLevel(logging.INFO)
-            status_handler.setFormatter(fmtter)
-            logger.addHandler(status_handler)
+    if status_bar is not None:
+        status_handler = StatusBarHandler(status_bar)
+        status_handler.setLevel(logging.INFO)
+        status_handler.setFormatter(fmtter)
+        logger.addHandler(status_handler)
 
-        time.sleep(1)  # one second to setup
+    time.sleep(1)  # one second to setup
 
     logger.setLevel(log_level)
-    return logger
-
 
 class MainWindow(QMainWindow):
+
+    LOG_FMT_STR = f"[Main] - %s"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,9 +57,9 @@ class MainWindow(QMainWindow):
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
 
-        initialize_logging(log_name="Qt", log_level=DEBUG, status_bar=self.statusBar())
+        initialize_logging(log_name="Qt", status_bar=self.statusBar())
 
-        logging.debug("Creating MainWindow")
+        logging.debug(MainWindow.LOG_FMT_STR, "Creating MainWindow")
 
         menu_bar = MenuBar(self)
         self.setMenuBar(menu_bar)
@@ -81,5 +80,5 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(central_v_box)
 
         self.showMaximized()
-        logging.debug("Maximizaing MainWindow")
+        logging.debug(MainWindow.LOG_FMT_STR, "Maximizaing MainWindow")
 
