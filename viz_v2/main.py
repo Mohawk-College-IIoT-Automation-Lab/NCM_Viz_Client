@@ -3,7 +3,6 @@
 from PyQt5.QtWidgets import QApplication
 import sys, signal
 import os
-from include.Logger import initialize_logging
 from include.MainWindow import MainWindow
 
 app = QApplication(sys.argv)

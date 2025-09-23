@@ -1,9 +1,18 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QAction, QMenuBar
 
+from .Mqtt import MqttClient
+
 class MenuBar(QMenuBar):
 
+    CloseAppAction = QAction("Close App")
+    StartExpAction = QAction("Start Experiment")
+    RenameExpAction = QAction("Rename Experiment")
+    StopExpAction = QAction("Stop Experiment")
 
+    SenMoveToMMAction = QAction("Move to MM")
+    SenMoveToPosAction = QAction("Move to Pos")
+    SenMoveToIdxAction = QAction("Move to Index")
 
     _instance = None
 
@@ -16,25 +25,21 @@ class MenuBar(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.CloseAppAction = QAction("Close App")
-        self.StartExpAction = QAction("Start Experiment")
-        self.RenameExpAction = QAction("Rename Experiment")
-        self.StopExpAction = QAction("Stop Experiment")
 
-        self.SenMoveToMMAction = QAction("Move to MM")
-        self.SenMoveToPosAction = QAction("Move to Pos")
-        self.SenMoveToIdxAction = QAction("Move to Index")
+        self._m_client = MqttClient.get_instance()
 
         exp_menu = self.addMenu("Experiment")
         sen_menu = self.addMenu("SEN")
 
-        exp_menu.addAction(self.StartExpAction)
-        exp_menu.addAction(self.RenameExpAction)
-        exp_menu.addAction(self.StopExpAction)
+        exp_menu.addAction(MenuBar.StartExpAction)
+        exp_menu.addAction(MenuBar.RenameExpAction)
+        exp_menu.addAction(MenuBar.StopExpAction)
 
-        sen_menu.addAction(self.SenMoveToMMAction)
-        sen_menu.addAction(self.SenMoveToPosAction)
-        sen_menu.addAction(self.SenMoveToIdxAction)
+        sen_menu.addAction(MenuBar.SenMoveToMMAction)
+        sen_menu.addAction(MenuBar.SenMoveToPosAction)
+        sen_menu.addAction(MenuBar.SenMoveToIdxAction)
+
+        MenuBar.StartExpAction.triggered.connect(self._m_client.StartExp)
 
 
 

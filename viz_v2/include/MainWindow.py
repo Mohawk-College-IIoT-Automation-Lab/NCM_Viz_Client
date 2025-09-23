@@ -1,12 +1,51 @@
 from re import DEBUG
-from PyQt5.QtWidgets import QMainWindow, QMenuBar, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
+import time
 
-from .Logger import initialize_logging
-from .Mqtt import MqttClient
-from .Qt.MenuBar import MenuBar
+from .MenuBar import MenuBar
 import logging
 
-LOG_LEADER = "QT"
+
+class StatusBarHandler(logging.Handler):
+    def __init__(self, status_bar: QStatusBar, msg_duration: int = 1000) -> None:
+        super().__init__()
+        self.stat_bar = status_bar
+        self.msg_dur = msg_duration
+
+    def emit(self, record) -> None:
+        try:
+            msg = format(record)
+            self.stat_bar.showMessage(msg, self.msg_dur)
+        except Exception:
+            self.handleError(record)
+
+
+def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar=None):
+    log_file = f"{log_name}.log"
+    logger = logging.getLogger(log_name)
+    if not logger.handlers:
+        fmtter = logging.Formatter('%(asctime)s [%(levelname)s] [%(name)s]: %(message)s')
+
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.DEBUG)
+        stream_handler.setFormatter(fmtter)
+        logger.addHandler(stream_handler)
+
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setLevel(logging.DEBUG)
+        file_handler.setFormatter(fmtter)
+        logger.addHandler(file_handler)
+
+        if status_bar is not None:
+            status_handler = StatusBarHandler(status_bar)
+            status_handler.setLevel(logging.INFO)
+            status_handler.setFormatter(fmtter)
+            logger.addHandler(status_handler)
+
+        time.sleep(1)  # one second to setup
+
+    logger.setLevel(log_level)
+    return logger
 
 
 class MainWindow(QMainWindow):
@@ -20,6 +59,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         initialize_logging(log_name="Qt", log_level=DEBUG, status_bar=self.statusBar())
+
         logging.debug("Creating MainWindow")
 
         menu_bar = MenuBar(self)
