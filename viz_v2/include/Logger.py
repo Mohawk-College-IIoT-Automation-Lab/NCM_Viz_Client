@@ -10,9 +10,26 @@ class StatusBarHandler(Handler):
         self.stat_bar = status_bar
         self.msg_dur = msg_duration
 
-    def emit(self, record: LogRecord):
-        msg = self.format(record)
+ # record.message = record.getMessage()
+ #        log_entry = {
+ #            "timestamp": self.formatter.formatTime(record, datefmt="%Y-%m-%d %H:%M:%S"),
+ #            "level": record.levelname,
+ #            "message": record.message,
+ #            "process": self.process_name,
+ #        }
+ #
+ #        if hasattr(record, "error_code"):
+ #            log_entry["error_code"] = record.error_code
+ #
+ #        try:
+ #            self.client.publish(self.topic, json.dumps(log_entry))
+ #        except Exception as e:
+ #            print(f"Failed to publish to MQTT topic {self.topic}: {e}")
+
+    def emit(self, record):
+        msg = format(record.getMessage())
         self.stat_bar.showMessage(msg, self.msg_dur)
+        print(f"Emitting: {msg}")
 
 class CustomFormatter(Formatter):
     def format(self, record) -> str:
@@ -30,18 +47,15 @@ def initialize_logging(log_name:str, log_level = DEBUG, status_bar = None):
 
         stream_handler = StreamHandler()
         stream_handler.setFormatter(fmtter)
-
         logger.addHandler(stream_handler)
 
         file_handler = FileHandler(log_file)
         file_handler.setFormatter(fmtter)
-
         logger.addHandler(file_handler)
 
         if status_bar is not None:
             status_handler = StatusBarHandler(status_bar)
             status_handler.setFormatter(fmtter)
-
             logger.addHandler(status_handler)
 
         time.sleep(1) # one second to setup

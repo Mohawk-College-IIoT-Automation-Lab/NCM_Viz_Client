@@ -1,4 +1,6 @@
 from paho.mqtt.client import Client, MQTTMessage, MQTTv5
+
+from .Qt.MenuBar import MenuBar
 from .Logger import initialize_logging
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QInputDialog, QWidget
@@ -31,6 +33,8 @@ class MqttClient(QWidget):
         super().__init__(parent)
         initialize_logging("Mqtt")
 
+        menu_bar = MenuBar.get_instance()
+
         self._h_name = host_name
         self._h_port = host_port
         self._client = Client(client_id=client_name, protocol=MQTTv5)
@@ -38,8 +42,11 @@ class MqttClient(QWidget):
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
 
+        menu_bar.StartExpAction.triggered.connect(self.StartExp)
+
+
     @property
-    def connceted(self):
+    def connected(self):
         return self._client.is_connected()
 
     def _on_connect(self, client, userdata, flags, rc, props=None):
@@ -77,7 +84,8 @@ class MqttClient(QWidget):
 
     @pyqtSlot()
     def StartExp(self):
-        if self.connceted:
+        print("Here")
+        if self.connected:
             logging.info("Starting experiment")
             self._client.publish(MqttClient.StartExpTopic, "")
         else:
@@ -85,7 +93,7 @@ class MqttClient(QWidget):
 
     @pyqtSlot()
     def StopExp(self):
-        if self.connceted:
+        if self.connected:
             logging.info("Stopping experiment")
             self._client.publish(MqttClient.StopExpTopic, "")
         else:

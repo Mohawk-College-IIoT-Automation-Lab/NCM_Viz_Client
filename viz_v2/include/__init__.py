@@ -1,9 +1,6 @@
-from .Logger import initialize_logging 
-from .Mqtt import MqttClient
-from .MainWindow import MainWindow
+from .MenuBar import MenuBar 
 
-
-__all__ = ["initialize_logging", "MainWindow", "MqttClient"]
+__all__ = ["MenuBar"]
 
 __version__ = "0.1.0"
 __author__ = "Gabriel Casciano"

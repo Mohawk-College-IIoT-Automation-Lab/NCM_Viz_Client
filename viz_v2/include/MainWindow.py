@@ -42,3 +42,4 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
         logging.debug("Maximizaing MainWindow")
+
