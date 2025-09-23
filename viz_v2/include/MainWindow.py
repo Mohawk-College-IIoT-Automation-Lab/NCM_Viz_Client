@@ -1,7 +1,8 @@
 from re import DEBUG
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QMainWindow, QMenuBar, QTabWidget, QVBoxLayout, QWidget
 
 from .Logger import initialize_logging
+from .Qt.MenuBar import MenuBar
 import logging
 
 LOG_LEADER = "QT"
@@ -22,6 +23,10 @@ class MainWindow(QMainWindow):
         initialize_logging(log_name="Qt", log_level=DEBUG, status_bar=self.statusBar())
         logging.debug(getLogStr("Creating MainWindow"))
 
+        menu_bar = MenuBar(self)
+        self.setMenuBar(menu_bar)
+
+        # replace all w/ custom
         tab_widget = QTabWidget()
         sen_tab_widget = QWidget()
         graph_tab_widget = QWidget()
