@@ -1,10 +1,9 @@
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
 import time
 
+from .Mqtt import MqttClient
 from .MenuBar import MenuBar
 import logging
-
-
 
 class StatusBarHandler(logging.Handler):
     def __init__(self, status_bar: QStatusBar, msg_duration: int = 5000) -> None:
@@ -21,7 +20,7 @@ class StatusBarHandler(logging.Handler):
             self.handleError(record)
 
 
-def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar=None):
+def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar: QStatusBar | None = None):
     log_file = f"{log_name}.log"
     logger = logging.getLogger()
     fmtter = logging.Formatter('[%(asctime)s]-[%(levelname)s]: %(message)s')
@@ -82,4 +81,9 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
         logging.debug(MainWindow.LOG_FMT_STR, "Maximizaing MainWindow")
+
+    def closeEvent(self, a0) -> None:
+        m_client = MqttClient.get_instance()
+        m_client.DisconnectBroker()
+        return super().closeEvent(a0)
 

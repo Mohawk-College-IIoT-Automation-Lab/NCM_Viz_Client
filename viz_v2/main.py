@@ -26,4 +26,3 @@ if __name__ == "__main__":
 
     sys.exit(app.exec_())
 
-    # clean up or indicate to broker that disconnect
