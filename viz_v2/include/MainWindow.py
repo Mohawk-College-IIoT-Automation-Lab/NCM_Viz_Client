@@ -2,6 +2,7 @@ from re import DEBUG
 from PyQt5.QtWidgets import QMainWindow, QMenuBar, QTabWidget, QVBoxLayout, QWidget
 
 from .Logger import initialize_logging
+from .Mqtt import MqttClient
 from .Qt.MenuBar import MenuBar
 import logging
 
@@ -41,7 +42,3 @@ class MainWindow(QMainWindow):
 
         self.showMaximized()
         logging.debug("Maximizaing MainWindow")
-
-
-
-

@@ -1,5 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QAction, QMenuBar 
+from PyQt5.QtWidgets import QAction, QMenuBar
+
+from ..Mqtt import MqttClient
 
 
 class MenuBar(QMenuBar):
@@ -13,14 +15,18 @@ class MenuBar(QMenuBar):
     SenMoveToPosAction = QAction("Move to Pos")
     SenMoveToIdxAction = QAction("Move to Index")
 
+    _instance = None
+
     @classmethod
     def get_instance(cls, parent=None):
         if cls._instance is None:
             cls._instance = cls(parent)
         return cls._instance
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
+
+        client = MqttClient.get_instance()
 
         exp_menu = self.addMenu("Experiment")
         sen_menu = self.addMenu("SEN")
@@ -33,5 +39,6 @@ class MenuBar(QMenuBar):
         sen_menu.addAction(MenuBar.SenMoveToPosAction)
         sen_menu.addAction(MenuBar.SenMoveToIdxAction)
 
-
-        
+        MenuBar.StartExpAction.triggered.connect(client.StartExp)
+        MenuBar.StopExpAction.triggered.connect(client.StopExp)
+        MenuBar.RenameExpAction.triggered.connect(client.RenameExp)
