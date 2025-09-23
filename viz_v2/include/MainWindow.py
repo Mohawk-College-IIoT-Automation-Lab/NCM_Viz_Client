@@ -7,14 +7,15 @@ import logging
 
 
 class StatusBarHandler(logging.Handler):
-    def __init__(self, status_bar: QStatusBar, msg_duration: int = 1000) -> None:
+    def __init__(self, status_bar: QStatusBar, msg_duration: int = 5000) -> None:
         super().__init__()
         self.stat_bar = status_bar
         self.msg_dur = msg_duration
 
     def emit(self, record) -> None:
         try:
-            msg = format(record)
+            msg = self.format(record)
+            print(msg)
             self.stat_bar.showMessage(msg, self.msg_dur)
         except Exception:
             self.handleError(record)
