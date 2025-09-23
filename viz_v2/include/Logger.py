@@ -26,7 +26,7 @@ def initialize_logging(log_name:str, log_level = DEBUG, status_bar = None):
     log_file = f"{log_name}.log"
     logger = getLogger()
     if not logger.handlers:
-        fmtter = CustomFormatter("%(asctime)s %(message)s")
+        fmtter = CustomFormatter(f"[{log_name}] %(asctime)s %(message)s")
 
         stream_handler = StreamHandler()
         stream_handler.setFormatter(fmtter)

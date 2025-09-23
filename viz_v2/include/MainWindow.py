@@ -7,8 +7,6 @@ import logging
 
 LOG_LEADER = "QT"
 
-def getLogStr(msg:str):
-    return f"[{LOG_LEADER}] - {msg}"
 
 class MainWindow(QMainWindow):
 
@@ -21,7 +19,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
         initialize_logging(log_name="Qt", log_level=DEBUG, status_bar=self.statusBar())
-        logging.debug(getLogStr("Creating MainWindow"))
+        logging.debug("Creating MainWindow")
 
         menu_bar = MenuBar(self)
         self.setMenuBar(menu_bar)
@@ -42,6 +40,7 @@ class MainWindow(QMainWindow):
         central_widget.setLayout(central_v_box)
 
         self.showMaximized()
+        logging.debug("Maximizaing MainWindow")
 
 
 
