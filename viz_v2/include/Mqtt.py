@@ -105,23 +105,29 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    @pyqtSlot()
-    def RenameExp(self):
+    @pyqtSlot(str)
+    def RenameExp(self, filename:str|None):
         if self.connected:
-            filename = "default"
-            value, ok = QInputDialog.getText(
-                self, title="Rename file", label="File name:"
-            )
+            if not filename:
+                value, ok = QInputDialog.getText(
+                    self, title="Rename file", label="File name:"
+                )
 
-            if ok:
-                filename = value
-                if value:
-                    logging.info(MqttClient.LOG_FMT_STR, f"Renaming file to: {filename}")
-                    self._client.publish(MqttClient.RenameExpTopic, filename)
+                if ok:
+                    if value:
+                        filename = value
+                    else:
+                        logging.warning(MqttClient.LOG_FMT_STR, "Filename was left empty")
+                        return
                 else:
-                    logging.warning(MqttClient.LOG_FMT_STR, "filename was empty")
-            else:
-                logging.debug(MqttClient.LOG_FMT_STR, "User cancelled name change")
+                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled name change")
+                    return
 
+            logging.info(MqttClient.LOG_FMT_STR, f"Renaming file to: {filename}")
+            self._client.publish(MqttClient.RenameExpTopic, filename)
         else:
             self._not_connected_warn()
+
+    @pyqtSlot(float)
+    def SenMoveToMM(mm:float|None):
+
