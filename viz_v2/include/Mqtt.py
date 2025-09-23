@@ -105,10 +105,10 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    @pyqtSlot(str)
-    def RenameExp(self, filename:str|None):
+    @pyqtSlot()
+    def RenameExp(self, filename:str|None = None):
         if self.connected:
-            if not filename:
+            if filename is None:
                 value, ok = QInputDialog.getText(
                     self, title="Rename file", label="File name:"
                 )
@@ -122,12 +122,12 @@ class MqttClient(QWidget):
                 else:
                     logging.debug(MqttClient.LOG_FMT_STR, "User cancelled name change")
                     return
-
             logging.info(MqttClient.LOG_FMT_STR, f"Renaming file to: {filename}")
             self._client.publish(MqttClient.RenameExpTopic, filename)
         else:
             self._not_connected_warn()
 
-    @pyqtSlot(float)
-    def SenMoveToMM(mm:float|None):
+    @pyqtSlot()
+    def SenMoveToMM(mm:float|None = None):
+        pass
 
