@@ -1,5 +1,7 @@
 from paho.mqtt.client import MQTT_CLIENT, Client, MQTTMessage, MQTTv5
 
+from .DataStructures import SenPorts
+
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QInputDialog, QWidget
 import logging
@@ -12,9 +14,11 @@ class MqttClient(QWidget):
     StartExpTopic = f"{CmdTopic}/START_EXP"
     StopExpTopic = f"{CmdTopic}/STOP_EXP"
     RenameExpTopic = f"{CmdTopic}/RENAME_EXP"
+    SenTopic = f"{BaseTopic}/SEN"
+    MoveToMMTopic = "MM"
+    MoveToPosTopic = "POS"
 
     LOG_FMT_STR = f"[Mqtt] - %s"
-
 
     _instance = None
 
@@ -32,7 +36,6 @@ class MqttClient(QWidget):
         parent=None,
     ):
         super().__init__(parent)
-
 
         self._h_name = host_name
         self._h_port = host_port
@@ -67,23 +70,30 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def DisconnectBroker(self):
         if self.connected:
-            logging.info(MqttClient.LOG_FMT_STR, f"Disconnecting from broker {self._h_name}")
+            logging.info(
+                MqttClient.LOG_FMT_STR, f"Disconnecting from broker {self._h_name}"
+            )
             self._client.loop_stop()
             err = self._client.disconnect()
             if err:
-                logging.warning(MqttClient.LOG_FMT_STR, f"Error disconnecting from broker: {err}")
+                logging.warning(
+                    MqttClient.LOG_FMT_STR, f"Error disconnecting from broker: {err}"
+                )
         else:
             logging.debug(MqttClient.LOG_FMT_STR, "Not connected anyways")
 
     @pyqtSlot()
     def ConnectBroker(self):
         if not self.connceted:
-            logging.info(MqttClient.LOG_FMT_STR, 
-                f"Connecting to broker w/ name: {self._h_name} on port: {self._h_port}"
+            logging.info(
+                MqttClient.LOG_FMT_STR,
+                f"Connecting to broker w/ name: {self._h_name} on port: {self._h_port}",
             )
             err = self._client.connect(self._h_name, self._h_port, clean_start=True)
             if err:
-                logging.warning(MqttClient.LOG_FMT_STR, f"Error connecting to host:{err}")
+                logging.warning(
+                    MqttClient.LOG_FMT_STR, f"Error connecting to host:{err}"
+                )
                 return
             self._client.loop_start()
         else:
@@ -106,7 +116,7 @@ class MqttClient(QWidget):
             self._not_connected_warn()
 
     @pyqtSlot()
-    def RenameExp(self, filename:str|None = None):
+    def RenameExp(self, filename: str | None = None):
         if self.connected:
             if filename is None:
                 value, ok = QInputDialog.getText(
@@ -117,7 +127,9 @@ class MqttClient(QWidget):
                     if value:
                         filename = value
                     else:
-                        logging.warning(MqttClient.LOG_FMT_STR, "Filename was left empty")
+                        logging.warning(
+                            MqttClient.LOG_FMT_STR, "Filename was left empty"
+                        )
                         return
                 else:
                     logging.debug(MqttClient.LOG_FMT_STR, "User cancelled name change")
@@ -127,7 +139,32 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    @pyqtSlot()
-    def SenMoveToMM(mm:float|None = None):
-        pass
+    def _SenMoveToMM(self, port:SenPorts, mm:float | None = None):
+        if self.connected:
+            if mm is None:
+                value, ok = QInputDialog.getDouble(
+                    self, title=f"Move {port} to MM", label="MM:", value=0, min=0, max=100
+                )
 
+                if ok: 
+                    if value :
+                        mm = value 
+                    else:
+                        logging.warning(MqttClient.LOG_FMT_STR, "MM was left empty")
+                else:
+                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to MM")
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
+
+            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
+
+            self._client.publish(topic, mm)
+        else:
+            self._not_connected_warn()
+
+    @pyqtSlot()
+    def SenLMoveToMM(self, mm: float | None = None):
+        self._SenMoveToMM(SenPorts.LeftPort, mm)
+    
+    @pyqtSlot()
+    def SenRMoveToMM(self, mm:float | None = None):
+        self._SenMoveToMM(SenPorts.RightPort, mm)

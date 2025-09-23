@@ -14,10 +14,16 @@ class MenuBar(QMenuBar):
     RenameExpAction = QAction("Rename Experiment")
     StopExpAction = QAction("Stop Experiment")
 
-    SenMoveToMMAction = QAction("Move to MM")
-    SenMoveToPosAction = QAction("Move to Pos")
-    SenMoveToIdxAction = QAction("Move to Index")
-    SenJogAction = QAction("Jog")
+    SenLMoveToMMAction = QAction("Move to MM")
+    SenLMoveToPosAction = QAction("Move to Pos")
+    SenLMoveToIdxAction = QAction("Move to Index")
+    SenLJogAction = QAction("Jog")
+
+    SenRMoveToMMAction = QAction("Move to MM")
+    SenRMoveToPosAction = QAction("Move to Pos")
+    SenRMoveToIdxAction = QAction("Move to Index")
+    SenRJogAction = QAction("Jog")
+
     SenSetConfigAction = QAction("Set config")
     SenGetConfigAction = QAction("Get Config")
 
@@ -51,11 +57,17 @@ class MenuBar(QMenuBar):
         sen_menu.addAction(MenuBar.SenGetConfigAction)
         sen_menu.addAction(MenuBar.SenSetConfigAction)
 
-        sen_cmd_submenu = sen_menu.addMenu("Move to")
-        sen_cmd_submenu.addAction(MenuBar.SenMoveToMMAction)
-        sen_cmd_submenu.addAction(MenuBar.SenMoveToPosAction)
-        sen_cmd_submenu.addAction(MenuBar.SenMoveToIdxAction)
-        sen_cmd_submenu.addAction(MenuBar.SenJogAction)
+        left_port_submenu = sen_menu.addMenu("Left Port")
+        left_port_submenu.addAction(MenuBar.SenLMoveToMMAction)
+        left_port_submenu.addAction(MenuBar.SenLMoveToPosAction)
+        left_port_submenu.addAction(MenuBar.SenLMoveToIdxAction)
+        left_port_submenu.addAction(MenuBar.SenLJogAction)
+
+        right_port_submenu = sen_menu.addMenu("Right Port")
+        right_port_submenu.addAction(MenuBar.SenRMoveToMMAction)
+        right_port_submenu.addAction(MenuBar.SenRMoveToPosAction)
+        right_port_submenu.addAction(MenuBar.SenRMoveToIdxAction)
+        right_port_submenu.addAction(MenuBar.SenRJogAction)
         
         if parent is not None:
             self.CloseAppAction.triggered.connect(parent.close)
