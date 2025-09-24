@@ -18,14 +18,16 @@ class MenuBar(QMenuBar):
     SenLMoveToPosAction = QAction("Move to Pos")
     SenLMoveToIdxAction = QAction("Move to Index")
     SenLJogAction = QAction("Jog")
+    SenLMapPosAction = QAction("Map position")
 
     SenRMoveToMMAction = QAction("Move to MM")
     SenRMoveToPosAction = QAction("Move to Pos")
     SenRMoveToIdxAction = QAction("Move to Index")
     SenRJogAction = QAction("Jog")
+    SenRMapPosAction = QAction("Map position")
 
-    SenSetConfigAction = QAction("Set config")
     SenGetConfigAction = QAction("Get Config")
+    SenHomeBothAction = QAction("Home both ports")
 
     _instance = None
 
@@ -55,15 +57,17 @@ class MenuBar(QMenuBar):
         exp_menu.addAction(MenuBar.StopExpAction)
 
         sen_menu.addAction(MenuBar.SenGetConfigAction)
-        sen_menu.addAction(MenuBar.SenSetConfigAction)
+        sen_menu.addAction(MenuBar.SenHomeBothAction)
 
         left_port_submenu = sen_menu.addMenu("Left Port")
+        left_port_submenu.addAction(MenuBar.SenLMapPosAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToMMAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToPosAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToIdxAction)
         left_port_submenu.addAction(MenuBar.SenLJogAction)
 
         right_port_submenu = sen_menu.addMenu("Right Port")
+        right_port_submenu.addAction(MenuBar.SenRMapPosAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToMMAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToPosAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToIdxAction)

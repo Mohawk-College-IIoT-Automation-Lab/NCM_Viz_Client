@@ -1,6 +1,8 @@
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
 import time
 
+from paho.mqtt.client import MQTTv31
+
 from .Mqtt import MqttClient
 from .MenuBar import MenuBar
 import logging
@@ -52,12 +54,13 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        window_title = "Nexus Control Module Vizulation Software"
-        self.setWindowTitle(window_title)
+        initialize_logging(log_name="Qt", status_bar=self.statusBar())
+        m_client = MqttClient.get_instance(host_name="ncm.local")
+
+        self.setWindowTitle("Nexus Control Module Vizulation Software")
+
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
-
-        initialize_logging(log_name="Qt", status_bar=self.statusBar())
 
         logging.debug(MainWindow.LOG_FMT_STR, "Creating MainWindow")
 

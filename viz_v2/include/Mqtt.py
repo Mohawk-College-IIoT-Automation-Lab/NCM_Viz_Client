@@ -151,13 +151,56 @@ class MqttClient(QWidget):
                         mm = value 
                     else:
                         logging.warning(MqttClient.LOG_FMT_STR, "MM was left empty")
+                        return
                 else:
                     logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to MM")
+                    return
+
             logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
 
             topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
-
             self._client.publish(topic, mm)
+
+        else:
+            self._not_connected_warn()
+    
+    def _SenMoveToPos(self, port:SenPorts, pos:int | None = None):
+        if self.connected:
+            if pos is None:
+                value, ok = QInputDialog.getInt(
+                    self, title=f"Move {port} to pos", label="Pos:", value=0, min=0, max=70000
+                )
+                if ok:
+                    if value:
+                        pos = value
+                    else:
+                        logging.warning(MqttClient.LOG_FMT_STR, "Pos was left empty")
+                        return
+                else:
+                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to pos")
+                    return
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
+            
+            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
+            self._client.publish(topic, pos)
+        else:
+            self._not_connected_warn()
+
+    def _SenMoveToIdx(self, port:SenPorts, idx: int | None = None):
+        if self.connected:
+            pass 
+        else:
+            self._not_connected_warn()
+
+    def _SenJog(self, port:SenPorts, pos: int | None = None):
+        if self.connected:
+            pass 
+        else: 
+            self._not_connected_warn()
+
+    def _SenMapPos(self, port:SenPorts, mm: float | None = None):
+        if self.connected:
+            pass 
         else:
             self._not_connected_warn()
 
@@ -168,3 +211,12 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def SenRMoveToMM(self, mm:float | None = None):
         self._SenMoveToMM(SenPorts.RightPort, mm)
+
+    @pyqtSlot()
+    def SenLMoveToPos(self, pos: int | None = None):
+        self._SenMoveToPos(SenPorts.LeftPort, pos)
+
+    @pyqtSlot()
+    def SenRMoveToPos(self, pos: int | None = None):
+        self._SenMoveToPos(SenPorts.RightPort, pos)
+        
