@@ -292,7 +292,7 @@ class MqttClient(QWidget):
         self._SenMoveToPos(SenPorts.RightPort, pos)
 
     @pyqtSlot()
-    def SenLMoveToIdx(self, idx:int | None = None);
+    def SenLMoveToIdx(self, idx:int | None = None):
         self._SenMoveToIdx(SenPorts.LeftPort, idx)
 
     @pyqtSlot()
