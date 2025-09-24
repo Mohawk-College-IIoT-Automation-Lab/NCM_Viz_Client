@@ -2,8 +2,11 @@ from paho.mqtt.client import MQTT_CLIENT, Client, MQTTMessage, MQTTv5
 
 from .DataStructures import SenPorts
 
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QInputDialog, QWidget
+
+from .DataStructures import SenTelemetry, SenConfigModel, SensorData
+
 import logging
 
 
@@ -17,6 +20,29 @@ class MqttClient(QWidget):
     SenTopic = f"{BaseTopic}/SEN"
     MoveToMMTopic = "MM"
     MoveToPosTopic = "POS"
+    MoveToIdxTopix = "IDX"
+    JogPosTopic = "JOG"
+    GetConfigTopic = "CONFIG"
+    MapPosTopic = "MAP"  # Need to check this
+
+    # Sub
+    TeleLJsonTopic = f"{SenTopic}/LEFT/TELE/JSON"
+    TeleRJsonTopic = f"{SenTopic}/RIGHT/TELE/JSON"
+
+    ConfigLTopic = f"{SenTopic}/LEFT/CONFIG"
+    ConfigRTopic = f"{SenTopic}/RIGHT/CONFIG]"
+
+    DaqBaseTopic = f"{BaseTopic}/DAQ"
+    DaqDataTopic = f"{DaqBaseTopic}/DisplayData"
+
+    # signals 
+    DaqDataSignal = pyqtSignal(SensorData)
+
+    SenTeleLeftSignal = pyqtSignal(SenTelemetry)
+    SenTeleRightSignal = pyqtSignal(SenTelemetry)
+
+    SenLeftConfigSignal = pyqtSignal(SenConfigModel)
+    SenRightConfigsignal = pyqtSignal(SenConfigModel)
 
     LOG_FMT_STR = f"[Mqtt] - %s"
 
@@ -63,6 +89,115 @@ class MqttClient(QWidget):
 
     def _sub_all_topcis(self):
         logging.debug(MqttClient.LOG_FMT_STR, f"Subbing")
+
+        self._client.subscribe(MqttClient.DaqDataTopic)
+        self._client.subscribe(MqttClient.TeleLJsonTopic)
+        self._client.subscribe(MqttClient.TeleRJsonTopic)
+        self._client.subscribe(MqttClient.ConfigLTopic)
+        self._client.subscribe(MqttClient.ConfigRTopic)
+
+        self._client.message_callback_add(MqttClient.DaqDataTopic, self._DaqDataCallback)
+        self._client.message_callback_add(MqttClient.TeleLJsonTopic, self._TeleLCallback)
+        self._client.message_callback_add(MqttClient.TeleRJsonTopi, self._TeleRCallback)
+        self._client.message_callback_add(MqttClient.ConfigLTopic, self._ConfigLCallback)
+        self._client.message_callback_add(MqttClient.ConfigRTopic, self._ConfigRCallback)
+
+    def _DaqDataCallback(self, client, userdata, msg):
+        pass 
+
+    def _TeleLCallback(self, client, userdata, msg):
+        pass 
+
+    def _TeleRCallback(self, client, userdata, msg):
+        pass 
+    
+    def _ConfigLCallback(self, client, userdata, msg):
+        pass 
+
+    def _ConfigRCallback(self, client, userdata, msg):
+        pass
+
+    def _SenMoveToMM(self, port: SenPorts, mm: float | None = None):
+        if self.connected:
+            if mm is None:
+                value, ok = QInputDialog.getDouble(
+                    self,
+                    title=f"Move {port} to MM",
+                    label="MM:",
+                    value=0,
+                    min=0,
+                    max=100,
+                )
+
+                if ok:
+                    if value:
+                        mm = value
+                    else:
+                        logging.warning(MqttClient.LOG_FMT_STR, "MM was left empty")
+                        return
+                else:
+                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to MM")
+                    return
+
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
+
+            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
+            self._client.publish(topic, mm)
+
+        else:
+            self._not_connected_warn()
+
+    def _SenMoveToPos(self, port: SenPorts, pos: int | None = None):
+        if self.connected:
+            if pos is None:
+                value, ok = QInputDialog.getInt(
+                    self,
+                    title=f"Move {port} to pos",
+                    label="Pos:",
+                    value=0,
+                    min=0,
+                    max=70000,
+                )
+                if ok:
+                    if value:
+                        pos = value
+                    else:
+                        logging.warning(MqttClient.LOG_FMT_STR, "Pos was left empty")
+                        return
+                else:
+                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to pos")
+                    return
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
+
+            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
+            self._client.publish(topic, pos)
+        else:
+            self._not_connected_warn()
+
+    def _SenMoveToIdx(self, port: SenPorts, idx: int | None = None):
+        if self.connected:
+            pass
+        else:
+            self._not_connected_warn()
+
+    def _SenJog(self, port: SenPorts, pos: int | None = None):
+        if self.connected:
+            pass
+        else:
+            self._not_connected_warn()
+
+    def _SenMapPos(self, port: SenPorts, mm: float | None = None):
+        if self.connected:
+            pass
+        else:
+            self._not_connected_warn()
+
+    def _SenGetConfig(self, port: SenPorts):
+        if self.connected:
+            pass
+        else:
+            self._not_connected_warn()
+
 
     def _not_connected_warn(self):
         logging.warning(MqttClient.LOG_FMT_STR, "Not connected to broker")
@@ -139,77 +274,12 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    def _SenMoveToMM(self, port:SenPorts, mm:float | None = None):
-        if self.connected:
-            if mm is None:
-                value, ok = QInputDialog.getDouble(
-                    self, title=f"Move {port} to MM", label="MM:", value=0, min=0, max=100
-                )
-
-                if ok: 
-                    if value :
-                        mm = value 
-                    else:
-                        logging.warning(MqttClient.LOG_FMT_STR, "MM was left empty")
-                        return
-                else:
-                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to MM")
-                    return
-
-            logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
-
-            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
-            self._client.publish(topic, mm)
-
-        else:
-            self._not_connected_warn()
-    
-    def _SenMoveToPos(self, port:SenPorts, pos:int | None = None):
-        if self.connected:
-            if pos is None:
-                value, ok = QInputDialog.getInt(
-                    self, title=f"Move {port} to pos", label="Pos:", value=0, min=0, max=70000
-                )
-                if ok:
-                    if value:
-                        pos = value
-                    else:
-                        logging.warning(MqttClient.LOG_FMT_STR, "Pos was left empty")
-                        return
-                else:
-                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to pos")
-                    return
-            logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
-            
-            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
-            self._client.publish(topic, pos)
-        else:
-            self._not_connected_warn()
-
-    def _SenMoveToIdx(self, port:SenPorts, idx: int | None = None):
-        if self.connected:
-            pass 
-        else:
-            self._not_connected_warn()
-
-    def _SenJog(self, port:SenPorts, pos: int | None = None):
-        if self.connected:
-            pass 
-        else: 
-            self._not_connected_warn()
-
-    def _SenMapPos(self, port:SenPorts, mm: float | None = None):
-        if self.connected:
-            pass 
-        else:
-            self._not_connected_warn()
-
     @pyqtSlot()
     def SenLMoveToMM(self, mm: float | None = None):
         self._SenMoveToMM(SenPorts.LeftPort, mm)
-    
+
     @pyqtSlot()
-    def SenRMoveToMM(self, mm:float | None = None):
+    def SenRMoveToMM(self, mm: float | None = None):
         self._SenMoveToMM(SenPorts.RightPort, mm)
 
     @pyqtSlot()
@@ -219,4 +289,37 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def SenRMoveToPos(self, pos: int | None = None):
         self._SenMoveToPos(SenPorts.RightPort, pos)
-        
+
+    @pyqtSlot()
+    def SenLMoveToIdx(self, idx:int | None = None);
+        self._SenMoveToIdx(SenPorts.LeftPort, idx)
+
+    @pyqtSlot()
+    def SenRMoveToIdx(self, idx:int | None = None):
+        self._SenMoveToIdx(SenPorts.RightPort, idx)
+
+    @pyqtSlot()
+    def SenLJog(self, pos:int | None = None):
+        self._SenJog(SenPorts.LeftPort, pos)
+
+    @pyqtSlot()
+    def SenRJog(self, pos:int | None = None):
+        self._SenJog(SenPorts.RightPort, pos)
+
+    @pyqtSlot()
+    def SenLMapPos(self, mm:float | None = None):
+        self._SenMapPos(SenPorts.LeftPort, mm)
+
+    @pyqtSlot()
+    def SenRMapPos(self, mm:float | None = None):
+        self._SenMapPos(SenPorts.RightPort, mm)
+
+    @pyqtSlot()
+    def SenGetLConfig(self):
+        self._SenGetConfig(SenPorts.LeftPort)
+
+    @pyqtSlot()
+    def SenGetRConfig(self):
+        self._SenGetConfig(SenPorts.RightPort)
+
+
