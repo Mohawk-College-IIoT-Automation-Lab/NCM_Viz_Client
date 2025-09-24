@@ -1,13 +1,10 @@
 from paho.mqtt.client import MQTT_CLIENT, Client, MQTTMessage, MQTTv5
-
-from .DataStructures import SenPorts
-
+import json
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QInputDialog, QWidget
-
-from .DataStructures import SenTelemetry, SenConfigModel, SensorData
-
 import logging
+
+from .DataStructures import SenTelemetry, SenConfigModel, SensorData, SenPorts
 
 
 class MqttClient(QWidget):
@@ -88,7 +85,7 @@ class MqttClient(QWidget):
                 logging.warning(MqttClient.LOG_FMT_STR, f"Failed to reconnect - {e}")
 
     def _sub_all_topcis(self):
-        logging.debug(MqttClient.LOG_FMT_STR, f"Subbing")
+        logging.debug(MqttClient.LOG_FMT_STR, f"Subbing all topics")
 
         self._client.subscribe(MqttClient.DaqDataTopic)
         self._client.subscribe(MqttClient.TeleLJsonTopic)
@@ -103,7 +100,11 @@ class MqttClient(QWidget):
         self._client.message_callback_add(MqttClient.ConfigRTopic, self._ConfigRCallback)
 
     def _DaqDataCallback(self, client, userdata, msg):
-        pass 
+        try:
+            sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
+            MqttClient.DaqDataSignal.emit(sensor_data)
+        except json.JSONDecodeError:
+            logging.warning(MqttClient.LOG_FMT_STR, f"Failed to decode JSON payload: {msg.payload.decode()}")
 
     def _TeleLCallback(self, client, userdata, msg):
         pass 
