@@ -5,45 +5,12 @@ from PyQt5.QtCore import QUrl, QObject, pyqtSlot
 import logging
 
 
-class QmlSenAnim(QWidget):
 
-    LOG_FMT_STR = f"[QML] - %s"
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self._qml = QQuickWidget(self)
-        self._qml.setResizeMode(QQuickWidget.SizeRootObjectToView)
-
-        self._qml.setSource(QUrl.fromLocalFile("qml/sen.qml"))
-
-        if self._qml.status() != QQuickWidget.Ready:
-            e = f"Failed to load qml: {self._qml.errors()}"
-            logging.error(QmlSenAnim.LOG_FMT_STR, e)
-            raise RuntimeError(e)
-
-        _qml_root = self._qml.rootObject()
-        self._l_port_root = _qml_root.findChild(QObject, "LeftPort")
-        self._r_port_root = _qml_root.findChild(QObject, "RightPort")
-
-        if not self._l_port_root or not self._r_port_root:
-            e = f"Failed to find children in qml"
-            logging.error(QmlSenAnim.LOG_FMT_STR, e)
-            raise RuntimeError(e)
-
-    @pyqtSlot()
-    def SetSenAnimPorts(
-        self, leftPort: int | None = None, rightPort: int | None = None
-    ):
-        if leftPort:
-            # do something
-            pass
-        if rightPort:
-            # do something
-            pass
 
 
 class SenWidget(QWidget):
+
+    LOG_FMT_STR =  f"[SEN] - %s"
 
     def __init__(self, parent):
         super().__init__(parent)

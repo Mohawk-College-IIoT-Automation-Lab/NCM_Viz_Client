@@ -1,4 +1,3 @@
-import PyQt5
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
