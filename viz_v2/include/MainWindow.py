@@ -4,9 +4,11 @@ import time
 
 from paho.mqtt.client import MQTTv31
 
+
 from .Mqtt import MqttClient
 from .MenuBar import MenuBar
 from .SenWidget import SenWidget
+from .PlotsWidget import PlotsWidget
 import logging
 
 
@@ -99,7 +101,7 @@ class MainWindow(QMainWindow):
         # replace all w/ custom
         tab_widget = QTabWidget()
         sen_tab_widget = SenWidget()
-        graph_tab_widget = QWidget()
+        graph_tab_widget = PlotsWidget()
         data_tab_widget = QWidget()
 
         tab_widget.setGeometry(0, 0, 500, 500)
