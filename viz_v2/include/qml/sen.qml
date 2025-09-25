@@ -4,8 +4,8 @@ import QtQuick.Extras 1.4
 
 
 Item {
-    width: 500
-    height: 500
+    width: 800
+    height: 800
 
     Rectangle {
       anchors.fill: parent
@@ -13,26 +13,25 @@ Item {
 
     // Circle in the bottom-left
         Rectangle {
-            width: 225
-            height: 350
+            width: (parent.width - 50) / 2
+            height: (parent.height - 200)
             radius: width / 2           // Half of width/height to make it round
             color: "#3e4147"
             anchors.left: parent.left
             anchors.bottom: parent.bottom
             anchors.margins: 10   // optional spacing from the edges
             Rectangle{
-
-              width: 200
-              height: 325
+              width: parent.width - 25
+              height: parent.height - 25
               radius: width / 2 
-              color: "#ffffff"
+              color: "#00bbff"
               anchors.centerIn: parent
             }
           }
 
-        Rectangle {
-            width: 225
-            height: 350
+          Rectangle {
+            width: (parent.width - 50) / 2
+            height: (parent.height - 200)
             radius: width / 2            // Half of width/height to make it round
             color: "#3e4147"
             anchors.right: parent.right

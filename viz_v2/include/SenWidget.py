@@ -14,7 +14,7 @@ class SenWidget(QWidget):
 
     LOG_FMT_STR = f"[SEN] - %s"
 
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         _m_client = MqttClient.get_instance()
@@ -62,17 +62,26 @@ class SenWidget(QWidget):
 
         self._sen = SenAnimWidget()
         anim_v_box.addWidget(self._sen)
-
         center_h_box.addLayout(anim_v_box)
 
         # Right V Box
         tele_v_box = QVBoxLayout()
+        _d1_label = "Left"
+        _d2_label = "Right"
 
-        self._t_pos = DualPointPlotWidget(title="Position", y_label="Ticks", d1_label="Left", d2_label="Right")
-        self._t_vel = DualPointPlotWidget(title="Velocity", y_label="Ticks/s", d1_label="Left", d2_label="Right")
+        self._t_pos = DualPointPlotWidget(
+            title="Position", y_label="Ticks", d1_label=_d1_label, d2_label=_d2_label
+        )
+        self._t_vel = DualPointPlotWidget(
+            title="Velocity", y_label="Ticks/s", d1_label=_d1_label, d2_label=_d2_label
+        )
+        self._t_curr = DualPointPlotWidget(
+            title="Current", y_label="mA", d1_label=_d1_label, d2_label=_d2_label
+        )
 
         tele_v_box.addWidget(self._t_pos)
         tele_v_box.addWidget(self._t_vel)
+        tele_v_box.addWidget(self._t_curr)
         center_h_box.addLayout(tele_v_box)
 
         self.setLayout(center_h_box)

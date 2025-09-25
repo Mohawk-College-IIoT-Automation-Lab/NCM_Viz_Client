@@ -1,3 +1,4 @@
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
 import time
 
@@ -7,6 +8,7 @@ from .Mqtt import MqttClient
 from .MenuBar import MenuBar
 from .SenWidget import SenWidget
 import logging
+
 
 class StatusBarHandler(logging.Handler):
     def __init__(self, status_bar: QStatusBar, msg_duration: int = 5000) -> None:
@@ -23,10 +25,12 @@ class StatusBarHandler(logging.Handler):
             self.handleError(record)
 
 
-def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar: QStatusBar | None = None):
+def initialize_logging(
+    log_name: str, log_level=logging.DEBUG, status_bar: QStatusBar | None = None
+):
     log_file = f"{log_name}.log"
     logger = logging.getLogger()
-    fmtter = logging.Formatter('[%(asctime)s]-[%(levelname)s]: %(message)s')
+    fmtter = logging.Formatter("[%(asctime)s]-[%(levelname)s]: %(message)s")
 
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.DEBUG)
@@ -48,6 +52,7 @@ def initialize_logging(log_name: str, log_level=logging.DEBUG, status_bar: QStat
 
     logger.setLevel(log_level)
 
+
 class MainWindow(QMainWindow):
 
     LOG_FMT_STR = f"[Main] - %s"
@@ -58,8 +63,31 @@ class MainWindow(QMainWindow):
         initialize_logging(log_name="Qt", status_bar=self.statusBar())
         m_client = MqttClient.get_instance(host_name="ncm.local")
 
-        self.setWindowTitle("Nexus Control Module Vizulation Software")
+        dark = QtGui.QPalette()
+        dark.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
+        dark.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+        dark.setColor(QtGui.QPalette.Base, QtGui.QColor(55, 55, 55))
+        dark.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
+        dark.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
+        dark.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
+        dark.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+        dark.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
+        dark.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+        dark.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+        dark.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+        dark.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)
+        dark.setColor(
+            QtGui.QPalette.Disabled, QtGui.QPalette.Text, QtGui.QColor(127, 127, 127)
+        )
+        dark.setColor(
+            QtGui.QPalette.Disabled,
+            QtGui.QPalette.ButtonText,
+            QtGui.QColor(127, 127, 127),
+        )
 
+        self.setPalette(dark)
+
+        self.setWindowTitle("Nexus Control Module Vizulation Software")
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
 
@@ -90,4 +118,3 @@ class MainWindow(QMainWindow):
         m_client = MqttClient.get_instance()
         m_client.DisconnectBroker()
         return super().closeEvent(a0)
-

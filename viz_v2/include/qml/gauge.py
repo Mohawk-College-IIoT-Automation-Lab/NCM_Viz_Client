@@ -12,7 +12,7 @@ class GaugeWidget(QWidget):
     LOG_FMT_STR =  f"[Qml] - %s"
 
 
-    def __init__(self, w:int = 100, h:int = 100, min:int = 0, max:int = 100, title:str = "default", parent = None):
+    def __init__(self, w:int = 100, h:int = 100, min:int = 0, max:int = 100, title:str = "default", label_color:str = "#ffffff", label_size:int=20, parent = None):
         super().__init__(parent)
 
         _qml = QQuickWidget()
@@ -39,7 +39,7 @@ class GaugeWidget(QWidget):
 
         _v_box = QVBoxLayout(self)
         _title_label = QLabel(title)
-        _title_label.setStyleSheet("font-size: 24px;")
+        _title_label.setStyleSheet(f"font-size: {str(label_size)}px; color: {label_color}")
         
         _v_box.addWidget(_title_label, alignment=Qt.AlignCenter)
         _v_box.addWidget(_qml)

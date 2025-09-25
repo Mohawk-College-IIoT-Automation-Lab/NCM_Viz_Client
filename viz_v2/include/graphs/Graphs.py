@@ -86,7 +86,7 @@ class DualPointPlotWidget(QWidget):
         d1_label: str = "d1",
         color_1: str = "#ff0000",
         d2_label: str = "d2",
-        color_2: str = "#0000ff",
+        color_2: str = "#ffff00",
         width: int = 200,
         height: int = 100,
         parent=None,
