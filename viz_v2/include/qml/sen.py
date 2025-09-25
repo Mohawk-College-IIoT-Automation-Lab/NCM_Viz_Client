@@ -1,6 +1,8 @@
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot 
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
+import sys
+from pathlib import Path
 
 import logging
 
@@ -15,17 +17,19 @@ class SenAnimWidget(QWidget):
         self._max = max
 
         _qml = QQuickWidget(self)
-        _qml.setResizeMode(QQuickWidget.SizeRootObjectToView)
+        # Resolve the QML file relative to THIS Python file, not the CWD
+        base_dir = Path(__file__).resolve().parent
+        qml_file = base_dir / "sen.qml"
 
-        _qml.setSource(QUrl.fromLocalFile("sen.qml"))
+        _qml.setSource(QUrl.fromLocalFile(str(qml_file)))
 
         if _qml.status() != QQuickWidget.Ready:
             e = f"Failed to load qml: {_qml.errors()}"
             logging.error(SenAnimWidget.LOG_FMT_STR, e)
             raise RuntimeError(e)
 
-        self._left_port = _qml.findChild(QObject, "LeftPort")
-        self._right_port = _qml.findChild(QObject, "rightPort")
+        # self._left_port = _qml.findChild(QObject, "LeftPort")
+        # self._right_port = _qml.findChild(QObject, "rightPort")
 
     @pyqtSlot()
     def SetPortValue(self, leftPort: int | None = None, rightPort: int | None = None):
@@ -34,5 +38,5 @@ class SenAnimWidget(QWidget):
                 self._left_port.setProperty("value", leftPort)
 
         if rightPort:
-            if self._min <= rightPort <= self._max;
+            if self._min <= rightPort <= self._max:
                 self._right_port.setProperty("value", rightPort)

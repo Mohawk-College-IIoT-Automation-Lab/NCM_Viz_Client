@@ -5,6 +5,7 @@ from paho.mqtt.client import MQTTv31
 
 from .Mqtt import MqttClient
 from .MenuBar import MenuBar
+from .SenWidget import SenWidget
 import logging
 
 class StatusBarHandler(logging.Handler):
@@ -69,7 +70,7 @@ class MainWindow(QMainWindow):
 
         # replace all w/ custom
         tab_widget = QTabWidget()
-        sen_tab_widget = QWidget()
+        sen_tab_widget = SenWidget()
         graph_tab_widget = QWidget()
         data_tab_widget = QWidget()
 
