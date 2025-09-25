@@ -5,6 +5,7 @@ import logging
 
 from .qml.gauge import GaugeWidget
 from .qml.sen import SenAnimWidget
+from .graphs.Graphs import DualPointPlotWidget
 from .DataStructures import SensorData, SenTelemetry
 from .Mqtt import MqttClient
 
@@ -66,6 +67,10 @@ class SenWidget(QWidget):
 
         # Right V Box
         tele_v_box = QVBoxLayout()
+
+        self._t_pos = DualPointPlotWidget(title="Position", y_label="Ticks", d1_label="Left", d2_label="Right")
+
+        tele_v_box.addWidget(self._t_pos)
         center_h_box.addLayout(tele_v_box)
 
         self.setLayout(center_h_box)
