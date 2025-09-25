@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot, Qt
-from PyQt5.QtWidgets import QLabel, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QLabel, QSizePolicy, QVBoxLayout, QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
 from PyQt5.QtQuick import QQuickItem
 import sys
@@ -45,6 +45,8 @@ class GaugeWidget(QWidget):
         _v_box.addWidget(_qml)
 
         self.setLayout(_v_box)
+        self.setMinimumSize(w, h)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     @pyqtSlot()
     def SetValue(self, value: int):

@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QHBoxLayout, QSizePolicy, QVBoxLayout, QWidget
+from PyQt5.QtCore import pyqtSlot, Qt
 
 import logging
 
@@ -69,8 +69,10 @@ class SenWidget(QWidget):
         tele_v_box = QVBoxLayout()
 
         self._t_pos = DualPointPlotWidget(title="Position", y_label="Ticks", d1_label="Left", d2_label="Right")
+        self._t_vel = DualPointPlotWidget(title="Velocity", y_label="Ticks/s", d1_label="Left", d2_label="Right")
 
         tele_v_box.addWidget(self._t_pos)
+        tele_v_box.addWidget(self._t_vel)
         center_h_box.addLayout(tele_v_box)
 
         self.setLayout(center_h_box)

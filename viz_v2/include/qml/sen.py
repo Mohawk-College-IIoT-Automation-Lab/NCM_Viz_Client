@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot 
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QSizePolicy, QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
 import sys
 from pathlib import Path
@@ -30,6 +30,8 @@ class SenAnimWidget(QWidget):
 
         # self._left_port = _qml.findChild(QObject, "LeftPort")
         # self._right_port = _qml.findChild(QObject, "rightPort")
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
     @pyqtSlot()
     def SetPortValue(self, leftPort: int | None = None, rightPort: int | None = None):

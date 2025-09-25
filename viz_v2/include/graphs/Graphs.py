@@ -4,8 +4,6 @@ import pyqtgraph as pg
 import numpy as np
 
 
-
-
 class DualPointPlotWidget(QWidget):
     class DualPointPlot(pg.PlotWidget):
 
@@ -13,35 +11,44 @@ class DualPointPlotWidget(QWidget):
             self,
             buffer_size: int = 100,
             title: str = "Title",
+            title_size: int = 24,
             y_label: str = "label",
+            y_label_size: int = 20,
             x_label: str = "duration",
-            color_1:str = "r",
-            color_2:str = "b",
-            width:int = 200,
-            height:int  = 100,
+            x_label_size: int = 20,
+            color_1: str = "#ff0000",
+            color_2: str = "#0000ff",
+            width: int = 200,
+            height: int = 100,
             parent=None,
         ):
             super().__init__(parent)
 
-            self.plotItem.setLabel("left", y_label)
-            self.plotItem.setLabel("bottom", x_label)
-            self.plotItem.setTitle(title)
+            self.plotItem.setLabel(
+                "left",
+                f'<span style="font-size: {str(y_label_size)}px">{y_label}</span>',
+            )
+            self.plotItem.setLabel(
+                "bottom",
+                f'<span style="font-size: {str(x_label_size)}px">{x_label}</span>',
+            )
+            self.plotItem.setTitle(
+                f'<span style="font-size: {str(title_size)}px">{title}</span>'
+            )
             self.plotItem.showGrid(True, True, 0.5)
 
             self._d1_plot = self.plotItem.plot(oen=pg.mkPen(color=color_1, width=2))
             self._d2_plot = self.plotItem.plot(pen=pg.mkPen(color=color_2, width=2))
 
             self._buf_size = buffer_size
-            self._time_counter = 0 
+            self._time_counter = 0
             self._time_np_arr = np.zeros(self._buf_size)
 
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
 
-            print(width)
-            print(height)
-
-            self.setFixedSize(width, height)
+            self.setMinimumSize(width, height)
+            self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         @pyqtSlot()
         def ClearPlot(self):
@@ -52,7 +59,7 @@ class DualPointPlotWidget(QWidget):
 
         @pyqtSlot()
         def UpdatePlot(self, d1: float | None = None, d2: float | None = None):
-            if d1 or d2 :
+            if d1 or d2:
                 self._time_np_arr = np.roll(self._time_np_arr, -1)
                 self._time_np_arr[-1] = self._time_counter
                 self._time_counter += 1
@@ -66,34 +73,55 @@ class DualPointPlotWidget(QWidget):
                 self._d2_np_arr = np.roll(self._d2_np_arr, -1)
                 self._d2_np_arr[-1] = d2
                 self._d2_plot.setData(self._time_np_arr, self._d2_np_arr)
-    
+
     def __init__(
-            self,
-            buffer_size: int = 100,
-            title: str = "Title",
-            y_label: str = "label",
-            x_label: str = "duration",
-            color_1:str = "r",
-            color_2:str = "b",
-            d1_label:str = "d1",
-            d2_label:str = "d2",
-            width:int = 400,
-            height:int  = 250,
-            parent=None,
+        self,
+        buffer_size: int = 100,
+        title: str = "Title",
+        title_size: int = 24,
+        y_label: str = "label",
+        y_label_size: int = 20,
+        x_label: str = "duration",
+        x_label_size: int = 20,
+        d1_label: str = "d1",
+        color_1: str = "#ff0000",
+        d2_label: str = "d2",
+        color_2: str = "#0000ff",
+        width: int = 200,
+        height: int = 100,
+        parent=None,
         ):
         super().__init__(parent)
 
-        self._plot = DualPointPlotWidget.DualPointPlot(buffer_size, title, y_label, x_label, color_1, color_2, width, height, parent)
+        self._plot = DualPointPlotWidget.DualPointPlot(
+            buffer_size,
+            title,
+            title_size,
+            y_label,
+            y_label_size,
+            x_label,
+            x_label_size,
+            color_1,
+            color_2,
+            width,
+            height,
+            parent,
+        )
 
         v_box = QVBoxLayout()
-        legend_label = QLabel(f"{d1_label}:{color_1} - {d2_label}:{color_2}")
-        legend_label.setStyleSheet("font-size: 20px;")
+        label_h_box = QHBoxLayout()
+        _d1_label = QLabel(f"{d1_label}:{color_1}")
+        _d1_label.setStyleSheet(f"font-size: 20px; color: {color_1}")
+        _d2_label = QLabel(f"{d2_label}:{color_2}")
+        _d2_label.setStyleSheet(f"font-size: 20px; color: {color_2}")
+
+        label_h_box.addWidget(_d1_label)
+        label_h_box.addWidget(_d2_label)
 
         v_box.addWidget(self._plot)
-        v_box.addWidget(legend_label)
+        v_box.addLayout(label_h_box)
 
         self.setLayout(v_box)
-        
 
     @pyqtSlot()
     def ClearPlot(self):
@@ -102,7 +130,3 @@ class DualPointPlotWidget(QWidget):
     @pyqtSlot()
     def UpdatePlot(self, d1: float | None = None, d2: float | None = None):
         self._plot.UpdatePlot(d1, d2)
-
-
-
-            
