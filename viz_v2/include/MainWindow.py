@@ -9,6 +9,7 @@ from .Mqtt import MqttClient
 from .MenuBar import MenuBar
 from .SenWidget import SenWidget
 from .PlotsWidget import PlotsWidget
+from .DataViewWidget import DataViewWidget
 import logging
 
 
@@ -55,6 +56,33 @@ def initialize_logging(
     logger.setLevel(log_level)
 
 
+def set_dark_mode(win: QMainWindow):
+
+    dark = QtGui.QPalette()
+    dark.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
+    dark.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
+    dark.setColor(QtGui.QPalette.Base, QtGui.QColor(55, 55, 55))
+    dark.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
+    dark.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
+    dark.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
+    dark.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
+    dark.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
+    dark.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
+    dark.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
+    dark.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
+    dark.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)
+    dark.setColor(
+        QtGui.QPalette.Disabled, QtGui.QPalette.Text, QtGui.QColor(127, 127, 127)
+    )
+    dark.setColor(
+        QtGui.QPalette.Disabled,
+        QtGui.QPalette.ButtonText,
+        QtGui.QColor(127, 127, 127),
+    )
+
+    win.setPalette(dark)
+
+
 class MainWindow(QMainWindow):
 
     LOG_FMT_STR = f"[Main] - %s"
@@ -65,31 +93,10 @@ class MainWindow(QMainWindow):
         initialize_logging(log_name="Qt", status_bar=self.statusBar())
         m_client = MqttClient.get_instance(host_name="ncm.local")
 
-        dark = QtGui.QPalette()
-        dark.setColor(QtGui.QPalette.Window, QtGui.QColor(53, 53, 53))
-        dark.setColor(QtGui.QPalette.WindowText, QtCore.Qt.white)
-        dark.setColor(QtGui.QPalette.Base, QtGui.QColor(55, 55, 55))
-        dark.setColor(QtGui.QPalette.AlternateBase, QtGui.QColor(53, 53, 53))
-        dark.setColor(QtGui.QPalette.ToolTipBase, QtCore.Qt.white)
-        dark.setColor(QtGui.QPalette.ToolTipText, QtCore.Qt.white)
-        dark.setColor(QtGui.QPalette.Text, QtCore.Qt.white)
-        dark.setColor(QtGui.QPalette.Button, QtGui.QColor(53, 53, 53))
-        dark.setColor(QtGui.QPalette.ButtonText, QtCore.Qt.white)
-        dark.setColor(QtGui.QPalette.BrightText, QtCore.Qt.red)
-        dark.setColor(QtGui.QPalette.Highlight, QtGui.QColor(42, 130, 218))
-        dark.setColor(QtGui.QPalette.HighlightedText, QtCore.Qt.white)
-        dark.setColor(
-            QtGui.QPalette.Disabled, QtGui.QPalette.Text, QtGui.QColor(127, 127, 127)
-        )
-        dark.setColor(
-            QtGui.QPalette.Disabled,
-            QtGui.QPalette.ButtonText,
-            QtGui.QColor(127, 127, 127),
-        )
-
-        self.setPalette(dark)
+        set_dark_mode(self)
 
         self.setWindowTitle("Nexus Control Module Vizulation Software")
+        
         central_widget = QWidget(self)
         self.setCentralWidget(central_widget)
 
@@ -98,11 +105,11 @@ class MainWindow(QMainWindow):
         menu_bar = MenuBar(self)
         self.setMenuBar(menu_bar)
 
-        # replace all w/ custom
         tab_widget = QTabWidget()
+
         sen_tab_widget = SenWidget()
         graph_tab_widget = PlotsWidget()
-        data_tab_widget = QWidget()
+        data_tab_widget = DataViewWidget()
 
         tab_widget.setGeometry(0, 0, 500, 500)
         tab_widget.addTab(sen_tab_widget, "SEN")

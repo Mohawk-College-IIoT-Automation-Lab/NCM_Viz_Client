@@ -4,6 +4,7 @@ from .MenuBar import MenuBar
 from .Mqtt import MqttClient
 from .SenWidget import SenWidget
 from .PlotsWidget import PlotsWidget
+from .DataViewWidget import DataViewWidget
 
 __all__ = [
     "MainWindow",
@@ -15,6 +16,7 @@ __all__ = [
     "SenTelemetry",
     "SenWidget",
     "PlotsWidget",
+    "DataViewWidget",
 ]
 
 __version__ = "0.1.0"
