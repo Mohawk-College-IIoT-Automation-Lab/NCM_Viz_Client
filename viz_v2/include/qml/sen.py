@@ -1,7 +1,6 @@
-from PyQt5.QtCore import QUrl, QObject, pyqtSlot 
+from PyQt5.QtCore import pyqtSlot, QUrl
 from PyQt5.QtWidgets import QSizePolicy, QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
-import sys
 from pathlib import Path
 
 import logging

@@ -8,9 +8,12 @@ Item {
   id: sen
  
   property int gap: 20
+  property int w: 600 
+  property int h: 600
+
+  width: w
+  height: h
   
-  width: 800
-  height: 800
 
   Rectangle{
     anchors.fill: parent
@@ -35,7 +38,7 @@ Item {
       Rectangle {
 
         anchors.bottom: parent.bottom
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
         width: (parent.width - leftSen.gap) 
         height: (parent.height - 200)
         radius: width / 2           // Half of width/height to make it round
@@ -74,11 +77,11 @@ Item {
       anchors.fill: parent.fill
       color: "#111111"
 
-      // Left port
+      // Right port
       Rectangle {
 
         anchors.bottom: parent.bottom
-        anchors.centerIn: parent
+        anchors.horizontalCenter: parent.horizontalCenter
         width: (parent.width - rightSen.gap) 
         height: (parent.height - 200)
         radius: width / 2           // Half of width/height to make it round
@@ -101,10 +104,6 @@ Item {
           radius: width / 2
         }
       }
-   
-
-
-
     }
   }
 }
