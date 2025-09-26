@@ -1,5 +1,5 @@
 from enum import Enum 
-from typing import List, Dict
+from typing import List
 from pydantic import BaseModel
 
 class SenPorts(Enum):
