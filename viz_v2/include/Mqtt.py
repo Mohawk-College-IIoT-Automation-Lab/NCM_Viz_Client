@@ -64,12 +64,14 @@ class MqttClient(QWidget):
 
         def __init__(
             self,
+            name: str = "timer",
             interval: int = 100,
             autostart: bool = False,
             timeout: int = 2000,
             parent=None,
         ):
             super().__init__(parent)
+            self.setObjectName(name)
             self._timer = QTimer()
             self._interval = interval
             self._en = autostart
@@ -101,17 +103,19 @@ class MqttClient(QWidget):
 
         @pyqtSlot()
         def ClearCounter(self):
-            self._timer.stop()
             self._counter = 0
-            self._timer.start()
 
     _instance = None
     _settings = None
-    _settings_file = None
+    _settings_file = None 
+    _count = 0
 
     @classmethod
     def get_instance(cls, filename: str = "settings.json", parent=None):
         if cls._instance is None:
+            
+            logging.debug(MqttClient.LOG_FMT_STR, f"Cls counter: {cls._count}")
+
             cls._settings_file = Path(filename)
             if not cls._settings_file.exists():
                 cls._make_settings_file(cls._settings_file)
@@ -132,18 +136,20 @@ class MqttClient(QWidget):
 
         self._client = Client(client_id=settings.client_name, protocol=MQTTv5)
 
-        self._daq_wdg = MqttClient.Watchdog()
+        self._daq_wdg = MqttClient.Watchdog(name="daq")
         self._daq_wdg.TimeoutSignal.connect(lambda: self.DaqConnectedSignal.emit(False))
 
-        self._l_sen_wdg = MqttClient.Watchdog()
+        self._l_sen_wdg = MqttClient.Watchdog(name="lSen")
         self._l_sen_wdg.TimeoutSignal.connect(
-            lambda: self.SenLeftConfigSignal.emit(False)
+            lambda: self.LeftSenConnectedSignal.emit(False)
         )
 
-        self._r_sen_wdg = MqttClient.Watchdog()
+        self._r_sen_wdg = MqttClient.Watchdog(name="rSen")
         self._r_sen_wdg.TimeoutSignal.connect(
-            lambda: self.SenRightConfigsignal.emit(False)
+            lambda: self.RightSenConnectedSignal.emit(False)
         )
+
+        self._daq_wdg.CountSignal.connect(lambda c: logging.debug(MqttClient.LOG_FMT_STR, f"{c} Daq Counter"))
 
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
@@ -191,7 +197,7 @@ class MqttClient(QWidget):
 
         self._client.message_callback_add(self.DaqDataTopic, self._DaqDataCallback)
         self._client.message_callback_add(self.TeleLJsonTopic, self._TeleLCallback)
-        self._client.message_callback_add(self.TeleRJsonTopi, self._TeleRCallback)
+        self._client.message_callback_add(self.TeleRJsonTopic, self._TeleRCallback)
         self._client.message_callback_add(self.ConfigLTopic, self._ConfigLCallback)
         self._client.message_callback_add(self.ConfigRTopic, self._ConfigRCallback)
 
@@ -235,7 +241,7 @@ class MqttClient(QWidget):
             self.SenTeleRightSignal.emit(sen_tele)
 
             self._r_sen_wdg.ClearCounter()
-            self.SenLeftConfigSignal.emit(True)
+            self.RightSenConnectedSignal.emit(True)
             if not self._r_sen_wdg.enabled:
                 self._r_sen_wdg.ToggleTimer(True)
 
@@ -378,8 +384,8 @@ class MqttClient(QWidget):
             logging.info(
                 MqttClient.LOG_FMT_STR, f"Disconnecting from broker {self._h_name}"
             )
-            self._client.loop_stop()
             err = self._client.disconnect()
+            self._client.loop_stop()
             if err:
                 logging.warning(
                     MqttClient.LOG_FMT_STR, f"Error disconnecting from broker: {err}"
@@ -389,7 +395,7 @@ class MqttClient(QWidget):
 
     @pyqtSlot()
     def ConnectBroker(self):
-        if not self.connceted:
+        if not self.connected:
             logging.info(
                 MqttClient.LOG_FMT_STR,
                 f"Connecting to broker w/ name: {self._h_name} on port: {self._h_port}",

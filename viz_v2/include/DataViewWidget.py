@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QTimer, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import  pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QTreeView, QVBoxLayout, QWidget
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
