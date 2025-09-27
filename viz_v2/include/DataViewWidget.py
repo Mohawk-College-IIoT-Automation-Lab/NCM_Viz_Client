@@ -1,4 +1,3 @@
-from re import A, S
 from PyQt5.QtCore import QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QTreeView, QVBoxLayout, QWidget
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
@@ -17,7 +16,7 @@ class DataViewWidget(QWidget):
 
             _con_k = QStandardItem("Connected")
             _con_k.setEditable(False)
-            self._con_v = QStandardItem("False")
+            self._con_v = QStandardItem(str(False))
             self._con_v.setEditable(False)
 
             # Ultrasonic Sensotrs Items
@@ -107,8 +106,6 @@ class DataViewWidget(QWidget):
             _central_v_box.addWidget(_tree)
             self.setLayout(_central_v_box)
 
-            self._timer.start()
-
         @pyqtSlot()
         def UpdateCon(self, con: bool):
             self._con_v.setText(f"{con}")
@@ -171,7 +168,7 @@ class DataViewWidget(QWidget):
 
                 _con_k = QStandardItem("Connection")
                 _con_k.setEditable(False)
-                self._con_v = QStandardItem("False")
+                self._con_v = QStandardItem(str(False))
                 self._con_v.setEditable(False)
 
                 _moving_k = QStandardItem("Moving")
@@ -220,7 +217,6 @@ class DataViewWidget(QWidget):
                 self.appendRow(self._goal_tele_v)
                 self.appendRow([_v_traj, self._v_traj_v])
                 self.appendRow([_p_traj, self._p_traj_v])
-                self._con_v.setText(f"0 ms")
 
             @pyqtSlot()
             def UpdateCon(self, con:bool):
