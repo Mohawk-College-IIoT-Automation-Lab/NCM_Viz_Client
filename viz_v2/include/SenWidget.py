@@ -8,6 +8,7 @@ from .qml.sen import SenAnimWidget
 from .graphs.Graphs import DualPointPlotWidget
 from .DataStructures import SensorData, SenTelemetry
 from .Mqtt import MqttClient
+from .DataViewWidget import DataViewWidget
 
 
 class SenWidget(QWidget):
@@ -61,7 +62,9 @@ class SenWidget(QWidget):
         anim_v_box = QVBoxLayout()
 
         self._sen = SenAnimWidget()
+        self._sen_data = DataViewWidget.SenTeleTree()
         anim_v_box.addWidget(self._sen)
+        anim_v_box.addWidget(self._sen_data)
         center_h_box.addLayout(anim_v_box)
 
         # Right V Box
@@ -90,20 +93,28 @@ class SenWidget(QWidget):
         _m_client.SenTeleLeftSignal.connect(self._SenLeftTeleSlot)
         _m_client.SenTeleRightSignal.connect(self._SenRightTeleSlot)
 
+
     @pyqtSlot()
-    def _DaqDataSlot(self, data: SensorData | None = None):
+    def _DaqDataSlot(self, data: SensorData):
         if data:
-            # do something
-            pass
+            self._ll_wl.setProperty("value", data.Ultra_Sonic_Distance.LL)
+            self._lq_wl.setProperty("value", data.Ultra_Sonic_Distance.LQ)
+            self._rq_wl.setProperty("value", data.Ultra_Sonic_Distance.RQ)
+            self._rr_wl.setProperty("value", data.Ultra_Sonic_Distance.RR)
+
+            self._ll_v.setProperty("value", data.Anemometer.LL)
+            self._lq_v.setProperty("value", data.Anemometer.LQ)
+            self._rq_v.setProperty("value", data.Anemometer.RQ)
+            self._rr_v.setProperty("value", data.Anemometer.RR)
 
     @pyqtSlot()
-    def _SenLeftTeleSlot(self, tele: SenTelemetry | None = None):
+    def _SenLeftTeleSlot(self, tele: SenTelemetry):
         if tele:
-            # do something
-            pass
+            self._sen.SetPortValue(leftPort=tele.present_telmetry.percent)
+            self._sen_data.UpdateLeft(tele)
 
     @pyqtSlot()
-    def _SenRightTeleSlot(self, tele: SenTelemetry | None = None):
+    def _SenRightTeleSlot(self, tele: SenTelemetry):
         if tele:
-            # do something
-            pass
+            self._sen.SetPortValue(rightPort=tele.present_telmetry.percent)
+            self._sen_data.UpdateRight(tele)

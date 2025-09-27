@@ -45,6 +45,7 @@ class BaseTelemetry(BaseModel):
     current: int 
     velocity: int 
     position: int
+    percent: int
 
 class SenTelemetry(BaseModel):
     goal_telemetry: BaseTelemetry

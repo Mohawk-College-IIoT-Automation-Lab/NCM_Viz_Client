@@ -151,10 +151,16 @@ class DataViewWidget(QWidget):
                     self._current_v = QStandardItem("0")
                     self._current_v.setEditable(False)
 
+                    _percent_k = QStandardItem("percent")
+                    _percent_k.setEditable(False)
+                    self._percent_v = QStandardItem("0 %")
+                    self._percent_v.setEditable(False)
+
                     self.appendRow([_position_k, self._position_v])
                     self.appendRow([_velocity_k, self._velocity_v])
                     self.appendRow([_pwm_k, self._pwm_v])
                     self.appendRow([_current_k, self._current_v])
+                    self.appendRow([_percent_k, self._percent_v])
 
                 @pyqtSlot()
                 def UpadteItems(self, data: BaseTelemetry):
@@ -162,6 +168,7 @@ class DataViewWidget(QWidget):
                     self._velocity_v.setText(str(data.velocity))
                     self._current_v.setText(str(data.current))
                     self._pwm_v.setText(str(data.pwm))
+                    self._percent_v.setText(f"{data.percent} %")
 
             def __init__(self, label:str = "Sen"):
                 super().__init__(label)
