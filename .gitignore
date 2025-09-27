@@ -2,6 +2,7 @@
 *.tdms_index
 *.pyc
 *.log
+*.json
 .obsidian/
 venv/
 __pycache__/
