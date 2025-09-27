@@ -1,5 +1,5 @@
-from re import S
-from PyQt5.QtCore import QTimer, Qt, pyqtSlot
+from re import A, S
+from PyQt5.QtCore import QTimer, Qt, pyqtSignal, pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QTreeView, QVBoxLayout, QWidget
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
@@ -8,24 +8,17 @@ from .DataStructures import PID, Limits, SensorData, SenConfigModel, SenTelemetr
 
 
 class DataViewWidget(QWidget):
-
     class SensorDataTree(QWidget):
-        def __init__(self, parent=None, timer_int: int = 100):
+        def __init__(self, parent=None):
             super().__init__(parent)
 
             _model = QStandardItemModel()
             _model.setHorizontalHeaderLabels(["Key", "Value"])
 
-            self._t_counter = 0
-            self._t_int = timer_int
-            self._timer = QTimer(self)
-            self._timer.setInterval(timer_int)
-            self._timer.timeout.connect(self.UpdateTimer)
-
-            _time_k = QStandardItem("Elapsed from Rx")
-            _time_k.setEditable(False)
-            self._time_v = QStandardItem(str(self._t_counter))
-            self._time_v.setEditable(False)
+            _con_k = QStandardItem("Connected")
+            _con_k.setEditable(False)
+            self._con_v = QStandardItem("False")
+            self._con_v.setEditable(False)
 
             # Ultrasonic Sensotrs Items
             _usd_k = QStandardItem("Ultrasonice Sensors")
@@ -101,7 +94,7 @@ class DataViewWidget(QWidget):
             _sw_k.appendRow([_sw_left_k, self._sw_left_v])
             _sw_k.appendRow([_sw_right_k, self._sw_right_v])
 
-            _model.appendRow([_time_k, self._time_v])
+            _model.appendRow([_con_k, self._con_v])
             _model.appendRow(_usd_k)
             _model.appendRow(_anm_k)
             _model.appendRow(_sw_k)
@@ -116,16 +109,12 @@ class DataViewWidget(QWidget):
 
             self._timer.start()
 
-        def UpdateTimer(self):
-            self._t_counter += self._t_int
-            self._time_v.setText(f"{self._t_counter} ms")
+        @pyqtSlot()
+        def UpdateCon(self, con: bool):
+            self._con_v.setText(f"{con}")
 
         @pyqtSlot()
         def UpdateTree(self, data: SensorData):
-
-            self._timer.stop()
-            self._t_counter = 0
-
             self._usd_ll_v.setText(str(data.Ultra_Sonic_Distance.LL))
             self._usd_lq_v.setText(str(data.Ultra_Sonic_Distance.LQ))
             self._usd_rq_v.setText(str(data.Ultra_Sonic_Distance.RQ))
@@ -138,8 +127,6 @@ class DataViewWidget(QWidget):
 
             self._sw_left_v.setText(str(data.Standing_Wave.Left))
             self._sw_right_v.setText(str(data.Standing_Wave.Right))
-
-            self._timer.start()
 
     class SenTeleTree(QWidget):
         class SenItem(QStandardItem):
@@ -179,19 +166,13 @@ class DataViewWidget(QWidget):
                     self._current_v.setText(str(data.current))
                     self._pwm_v.setText(str(data.pwm))
 
-            def __init__(self, label:str = "Sen", timer_int: int = 100):
+            def __init__(self, label:str = "Sen"):
                 super().__init__(label)
 
-                self._t_counter = 0
-                self._t_int = timer_int
-                self._timer = QTimer()
-                self._timer.setInterval(timer_int)
-                self._timer.timeout.connect(self.UpdateTimer)
-
-                _time_k = QStandardItem("Elapsed from Rx")
-                _time_k.setEditable(False)
-                self._time_v = QStandardItem(str(self._t_counter))
-                self._time_v.setEditable(False)
+                _con_k = QStandardItem("Connection")
+                _con_k.setEditable(False)
+                self._con_v = QStandardItem("False")
+                self._con_v.setEditable(False)
 
                 _moving_k = QStandardItem("Moving")
                 _moving_k.setEditable(False)
@@ -230,7 +211,7 @@ class DataViewWidget(QWidget):
                 self._p_traj_v.setEditable(False)
 
 
-                self.appendRow([_time_k, self._time_v])
+                self.appendRow([_con_k, self._con_v])
                 self.appendRow([_moving_k, self._moving_v])
                 self.appendRow([_move_stat_k, self._move_stat_v])
                 self.appendRow([_in_v_k, self._in_v_v])
@@ -239,19 +220,14 @@ class DataViewWidget(QWidget):
                 self.appendRow(self._goal_tele_v)
                 self.appendRow([_v_traj, self._v_traj_v])
                 self.appendRow([_p_traj, self._p_traj_v])
-
-                self._timer.start()
-
-            def UpdateTimer(self):
-                self._t_counter += self._t_int
-                self._time_v.setText(f"{self._t_counter} ms")
-
+                self._con_v.setText(f"0 ms")
 
             @pyqtSlot()
+            def UpdateCon(self, con:bool):
+                self._con_v.setText(f"{con}")
+            
+            @pyqtSlot()
             def UpadteItems(self, data: SenTelemetry):
-                self._timer.stop()
-                self._t_counter = 0
-
                 self._moving_v.setText(str(data.moving))
                 self._move_stat_v.setText(str(data.moving_status))
                 self._temp_v.setText(str(data.present_temp))
@@ -263,10 +239,7 @@ class DataViewWidget(QWidget):
                 self._v_traj_v.setText(str(data.velocity_trajectory))
                 self._p_traj_v.setText(str(data.position_trajectory))
 
-                self._timer.start()
-
-
-        def __init__(self, timer_int: int = 100, parent=None):
+        def __init__(self, parent=None):
             super().__init__(parent)
 
             _model = QStandardItemModel()
@@ -299,6 +272,14 @@ class DataViewWidget(QWidget):
         def UpdateRight(self, right: SenTelemetry):
             self._right_port_v.UpadteItems(right)
 
+        @pyqtSlot()
+        def LeftCon(self, con: bool):
+            self._left_port_v.UpdateCon(con)
+
+        @pyqtSlot()
+        def RightCon(self, con: bool):
+            self._right_port_v.UpdateCon(con)
+
 
     class SenConfigTree(QWidget):
         class SenConfigItem(QStandardItem):
@@ -328,7 +309,7 @@ class DataViewWidget(QWidget):
                 def __init__(self, label:str= "PID", p:int = 0, i:int = 0, d:int = 0):
                     super().__init__(label)
 
-                    _p_k = QStandardItem("K")
+                    _p_k = QStandardItem("P")
                     _p_k.setEditable(False)
                     self._p_v = QStandardItem(str(p))
                     self._p_v.setEditable(False)
@@ -349,7 +330,7 @@ class DataViewWidget(QWidget):
 
                 @pyqtSlot()
                 def UpdatePID(self, pid: PID):
-                    self._p_v.setText(str(pid.K))
+                    self._p_v.setText(str(pid.P))
                     self._i_v.setText(str(pid.I))
                     self._d_v.setText(str(pid.D))
 
@@ -454,9 +435,24 @@ class DataViewWidget(QWidget):
 
             @pyqtSlot()
             def UpdateTree(self, data:SenConfigModel):
-                pass
-
-
+                self._port_v.setText(data.port)
+                self._id_v.setText(str(data.id))
+                self._baud_v.setText(str(data.baud_rate))
+                self._d_mode_v.setText(str(data.drive_mode))
+                self._op_mode_v.setText(str(data.op_mode))
+                self._mv_th_v.setText(str(data.moving_threshold))
+                self._t_limit_v.setText(str(data.temp_limit))
+                self._v_lim.UpdateLimit(data.volt_limt)
+                self._pwm_lim_v.setText(str(data.pwm_limit))
+                self._curr_lim_v.setText(str(data.current_limt))
+                self._vel_lim_v.setText(str(data.velocity_limit))
+                self._pos_lim.UpdateLimit(data.position_limit)
+                self._v_pid.UpdatePID(data.velocity_pid)
+                self._p_pid.UpdatePID(data.position_pid)
+                self._ff1_v.setText(str(data.FFGain1))
+                self._ff2_v.setText(str(data.FFGain2))
+                self._map_v.setText(str(data.mappings))
+                self._dir_v.setText(str(data.direction))
 
         def __init__(self, parent=None):
             super().__init__(parent)
@@ -480,11 +476,11 @@ class DataViewWidget(QWidget):
 
         @pyqtSlot()
         def UpdateLeft(self, left: SenConfigModel):
-            pass 
+            self._left_port_v.UpdateTree(left)
 
         @pyqtSlot()
         def UpdateRight(self, right: SenConfigModel):
-            pass
+            self._right_port_v.UpdateTree(right)
 
 
     def __init__(self, parent=None):
@@ -515,8 +511,14 @@ class DataViewWidget(QWidget):
         self.setLayout(center_h_box)
 
         _m_client.DaqDataSignal.connect(self._sensor_tree.UpdateTree)
+        _m_client.DaqConnectedSignal.connect(self._sensor_tree.UpdateCon)
+
         _m_client.SenTeleLeftSignal.connect(self._sen_tele_tree.UpdateLeft)
+        _m_client.LeftSenConnectedSignal.connect(self._sen_tele_tree.LeftCon)
+
         _m_client.SenTeleRightSignal.connect(self._sen_tele_tree.UpdateRight)
+        _m_client.RightSenConnectedSignal.connect(self._sen_tele_tree.RightCon)
+
         _m_client.SenLeftConfigSignal.connect(self._sen_config_tree.UpdateLeft)
         _m_client.SenRightConfigsignal.connect(self._sen_config_tree.UpdateRight)
 

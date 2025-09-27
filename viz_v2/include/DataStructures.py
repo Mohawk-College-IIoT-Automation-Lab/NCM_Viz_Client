@@ -11,7 +11,7 @@ class Limits(BaseModel):
     max: int
 
 class PID(BaseModel):
-    K: int 
+    P: int 
     I: int 
     D: int
 

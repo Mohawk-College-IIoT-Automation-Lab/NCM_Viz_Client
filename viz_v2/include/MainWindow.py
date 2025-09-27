@@ -91,7 +91,7 @@ class MainWindow(QMainWindow):
         super().__init__(*args, **kwargs)
 
         initialize_logging(log_name="Qt", status_bar=self.statusBar())
-        m_client = MqttClient.get_instance(host_name="ncm.local")
+        m_client = MqttClient.get_instance()
 
         set_dark_mode(self)
 

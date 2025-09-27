@@ -1,8 +1,11 @@
-from paho.mqtt.client import MQTT_CLIENT, Client, MQTTMessage, MQTTv5
+from paho.mqtt.client import Client, MQTTv5
 import json
-from PyQt5.QtCore import pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QTime, pyqtSignal, pyqtSlot, QTimer, QObject
 from PyQt5.QtWidgets import QInputDialog, QWidget
 import logging
+
+from pydantic import BaseModel
+from pathlib import Path
 
 from .DataStructures import SenTelemetry, SenConfigModel, SensorData, SenPorts
 
@@ -32,7 +35,13 @@ class MqttClient(QWidget):
     DaqBaseTopic = f"{BaseTopic}/DAQ"
     DaqDataTopic = f"{DaqBaseTopic}/DisplayData"
 
-    # signals 
+    # signals
+
+    ConnectedSignal = pyqtSignal(bool)
+    DaqConnectedSignal = pyqtSignal(bool)
+    LeftSenConnectedSignal = pyqtSignal(bool)
+    RightSenConnectedSignal = pyqtSignal(bool)
+
     DaqDataSignal = pyqtSignal(SensorData)
 
     SenTeleLeftSignal = pyqtSignal(SenTelemetry)
@@ -43,26 +52,98 @@ class MqttClient(QWidget):
 
     LOG_FMT_STR = f"[Mqtt] - %s"
 
+    class Settings(BaseModel):
+        host_name: str = "localhost"
+        client_name: str = "NcmViz"
+        host_port: int = 1883
+
+    class Watchdog(QObject):
+
+        CountSignal = pyqtSignal(int)
+        TimeoutSignal = pyqtSignal()
+
+        def __init__(
+            self,
+            interval: int = 100,
+            autostart: bool = False,
+            timeout: int = 2000,
+            parent=None,
+        ):
+            super().__init__(parent)
+            self._timer = QTimer()
+            self._interval = interval
+            self._en = autostart
+            self._timeout = timeout
+            self._counter = 0
+            self._timer.setInterval(interval)
+            self._timer.timeout.connect(self._bump_counter)
+
+            self._timer.start()
+
+        @property
+        def count(self) -> int:
+            return self._counter
+
+        @property
+        def enabled(self) -> bool:
+            return self._en
+
+        def _bump_counter(self):
+            if self._en:
+                self._counter += self._interval
+                self.CountSignal.emit(self._counter)
+                if self._counter > self._timeout > 0:
+                    self.TimeoutSignal.emit()
+
+        @pyqtSlot()
+        def ToggleTimer(self, en: bool):
+            self._en = en
+
+        @pyqtSlot()
+        def ClearCounter(self):
+            self._timer.stop()
+            self._counter = 0
+            self._timer.start()
+
     _instance = None
+    _settings = None
+    _settings_file = None
 
     @classmethod
-    def get_instance(cls, host_name: str = "localhost", parent=None):
+    def get_instance(cls, filename: str = "settings.json", parent=None):
         if cls._instance is None:
-            cls._instance = cls(host_name, parent)
+            cls._settings_file = Path(filename)
+            if not cls._settings_file.exists():
+                cls._make_settings_file(cls._settings_file)
+            cls._settings = cls._load_setting_file(cls._settings_file)
+            cls._instance = cls(cls._settings, parent)
         return cls._instance
 
-    def __init__(
-        self,
-        host_name: str,
-        client_name: str = "NcmViz",
-        host_port: int = 1883,
-        parent=None,
-    ):
+    def __init__(self, settings: Settings, parent=None):
         super().__init__(parent)
 
-        self._h_name = host_name
-        self._h_port = host_port
-        self._client = Client(client_id=client_name, protocol=MQTTv5)
+        self._h_name = settings.host_name
+        self._h_port = settings.host_port
+
+        logging.debug(
+            MqttClient.LOG_FMT_STR,
+            f"Creating Client Instance: name: {settings.client_name} host: {self._h_name}:{self._h_port}",
+        )
+
+        self._client = Client(client_id=settings.client_name, protocol=MQTTv5)
+
+        self._daq_wdg = MqttClient.Watchdog()
+        self._daq_wdg.TimeoutSignal.connect(lambda: self.DaqConnectedSignal.emit(False))
+
+        self._l_sen_wdg = MqttClient.Watchdog()
+        self._l_sen_wdg.TimeoutSignal.connect(
+            lambda: self.SenLeftConfigSignal.emit(False)
+        )
+
+        self._r_sen_wdg = MqttClient.Watchdog()
+        self._r_sen_wdg.TimeoutSignal.connect(
+            lambda: self.SenRightConfigsignal.emit(False)
+        )
 
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
@@ -71,18 +152,33 @@ class MqttClient(QWidget):
     def connected(self):
         return self._client.is_connected()
 
+    @classmethod
+    def _make_settings_file(
+        cls, file: Path, host_name: str = "localhost", host_port: int = 1883
+    ):
+        _setting = MqttClient.Settings()
+        file.write_text(_setting.model_dump_json(indent=2))
+
+    @classmethod
+    def _load_setting_file(cls, file: Path):
+        return MqttClient.Settings.model_validate(json.loads(file.read_text()))
+
     def _on_connect(self, client, userdata, flags, rc, props=None):
         logging.info(MqttClient.LOG_FMT_STR, "Connected to broker")
         self._sub_all_topcis()
+        self.ConnectedSignal.emit(True)
 
     def _on_disconnect(self, client, userdata, rc, props=None):
         logging.warning(MqttClient.LOG_FMT_STR, "Disconnected from broker")
+        self.ConnectedSignal.emit(False)
+
         if rc != 0:
             logging.info(MqttClient.LOG_FMT_STR, "Trying to reconnect")
             try:
                 client.reconnect()
             except Exception as e:
                 logging.warning(MqttClient.LOG_FMT_STR, f"Failed to reconnect - {e}")
+                self.ConnectedSignal.emit(False)
 
     def _sub_all_topcis(self):
         logging.debug(MqttClient.LOG_FMT_STR, f"Subbing all topics")
@@ -93,51 +189,136 @@ class MqttClient(QWidget):
         self._client.subscribe(MqttClient.ConfigLTopic)
         self._client.subscribe(MqttClient.ConfigRTopic)
 
-        self._client.message_callback_add(MqttClient.DaqDataTopic, self._DaqDataCallback)
-        self._client.message_callback_add(MqttClient.TeleLJsonTopic, self._TeleLCallback)
-        self._client.message_callback_add(MqttClient.TeleRJsonTopi, self._TeleRCallback)
-        self._client.message_callback_add(MqttClient.ConfigLTopic, self._ConfigLCallback)
-        self._client.message_callback_add(MqttClient.ConfigRTopic, self._ConfigRCallback)
+        self._client.message_callback_add(self.DaqDataTopic, self._DaqDataCallback)
+        self._client.message_callback_add(self.TeleLJsonTopic, self._TeleLCallback)
+        self._client.message_callback_add(self.TeleRJsonTopi, self._TeleRCallback)
+        self._client.message_callback_add(self.ConfigLTopic, self._ConfigLCallback)
+        self._client.message_callback_add(self.ConfigRTopic, self._ConfigRCallback)
 
     def _DaqDataCallback(self, client, userdata, msg):
         try:
             sensor_data = SensorData.model_validate(json.loads(msg.payload.decode()))
-            MqttClient.DaqDataSignal.emit(sensor_data)
+            self.DaqDataSignal.emit(sensor_data)
+
+            self._daq_wdg.ClearCounter()
+            self.DaqConnectedSignal.emit(True)
+            if not self._daq_wdg.enabled:
+                self._daq_wdg.ToggleTimer(True)
+
         except json.JSONDecodeError:
-            logging.warning(MqttClient.LOG_FMT_STR, f"Failed to decode JSON payload: {msg.payload.decode()}")
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
 
     def _TeleLCallback(self, client, userdata, msg):
-        pass 
+
+        try:
+            sen_tele = SenTelemetry.model_validate(json.loads(msg.payload.decode()))
+            self.SenTeleLeftSignal.emit(sen_tele)
+
+            self._l_sen_wdg.ClearCounter()
+            self.LeftSenConnectedSignal.emit(True)
+            if not self._l_sen_wdg.enabled:
+                self._l_sen_wdg.ToggleTimer(True)
+
+        except json.JSONDecodeError:
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
 
     def _TeleRCallback(self, client, userdata, msg):
-        pass 
-    
+
+        try:
+            sen_tele = SenTelemetry.model_validate(json.loads(msg.payload.decode()))
+            self.SenTeleRightSignal.emit(sen_tele)
+
+            self._r_sen_wdg.ClearCounter()
+            self.SenLeftConfigSignal.emit(True)
+            if not self._r_sen_wdg.enabled:
+                self._r_sen_wdg.ToggleTimer(True)
+
+        except json.JSONDecodeError:
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
+
     def _ConfigLCallback(self, client, userdata, msg):
-        pass 
+        try:
+            sen_config = SenConfigModel.model_validate(json.loads(msg.payload.decode()))
+            self.SenLeftConfigSignal.emit(sen_config)
+        except json.JSONDecodeError:
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
 
     def _ConfigRCallback(self, client, userdata, msg):
-        pass
+        try:
+            sen_config = SenConfigModel.model_validate(json.loads(msg.payload.decode()))
+            self.SenRightConfigSignal.emit(sen_config)
+        except json.JSONDecodeError:
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
+
+    def InputDialogInt(
+        self, title: str = "title", label: str = "label", min: int = 0, max: int = 100
+    ) -> int | None:
+        value, ok = QInputDialog.getInt(
+            self,
+            title=title,
+            label=label,
+            value=min,
+            min=min,
+            max=max,
+        )
+
+        if ok:
+            if value:
+                return value
+            else:
+                logging.warning(MqttClient.LOG_FMT_STR, "Dialog was left empty")
+                return
+        else:
+            logging.debug(MqttClient.LOG_FMT_STR, "User cancelled dialog")
+            return
+
+    def InputDialogDouble(
+        self,
+        title: str = "title",
+        label: str = "label",
+        min: float = 0,
+        max: float = 100,
+    ) -> float | None:
+        value, ok = QInputDialog.getDouble(
+            self,
+            title=title,
+            label=label,
+            value=min,
+            min=min,
+            max=max,
+        )
+
+        if ok:
+            if value:
+                return value
+            else:
+                logging.warning(MqttClient.LOG_FMT_STR, "Dialog was left empty")
+                return
+        else:
+            logging.debug(MqttClient.LOG_FMT_STR, "User cancelled dialog")
+            return
 
     def _SenMoveToMM(self, port: SenPorts, mm: float | None = None):
         if self.connected:
             if mm is None:
-                value, ok = QInputDialog.getDouble(
-                    self,
-                    title=f"Move {port} to MM",
-                    label="MM:",
-                    value=0,
-                    min=0,
-                    max=100,
-                )
-
-                if ok:
-                    if value:
-                        mm = value
-                    else:
-                        logging.warning(MqttClient.LOG_FMT_STR, "MM was left empty")
-                        return
-                else:
-                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to MM")
+                mm = self.InputDialogDouble(f"Moving {port} to MM", "MM")
+                if mm is None:
+                    logging.warning(MqttClient.LOG_FMT_STR, f"User returned None")
                     return
 
             logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
@@ -151,23 +332,11 @@ class MqttClient(QWidget):
     def _SenMoveToPos(self, port: SenPorts, pos: int | None = None):
         if self.connected:
             if pos is None:
-                value, ok = QInputDialog.getInt(
-                    self,
-                    title=f"Move {port} to pos",
-                    label="Pos:",
-                    value=0,
-                    min=0,
-                    max=70000,
-                )
-                if ok:
-                    if value:
-                        pos = value
-                    else:
-                        logging.warning(MqttClient.LOG_FMT_STR, "Pos was left empty")
-                        return
-                else:
-                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled move to pos")
+                pos = self.InputDialogInt(f"Moving {port} to pos", "Pos", 0, 60000)
+                if pos is None:
+                    logging.warning(MqttClient.LOG_FMT_STR, "User returned None")
                     return
+
             logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
 
             topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
@@ -195,10 +364,10 @@ class MqttClient(QWidget):
 
     def _SenGetConfig(self, port: SenPorts):
         if self.connected:
-            pass
+            topic = f"{MqttClient.SenTopic}/{port}/CMD/CONFIG"
+            self._client.publish(topic, "")
         else:
             self._not_connected_warn()
-
 
     def _not_connected_warn(self):
         logging.warning(MqttClient.LOG_FMT_STR, "Not connected to broker")
@@ -292,27 +461,27 @@ class MqttClient(QWidget):
         self._SenMoveToPos(SenPorts.RightPort, pos)
 
     @pyqtSlot()
-    def SenLMoveToIdx(self, idx:int | None = None):
+    def SenLMoveToIdx(self, idx: int | None = None):
         self._SenMoveToIdx(SenPorts.LeftPort, idx)
 
     @pyqtSlot()
-    def SenRMoveToIdx(self, idx:int | None = None):
+    def SenRMoveToIdx(self, idx: int | None = None):
         self._SenMoveToIdx(SenPorts.RightPort, idx)
 
     @pyqtSlot()
-    def SenLJog(self, pos:int | None = None):
+    def SenLJog(self, pos: int | None = None):
         self._SenJog(SenPorts.LeftPort, pos)
 
     @pyqtSlot()
-    def SenRJog(self, pos:int | None = None):
+    def SenRJog(self, pos: int | None = None):
         self._SenJog(SenPorts.RightPort, pos)
 
     @pyqtSlot()
-    def SenLMapPos(self, mm:float | None = None):
+    def SenLMapPos(self, mm: float | None = None):
         self._SenMapPos(SenPorts.LeftPort, mm)
 
     @pyqtSlot()
-    def SenRMapPos(self, mm:float | None = None):
+    def SenRMapPos(self, mm: float | None = None):
         self._SenMapPos(SenPorts.RightPort, mm)
 
     @pyqtSlot()
@@ -322,5 +491,3 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def SenGetRConfig(self):
         self._SenGetConfig(SenPorts.RightPort)
-
-
