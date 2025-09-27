@@ -1,7 +1,5 @@
-from PyQt5.QtWidgets import QHBoxLayout, QSizePolicy, QVBoxLayout, QWidget
-from PyQt5.QtCore import pyqtSlot, Qt
-
-import logging
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QLabel
+from PyQt5.QtCore import pyqtSlot
 
 from .qml.gauge import GaugeWidget
 from .qml.sen import SenAnimWidget
@@ -64,6 +62,11 @@ class SenWidget(QWidget):
         self._sen = SenAnimWidget()
         self._sen_data = DataViewWidget.SenTeleTree()
         anim_v_box.addWidget(self._sen)
+
+        _sen_label = QLabel("Sen Data")
+        _sen_label.setStyleSheet("font-size: 24px; color: #ffffff;")
+        anim_v_box.addWidget(_sen_label)
+        
         anim_v_box.addWidget(self._sen_data)
         center_h_box.addLayout(anim_v_box)
 
