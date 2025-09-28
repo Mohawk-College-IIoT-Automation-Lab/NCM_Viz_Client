@@ -101,7 +101,7 @@ class MqttClient(QWidget):
                 if self._counter > self._timeout > 0:
                     self.TimeoutSignal.emit()
 
-        @pyqtSlot()
+        @pyqtSlot(bool)
         def ToggleTimer(self, en: bool):
             self._en = en
 

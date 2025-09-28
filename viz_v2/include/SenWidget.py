@@ -94,7 +94,9 @@ class SenWidget(QWidget):
 
         _m_client.DaqDataSignal.connect(self._DaqDataSlot)
         _m_client.SenTeleLeftSignal.connect(self._SenLeftTeleSlot)
+        _m_client.LeftSenConnectedSignal.connect(self._sen_data.LeftCon)
         _m_client.SenTeleRightSignal.connect(self._SenRightTeleSlot)
+        _m_client.RightSenConnectedSignal.connect(self._sen_data.RightCon)
 
 
     @pyqtSlot(SensorData)
