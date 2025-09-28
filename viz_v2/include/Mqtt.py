@@ -275,81 +275,19 @@ class MqttClient(QWidget):
                 f"Failed to decode JSON payload: {msg.payload.decode()}",
             )
 
-    def InputDialogInt(
-        self, title: str = "title", label: str = "label", min: int = 0, max: int = 100
-    ) -> int | None:
-        value, ok = QInputDialog.getInt(
-            self,
-            title=title,
-            label=label,
-            value=min,
-            min=min,
-            max=max,
-        )
-
-        if ok:
-            if value:
-                return value
-            else:
-                logging.warning(MqttClient.LOG_FMT_STR, "Dialog was left empty")
-                return
-        else:
-            logging.debug(MqttClient.LOG_FMT_STR, "User cancelled dialog")
-            return
-
-    def InputDialogDouble(
-        self,
-        title: str = "title",
-        label: str = "label",
-        min: float = 0,
-        max: float = 100,
-    ) -> float | None:
-        value, ok = QInputDialog.getDouble(
-            self,
-            title=title,
-            label=label,
-            value=min,
-            min=min,
-            max=max,
-        )
-
-        if ok:
-            if value:
-                return value
-            else:
-                logging.warning(MqttClient.LOG_FMT_STR, "Dialog was left empty")
-                return
-        else:
-            logging.debug(MqttClient.LOG_FMT_STR, "User cancelled dialog")
-            return
-
-    def _SenMoveToMM(self, port: SenPorts, mm: float | None = None):
+    def _SenMoveToMM(self, port: SenPorts, mm: float):
         if self.connected:
-            if mm is None:
-                mm = self.InputDialogDouble(f"Moving {port} to MM", "MM")
-                if mm is None:
-                    logging.warning(MqttClient.LOG_FMT_STR, f"User returned None")
-                    return
-
-            logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
-
-            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToMMTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving {port.value} to MM: {mm} , topic: {topic}")
             self._client.publish(topic, mm)
 
         else:
             self._not_connected_warn()
 
-    def _SenMoveToPos(self, port: SenPorts, pos: int | None = None):
+    def _SenMoveToPos(self, port: SenPorts, pos: int):
         if self.connected:
-            if pos is None:
-                pos = self.InputDialogInt(f"Moving {port} to pos", "Pos", 0, 60000)
-                if pos is None:
-                    logging.warning(MqttClient.LOG_FMT_STR, "User returned None")
-                    return
-
-            logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
-
-            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPosTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving {port.value} to pos: {pos}, topic: {topic}")
             self._client.publish(topic, pos)
         else:
             self._not_connected_warn()
@@ -454,44 +392,44 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    @pyqtSlot()
-    def SenLMoveToMM(self, mm: float | None = None):
+    @pyqtSlot(float)
+    def SenLMoveToMM(self, mm: float):
         self._SenMoveToMM(SenPorts.LeftPort, mm)
 
-    @pyqtSlot()
-    def SenRMoveToMM(self, mm: float | None = None):
+    @pyqtSlot(float)
+    def SenRMoveToMM(self, mm: float):
         self._SenMoveToMM(SenPorts.RightPort, mm)
 
-    @pyqtSlot()
-    def SenLMoveToPos(self, pos: int | None = None):
+    @pyqtSlot(int)
+    def SenLMoveToPos(self, pos: int):
         self._SenMoveToPos(SenPorts.LeftPort, pos)
 
-    @pyqtSlot()
-    def SenRMoveToPos(self, pos: int | None = None):
+    @pyqtSlot(int)
+    def SenRMoveToPos(self, pos: int):
         self._SenMoveToPos(SenPorts.RightPort, pos)
 
-    @pyqtSlot()
-    def SenLMoveToIdx(self, idx: int | None = None):
+    @pyqtSlot(int)
+    def SenLMoveToIdx(self, idx: int):
         self._SenMoveToIdx(SenPorts.LeftPort, idx)
 
-    @pyqtSlot()
-    def SenRMoveToIdx(self, idx: int | None = None):
+    @pyqtSlot(int)
+    def SenRMoveToIdx(self, idx: int):
         self._SenMoveToIdx(SenPorts.RightPort, idx)
 
-    @pyqtSlot()
-    def SenLJog(self, pos: int | None = None):
+    @pyqtSlot(int)
+    def SenLJog(self, pos: int):
         self._SenJog(SenPorts.LeftPort, pos)
 
-    @pyqtSlot()
-    def SenRJog(self, pos: int | None = None):
+    @pyqtSlot(int)
+    def SenRJog(self, pos: int):
         self._SenJog(SenPorts.RightPort, pos)
 
-    @pyqtSlot()
-    def SenLMapPos(self, mm: float | None = None):
+    @pyqtSlot(float)
+    def SenLMapPos(self, mm: float):
         self._SenMapPos(SenPorts.LeftPort, mm)
 
     @pyqtSlot()
-    def SenRMapPos(self, mm: float | None = None):
+    def SenRMapPos(self, mm: float):
         self._SenMapPos(SenPorts.RightPort, mm)
 
     @pyqtSlot()

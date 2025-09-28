@@ -1,4 +1,4 @@
-from PyQt5.QtCore import pyqtSlot, QUrl
+from PyQt5.QtCore import pyqtSlot, QUrl, QObject
 from PyQt5.QtWidgets import QSizePolicy, QWidget
 from PyQt5.QtQuickWidgets import QQuickWidget
 from pathlib import Path
@@ -27,17 +27,19 @@ class SenAnimWidget(QWidget):
             logging.error(SenAnimWidget.LOG_FMT_STR, e)
             raise RuntimeError(e)
 
-        # self._left_port = _qml.findChild(QObject, "LeftPort")
-        # self._right_port = _qml.findChild(QObject, "rightPort")
+        _root = _qml.rootObject()
+        self._left_port = _root.findChild(QObject, "leftPort")
+        self._right_port = _root.findChild(QObject, "rightPort")
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    @pyqtSlot()
-    def SetPortValue(self, leftPort: int | None = None, rightPort: int | None = None):
-        if leftPort:
-            if self._min <= leftPort <= self._max: 
-                self._left_port.setProperty("value", leftPort)
+    @pyqtSlot(int)
+    def SetLeftPort(self, value: int):
+        if self._min <= value <= self._max:
+            self._left_port.setProperty("value", value)
 
-        if rightPort:
-            if self._min <= rightPort <= self._max:
-                self._right_port.setProperty("value", rightPort)
+
+    @pyqtSlot(int)
+    def SetRightPort(self, value: int):
+        if self._min <= value <= self._max:
+            self._right_port.setProperty("value", value)

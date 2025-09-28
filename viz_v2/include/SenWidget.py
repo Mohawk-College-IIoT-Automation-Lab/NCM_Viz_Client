@@ -115,11 +115,11 @@ class SenWidget(QWidget):
     @pyqtSlot(SenTelemetry)
     def _SenLeftTeleSlot(self, tele: SenTelemetry):
         if tele:
-            self._sen.SetPortValue(leftPort=tele.present_telemetry.percent)
+            self._sen.SetLeftPort(tele.present_telemetry.percent)
             self._sen_data.UpdateLeft(tele)
 
     @pyqtSlot(SenTelemetry)
     def _SenRightTeleSlot(self, tele: SenTelemetry):
         if tele:
-            self._sen.SetPortValue(rightPort=tele.present_telemetry.percent)
+            self._sen.SetRightPort(tele.present_telemetry.percent)
             self._sen_data.UpdateRight(tele)

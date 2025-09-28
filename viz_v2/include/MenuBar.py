@@ -1,5 +1,6 @@
+import logging
 from PyQt5.QtCore import pyqtSlot
-from PyQt5.QtWidgets import QAction, QMenuBar
+from PyQt5.QtWidgets import QAction, QMenuBar, QInputDialog
 
 from .Mqtt import MqttClient
 
@@ -30,6 +31,9 @@ class MenuBar(QMenuBar):
     SenHomeBothAction = QAction("Home both ports")
 
     _instance = None
+
+    LOG_FMT_STR = f"[Menubar] - %s"
+
 
     @classmethod
     def get_instance(cls, parent=None):
@@ -82,6 +86,29 @@ class MenuBar(QMenuBar):
         MenuBar.StartExpAction.triggered.connect(self._m_client.StartExp)
         MenuBar.StopExpAction.triggered.connect(self._m_client.StopExp)
         MenuBar.RenameExpAction.triggered.connect(self._m_client.RenameExp)
+
+        MenuBar.SenLMoveToPosAction.triggered.connect(self.SenLMoveToPosDialog)
+
+
+    @pyqtSlot()
+    def SenLMoveToPosDialog(self):
+        value, ok = QInputDialog.getInt(self, "Set Left SEN Pos", "Pos:", value = 0, min=0, max=70000, step=1)
+
+        if ok and value:
+            self._m_client.SenLMoveToPos(value)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+    @pyqtSlot()
+    def SenRMoveToPosDialog(self):
+        value, ok = QInputDialog.getInt(self, "Set Right SEN Pos", "Pos:", value = 0, min=0, max=70000, step=1)
+
+        if ok and value:
+            self._m_client.SenRMoveToPos(value)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+
 
 
 
