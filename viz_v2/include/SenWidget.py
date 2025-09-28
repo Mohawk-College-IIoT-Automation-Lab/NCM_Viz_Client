@@ -97,7 +97,7 @@ class SenWidget(QWidget):
         _m_client.SenTeleRightSignal.connect(self._SenRightTeleSlot)
 
 
-    @pyqtSlot()
+    @pyqtSlot(SensorData)
     def _DaqDataSlot(self, data: SensorData):
         if data:
             self._ll_wl.setProperty("value", data.Ultra_Sonic_Distance.LL)
@@ -110,14 +110,14 @@ class SenWidget(QWidget):
             self._rq_v.setProperty("value", data.Anemometer.RQ)
             self._rr_v.setProperty("value", data.Anemometer.RR)
 
-    @pyqtSlot()
+    @pyqtSlot(SenTelemetry)
     def _SenLeftTeleSlot(self, tele: SenTelemetry):
         if tele:
-            self._sen.SetPortValue(leftPort=tele.present_telmetry.percent)
+            self._sen.SetPortValue(leftPort=tele.present_telemetry.percent)
             self._sen_data.UpdateLeft(tele)
 
-    @pyqtSlot()
+    @pyqtSlot(SenTelemetry)
     def _SenRightTeleSlot(self, tele: SenTelemetry):
         if tele:
-            self._sen.SetPortValue(rightPort=tele.present_telmetry.percent)
+            self._sen.SetPortValue(rightPort=tele.present_telemetry.percent)
             self._sen_data.UpdateRight(tele)

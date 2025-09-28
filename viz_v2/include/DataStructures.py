@@ -51,7 +51,7 @@ class SenTelemetry(BaseModel):
     goal_telemetry: BaseTelemetry
     moving: int 
     moving_status: int 
-    present_telmetry: BaseTelemetry
+    present_telemetry: BaseTelemetry
     velocity_trajectory: int
     position_trajectory: int
     present_input_voltage: int

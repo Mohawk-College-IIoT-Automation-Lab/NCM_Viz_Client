@@ -1,3 +1,4 @@
+from re import S
 from paho.mqtt.client import Client, MQTTv5
 import json
 from PyQt5.QtCore import QTime, pyqtSignal, pyqtSlot, QTimer, QObject
@@ -17,20 +18,23 @@ class MqttClient(QWidget):
     StartExpTopic = f"{CmdTopic}/START_EXP"
     StopExpTopic = f"{CmdTopic}/STOP_EXP"
     RenameExpTopic = f"{CmdTopic}/RENAME_EXP"
-    SenTopic = f"{BaseTopic}/SEN"
-    MoveToMMTopic = "MM"
-    MoveToPosTopic = "POS"
-    MoveToIdxTopix = "IDX"
-    JogPosTopic = "JOG"
-    GetConfigTopic = "CONFIG"
-    MapPosTopic = "MAP"  # Need to check this
+
+    SenBaseTopic = f"{BaseTopic}/SEN"
+    MoveToMMTopic = "goal/mm"
+    MoveToPosTopic = "goal/position"
+    MoveToIdxTopix = "goal/index"
+    JogPosTopic = "jog"
+    StopTopic = "stop"
+    GetConfigTopic = "get_config"
+    MapPosTopic = "map"  # Need to check this
+    TeleJsonTopic = "telemetery/json"
 
     # Sub
-    TeleLJsonTopic = f"{SenTopic}/LEFT/TELE/JSON"
-    TeleRJsonTopic = f"{SenTopic}/RIGHT/TELE/JSON"
+    TeleLJsonTopic = f"{SenBaseTopic}/LEFT/{TeleJsonTopic}"
+    TeleRJsonTopic = f"{SenBaseTopic}/RIGHT/{TeleJsonTopic}"
 
-    ConfigLTopic = f"{SenTopic}/LEFT/CONFIG"
-    ConfigRTopic = f"{SenTopic}/RIGHT/CONFIG]"
+    ConfigLTopic = f"{SenBaseTopic}/LEFT/config"
+    ConfigRTopic = f"{SenBaseTopic}/RIGHT/config"
 
     DaqBaseTopic = f"{BaseTopic}/DAQ"
     DaqDataTopic = f"{DaqBaseTopic}/DisplayData"
@@ -329,7 +333,7 @@ class MqttClient(QWidget):
 
             logging.info(MqttClient.LOG_FMT_STR, f"Moving to MM: {mm}")
 
-            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
+            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/{MqttClient.MoveToMMTopic}"
             self._client.publish(topic, mm)
 
         else:
@@ -345,7 +349,7 @@ class MqttClient(QWidget):
 
             logging.info(MqttClient.LOG_FMT_STR, f"Moving to pos: {pos}")
 
-            topic = f"{MqttClient.SenTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
+            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/{MqttClient.MoveToPosTopic}"
             self._client.publish(topic, pos)
         else:
             self._not_connected_warn()
@@ -370,7 +374,7 @@ class MqttClient(QWidget):
 
     def _SenGetConfig(self, port: SenPorts):
         if self.connected:
-            topic = f"{MqttClient.SenTopic}/{port}/CMD/CONFIG"
+            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/CONFIG"
             self._client.publish(topic, "")
         else:
             self._not_connected_warn()

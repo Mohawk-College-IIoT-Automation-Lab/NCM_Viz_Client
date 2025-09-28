@@ -106,11 +106,11 @@ class DataViewWidget(QWidget):
             _central_v_box.addWidget(_tree)
             self.setLayout(_central_v_box)
 
-        @pyqtSlot()
+        @pyqtSlot(bool)
         def UpdateCon(self, con: bool):
             self._con_v.setText(f"{con}")
 
-        @pyqtSlot()
+        @pyqtSlot(SensorData)
         def UpdateTree(self, data: SensorData):
             self._usd_ll_v.setText(str(data.Ultra_Sonic_Distance.LL))
             self._usd_lq_v.setText(str(data.Ultra_Sonic_Distance.LQ))
@@ -162,7 +162,7 @@ class DataViewWidget(QWidget):
                     self.appendRow([_current_k, self._current_v])
                     self.appendRow([_percent_k, self._percent_v])
 
-                @pyqtSlot()
+                @pyqtSlot(BaseTelemetry)
                 def UpadteItems(self, data: BaseTelemetry):
                     self._position_v.setText(str(data.position))
                     self._velocity_v.setText(str(data.velocity))
@@ -225,18 +225,18 @@ class DataViewWidget(QWidget):
                 self.appendRow([_v_traj, self._v_traj_v])
                 self.appendRow([_p_traj, self._p_traj_v])
 
-            @pyqtSlot()
+            @pyqtSlot(bool)
             def UpdateCon(self, con:bool):
                 self._con_v.setText(f"{con}")
             
-            @pyqtSlot()
+            @pyqtSlot(SenTelemetry)
             def UpadteItems(self, data: SenTelemetry):
                 self._moving_v.setText(str(data.moving))
                 self._move_stat_v.setText(str(data.moving_status))
                 self._temp_v.setText(str(data.present_temp))
                 self._in_v_v.setText(str(data.present_input_voltage))
 
-                self._pres_tele_v.UpadteItems(data.present_telmetry)
+                self._pres_tele_v.UpadteItems(data.present_telemetry)
                 self._goal_tele_v.UpadteItems(data.goal_telemetry)
 
                 self._v_traj_v.setText(str(data.velocity_trajectory))
@@ -267,19 +267,19 @@ class DataViewWidget(QWidget):
             _central_v_box.addWidget(_tree)
             self.setLayout(_central_v_box)
 
-        @pyqtSlot()
+        @pyqtSlot(SenTelemetry)
         def UpdateLeft(self, left: SenTelemetry):
             self._left_port_v.UpadteItems(left)
 
-        @pyqtSlot()
+        @pyqtSlot(SenTelemetry)
         def UpdateRight(self, right: SenTelemetry):
             self._right_port_v.UpadteItems(right)
 
-        @pyqtSlot()
+        @pyqtSlot(bool)
         def LeftCon(self, con: bool):
             self._left_port_v.UpdateCon(con)
 
-        @pyqtSlot()
+        @pyqtSlot(bool)
         def RightCon(self, con: bool):
             self._right_port_v.UpdateCon(con)
 
@@ -303,7 +303,7 @@ class DataViewWidget(QWidget):
                     self.appendRow([_min_k, self._min_v])
                     self.appendRow([_max_k, self._max_v])
 
-                @pyqtSlot()
+                @pyqtSlot(Limits)
                 def UpdateLimit(self, limit: Limits):
                     self._min_v.setText(str(limit.min))
                     self._max_v.setText(str(limit.max))
@@ -331,7 +331,7 @@ class DataViewWidget(QWidget):
                     self.appendRow([_i_k, self._i_v])
                     self.appendRow([_d_k, self._d_v])
 
-                @pyqtSlot()
+                @pyqtSlot(PID)
                 def UpdatePID(self, pid: PID):
                     self._p_v.setText(str(pid.P))
                     self._i_v.setText(str(pid.I))
@@ -477,11 +477,11 @@ class DataViewWidget(QWidget):
             _central_v_box.addWidget(_tree)
             self.setLayout(_central_v_box)
 
-        @pyqtSlot()
+        @pyqtSlot(SenConfigModel)
         def UpdateLeft(self, left: SenConfigModel):
             self._left_port_v.UpdateTree(left)
 
-        @pyqtSlot()
+        @pyqtSlot(SenConfigModel)
         def UpdateRight(self, right: SenConfigModel):
             self._right_port_v.UpdateTree(right)
 
