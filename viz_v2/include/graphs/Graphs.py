@@ -40,6 +40,8 @@ class DualPointPlotWidget(QWidget):
             self._d1_plot = self.plotItem.plot(oen=pg.mkPen(color=color_1, width=2))
             self._d2_plot = self.plotItem.plot(pen=pg.mkPen(color=color_2, width=2))
 
+            self._d1_plot.setClipToView(True)
+
             self._buf_size = buffer_size
 
             self._d1_counter = 0
@@ -71,7 +73,7 @@ class DualPointPlotWidget(QWidget):
             self._d1_t_np_arr[-1] = self._d1_counter 
             self._d1_counter += 1
 
-            self._d1_plot.setData(self._d1_t_np_arr, self._d1_np_arr)
+            self._d1_plot.setData(y=self._d1_np_arr)
 
 
         @pyqtSlot(float)
@@ -79,7 +81,7 @@ class DualPointPlotWidget(QWidget):
             self._d2_np_arr = np.roll(self._d2_np_arr, -1)
             self._d2_np_arr[-1] = d2
 
-            self._d2_plot.setData(self._d1_t_np_arr, self._d2_np_arr)
+            self._d2_plot.setData(y = self._d2_np_arr)
 
     def __init__(
         self,
