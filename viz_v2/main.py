@@ -11,7 +11,6 @@ app = QApplication(sys.argv)
 def handle_signals(*args):
     app.quit()
 
-
 if __name__ == "__main__":
     # Check os and set xcb
     if os.name != "nt":
