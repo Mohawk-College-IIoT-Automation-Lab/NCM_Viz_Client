@@ -17,7 +17,7 @@ class DualPointPlotWidget(QWidget):
             x_label: str = "duration",
             x_label_size: int = 20,
             color_1: str = "#ff0000",
-            color_2: str = "#0000ff",
+            color_2: str = "#ffff00",
             width: int = 200,
             height: int = 100,
             parent=None,
@@ -79,11 +79,7 @@ class DualPointPlotWidget(QWidget):
             self._d2_np_arr = np.roll(self._d2_np_arr, -1)
             self._d2_np_arr[-1] = d2
 
-            self._d2_t_np_arr = np.roll(self._d2_t_np_arr, -1)
-            self._d2_t_np_arr[-1] = self._d2_counter 
-            self._d2_counter += 1
-
-            self._d2_plot.setData(self._d2_t_np_arr, self._d2_np_arr)
+            self._d2_plot.setData(self._d1_t_np_arr, self._d2_np_arr)
 
     def __init__(
         self,
