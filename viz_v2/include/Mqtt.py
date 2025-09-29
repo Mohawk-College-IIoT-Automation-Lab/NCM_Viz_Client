@@ -1,5 +1,5 @@
 from re import S
-from paho.mqtt.client import Client, MQTTv5
+from paho.mqtt.client import Client, MQTTv5, topic_matches_sub
 import json
 from PyQt5.QtCore import QTime, pyqtSignal, pyqtSlot, QTimer, QObject
 from PyQt5.QtWidgets import QInputDialog, QWidget
@@ -22,9 +22,11 @@ class MqttClient(QWidget):
     SenBaseTopic = f"{BaseTopic}/SEN"
     MoveToMMTopic = "goal/mm"
     MoveToPosTopic = "goal/position"
-    MoveToIdxTopix = "goal/index"
+    MoveToPercentTopic = "goal/percent"
     JogPosTopic = "jog"
     StopTopic = "stop"
+    HomeTopic = "home"
+    SetHomeTopic = "set_home"
     GetConfigTopic = "get_config"
     MapPosTopic = "map"  # Need to check this
     TeleJsonTopic = "telemetery/json"
@@ -292,27 +294,45 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    def _SenMoveToIdx(self, port: SenPorts, idx: int | None = None):
+    def _SenMoveToPercent(self, port: SenPorts, percent: int):
         if self.connected:
-            pass
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPercentTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Moving {port.value} to percent: {percent}, topic: {topic}")
+
+            self._client.publish(topic, percent)
         else:
             self._not_connected_warn()
 
+
     def _SenJog(self, port: SenPorts, pos: int | None = None):
         if self.connected:
-            pass
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.JogPosTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Jogging {pos} steps, topic: {topic}")
+
+            self._client.publish(topic, pos)
+
         else:
             self._not_connected_warn()
 
     def _SenMapPos(self, port: SenPorts, mm: float | None = None):
         if self.connected:
-            pass
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MapPosTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Mapping {mm} to current position, topic: {topic}")
+
+            self._client.publish(topic, mm)
         else:
             self._not_connected_warn()
 
     def _SenGetConfig(self, port: SenPorts):
         if self.connected:
-            topic = f"{MqttClient.SenBaseTopic}/{port}/CMD/CONFIG"
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.GetConfigTopic}"
+            self._client.publish(topic, "")
+        else:
+            self._not_connected_warn()
+
+    def _SenSetHome(self, port: SenPorts):
+        if self.connected:
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.SetHomeTopic}"
             self._client.publish(topic, "")
         else:
             self._not_connected_warn()
@@ -409,12 +429,12 @@ class MqttClient(QWidget):
         self._SenMoveToPos(SenPorts.RightPort, pos)
 
     @pyqtSlot(int)
-    def SenLMoveToIdx(self, idx: int):
-        self._SenMoveToIdx(SenPorts.LeftPort, idx)
+    def SenLMovePercent(self, percent:int):
+        self._SenMoveToPercent(SenPorts.LeftPort, percent)
 
     @pyqtSlot(int)
-    def SenRMoveToIdx(self, idx: int):
-        self._SenMoveToIdx(SenPorts.RightPort, idx)
+    def SenRMovePercent(self, percent:int):
+        self._SenMoveToPercent(SenPorts.RightPort, percent)
 
     @pyqtSlot(int)
     def SenLJog(self, pos: int):
@@ -439,3 +459,11 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def SenGetRConfig(self):
         self._SenGetConfig(SenPorts.RightPort)
+
+    @pyqtSlot()
+    def SenSetLHome(self):
+        self._SenSetHome(SenPorts.LeftPort)
+
+    @pyqtSlot()
+    def SeNSetRHome(self):
+        self._SenSetHome(SenPorts.RightPort)

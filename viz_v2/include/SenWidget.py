@@ -118,7 +118,7 @@ class SenWidget(QWidget):
             self._sen.SetLeftPort(tele.present_telemetry.percent)
             self._sen_data.UpdateLeft(tele)
             self._t_pos.UpdateD1(float(tele.present_telemetry.position))
-            # self._t_vel.UpdateD1(float(tele.present_telemetry.velocity))
+            self._t_vel.UpdateD1(float(tele.present_telemetry.velocity))
             self._t_curr.UpdateD1(float(tele.present_telemetry.current))
 
     @pyqtSlot(SenTelemetry)
@@ -127,6 +127,6 @@ class SenWidget(QWidget):
             self._sen.SetRightPort(tele.present_telemetry.percent)
             self._sen_data.UpdateRight(tele)
             self._t_pos.UpdateD2(tele.present_telemetry.position)
-            # self._t_vel.UpdateD2(tele.present_telemetry.velocity)
+            self._t_vel.UpdateD2(tele.present_telemetry.velocity)
             self._t_curr.UpdateD2(tele.present_telemetry.current)
 

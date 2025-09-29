@@ -36,18 +36,16 @@ class DualPointPlotWidget(QWidget):
                 f'<span style="font-size: {str(title_size)}px">{title}</span>'
             )
             self.plotItem.showGrid(True, True, 0.5)
+            self.plotItem.enableAutoRange(True, True)
 
-            self._d1_plot = self.plotItem.plot(oen=pg.mkPen(color=color_1, width=2))
+            self._d1_plot = self.plotItem.plot(pen=pg.mkPen(color=color_1, width=2))
             self._d2_plot = self.plotItem.plot(pen=pg.mkPen(color=color_2, width=2))
 
+            
             self._d1_plot.setClipToView(True)
+            self._d2_plot.setClipToView(True)
 
             self._buf_size = buffer_size
-
-            self._d1_counter = 0
-            self._d2_counter = 0
-            self._d1_t_np_arr = np.zeros(self._buf_size)
-            self._d2_t_np_arr = np.zeros(self._buf_size)
 
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
@@ -59,19 +57,11 @@ class DualPointPlotWidget(QWidget):
         def ClearPlot(self):
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
-            self._d1_t_np_arr = np.zeros(self._buf_size)
-            self._d2_t_np_arr = np.zeros(self._buf_size)
-            self._d1_counter = 0
-            self._d2_counter = 0
 
         @pyqtSlot(float)
         def UpdateD1(self, d1: float):
             self._d1_np_arr = np.roll(self._d1_np_arr, -1)
             self._d1_np_arr[-1] = d1
-
-            self._d1_t_np_arr = np.roll(self._d1_t_np_arr, -1)
-            self._d1_t_np_arr[-1] = self._d1_counter 
-            self._d1_counter += 1
 
             self._d1_plot.setData(y=self._d1_np_arr)
 
