@@ -41,8 +41,11 @@ class DualPointPlotWidget(QWidget):
             self._d2_plot = self.plotItem.plot(pen=pg.mkPen(color=color_2, width=2))
 
             self._buf_size = buffer_size
-            self._time_counter = 0
-            self._time_np_arr = np.zeros(self._buf_size)
+
+            self._d1_counter = 0
+            self._d2_counter = 0
+            self._d1_t_np_arr = np.zeros(self._buf_size)
+            self._d2_t_np_arr = np.zeros(self._buf_size)
 
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
@@ -54,25 +57,33 @@ class DualPointPlotWidget(QWidget):
         def ClearPlot(self):
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
-            self._time_np_arr = np.zeros(self._buf_size)
-            self._time_counter = 0
+            self._d1_t_np_arr = np.zeros(self._buf_size)
+            self._d2_t_np_arr = np.zeros(self._buf_size)
+            self._d1_counter = 0
+            self._d2_counter = 0
 
-        @pyqtSlot()
-        def UpdatePlot(self, d1: float | None = None, d2: float | None = None):
-            if d1 or d2:
-                self._time_np_arr = np.roll(self._time_np_arr, -1)
-                self._time_np_arr[-1] = self._time_counter
-                self._time_counter += 1
+        @pyqtSlot(float)
+        def UpdateD1(self, d1: float):
+            self._d1_np_arr = np.roll(self._d1_np_arr, -1)
+            self._d1_np_arr[-1] = d1
 
-            if d1:
-                self._d1_np_arr = np.roll(self._d1_np_arr, -1)
-                self._d1_np_arr[-1] = d1
-                self._d1_plot.setData(self._time_np_arr, self._d1_np_arr)
+            self._d1_t_np_arr = np.roll(self._d1_t_np_arr, -1)
+            self._d1_t_np_arr[-1] = self._d1_counter 
+            self._d1_counter += 1
 
-            if d2:
-                self._d2_np_arr = np.roll(self._d2_np_arr, -1)
-                self._d2_np_arr[-1] = d2
-                self._d2_plot.setData(self._time_np_arr, self._d2_np_arr)
+            self._d1_plot.setData(self._d1_t_np_arr, self._d1_np_arr)
+
+
+        @pyqtSlot(float)
+        def UpdateD2(self, d2: float):
+            self._d2_np_arr = np.roll(self._d2_np_arr, -1)
+            self._d2_np_arr[-1] = d2
+
+            self._d2_t_np_arr = np.roll(self._d2_t_np_arr, -1)
+            self._d2_t_np_arr[-1] = self._d2_counter 
+            self._d2_counter += 1
+
+            self._d2_plot.setData(self._d2_t_np_arr, self._d2_np_arr)
 
     def __init__(
         self,
@@ -90,7 +101,7 @@ class DualPointPlotWidget(QWidget):
         width: int = 200,
         height: int = 100,
         parent=None,
-        ):
+    ):
         super().__init__(parent)
 
         self._plot = DualPointPlotWidget.DualPointPlot(
@@ -127,6 +138,10 @@ class DualPointPlotWidget(QWidget):
     def ClearPlot(self):
         self._plot.ClearPlot()
 
-    @pyqtSlot()
-    def UpdatePlot(self, d1: float | None = None, d2: float | None = None):
-        self._plot.UpdatePlot(d1, d2)
+    @pyqtSlot(float)
+    def UpdateD1(self, d1: float):
+        self._plot.UpdateD1(d1)
+
+    @pyqtSlot(float)
+    def UpdateD2(self, d2: float):
+        self._plot.UpdateD2(d2)
