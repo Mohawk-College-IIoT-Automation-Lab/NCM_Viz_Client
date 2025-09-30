@@ -25,7 +25,6 @@ class MqttClient(QWidget):
     MoveToPercentTopic = "goal/percent"
     JogPosTopic = "jog"
     StopTopic = "stop"
-    HomeTopic = "home"
     SetHomeTopic = "set_home"
     GetConfigTopic = "get_config"
     MapPosTopic = "map"  # Need to check this
@@ -314,15 +313,6 @@ class MqttClient(QWidget):
         else:
             self._not_connected_warn()
 
-    def _SenMapPos(self, port: SenPorts, mm: float | None = None):
-        if self.connected:
-            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MapPosTopic}"
-            logging.info(MqttClient.LOG_FMT_STR, f"Mapping {mm} to current position, topic: {topic}")
-
-            self._client.publish(topic, mm)
-        else:
-            self._not_connected_warn()
-
     def _SenGetConfig(self, port: SenPorts):
         if self.connected:
             topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.GetConfigTopic}"
@@ -334,6 +324,13 @@ class MqttClient(QWidget):
         if self.connected:
             topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.SetHomeTopic}"
             self._client.publish(topic, "")
+        else:
+            self._not_connected_warn()
+
+    def _SenHome(self, port:SenPorts):
+        if self.connected:
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPosTopic}"
+            self._client.publish(topic, 0)
         else:
             self._not_connected_warn()
 
@@ -444,14 +441,6 @@ class MqttClient(QWidget):
     def SenRJog(self, pos: int):
         self._SenJog(SenPorts.RightPort, pos)
 
-    @pyqtSlot(float)
-    def SenLMapPos(self, mm: float):
-        self._SenMapPos(SenPorts.LeftPort, mm)
-
-    @pyqtSlot()
-    def SenRMapPos(self, mm: float):
-        self._SenMapPos(SenPorts.RightPort, mm)
-
     @pyqtSlot()
     def SenGetLConfig(self):
         self._SenGetConfig(SenPorts.LeftPort)
@@ -465,5 +454,13 @@ class MqttClient(QWidget):
         self._SenSetHome(SenPorts.LeftPort)
 
     @pyqtSlot()
-    def SeNSetRHome(self):
+    def SenSetRHome(self):
         self._SenSetHome(SenPorts.RightPort)
+
+    @pyqtSlot()
+    def SenLHome(self):
+        self._SenHome(SenPorts.LeftPort)
+
+    @pyqtSlot()
+    def SenRHome(self):
+        self._SenHome(SenPorts.RightPort)

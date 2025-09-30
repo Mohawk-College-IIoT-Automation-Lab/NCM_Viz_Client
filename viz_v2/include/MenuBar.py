@@ -1,5 +1,5 @@
 import logging
-from PyQt5.QtCore import pyqtSlot, right
+from PyQt5.QtCore import QMessageAuthenticationCode, pyqtSlot, right
 from PyQt5.QtWidgets import QAction, QMenuBar, QInputDialog
 
 from .Mqtt import MqttClient
@@ -19,7 +19,6 @@ class MenuBar(QMenuBar):
     SenLMoveToPosAction = QAction("Move to Pos")
     SenLMoveToPercentAction = QAction("Move to %")
     SenLJogAction = QAction("Jog")
-    SenLMapPosAction = QAction("Map position")
     SenLHomeAction = QAction("Home SEN")
     SenLSetHomeAction = QAction("Set Home Posisiton")
 
@@ -27,12 +26,12 @@ class MenuBar(QMenuBar):
     SenRMoveToPosAction = QAction("Move to Pos")
     SenRMoveToPercentAction = QAction("Move to %")
     SenRJogAction = QAction("Jog")
-    SenRMapPosAction = QAction("Map position")
     SenRHomeAction = QAction("Home SEN")
     SenRSetHomeAction = QAction("Set Home Posisiton")
 
     SenGetConfigAction = QAction("Get Config")
     SenHomeBothAction = QAction("Home both ports")
+    SenMoveBothAction = QAction("Move both ports")
 
     _instance = None
 
@@ -65,9 +64,9 @@ class MenuBar(QMenuBar):
 
         sen_menu.addAction(MenuBar.SenGetConfigAction)
         sen_menu.addAction(MenuBar.SenHomeBothAction)
+        sen_menu.addAction(MenuBar.SenMoveBothAction)
 
         left_port_submenu = sen_menu.addMenu("Left Port")
-        left_port_submenu.addAction(MenuBar.SenLMapPosAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToMMAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToPosAction)
         left_port_submenu.addAction(MenuBar.SenLJogAction)
@@ -76,12 +75,12 @@ class MenuBar(QMenuBar):
         left_port_submenu.addAction(MenuBar.SenLSetHomeAction)
 
         right_port_submenu = sen_menu.addMenu("Right Port")
-        right_port_submenu.addAction(MenuBar.SenRMapPosAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToMMAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToPosAction)
         right_port_submenu.addAction(MenuBar.SenRJogAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToPercentAction)
         right_port_submenu.addAction(MenuBar.SenRHomeAction)
+        right_port_submenu.addAction(MenuBar.SenRSetHomeAction)
 
         if parent is not None:
             self.CloseAppAction.triggered.connect(parent.close)
@@ -94,17 +93,24 @@ class MenuBar(QMenuBar):
         MenuBar.RenameExpAction.triggered.connect(self._m_client.RenameExp)
 
         MenuBar.SenLMoveToPosAction.triggered.connect(self.SenLMoveToPosDialog)
-        MenuBar.SenRMoveToPosAction.triggered.connect(self.SenRMoveToPosDialog)
         MenuBar.SenLMoveToMMAction.triggered.connect(self.SenLMoveToMMDialog)
-        MenuBar.SenRMoveToMMAction.triggered.connect(self.SenRMoveToMMDialog)
         MenuBar.SenLMoveToPercentAction.triggered.connect(self.SenLMoveToPercentDialog)
-        MenuBar.SenRMoveToPercentAction.triggered.connect(self.SenRMoveToPercentDialog)
-
+        MenuBar.SenLJogAction.triggered.connect(self.SenLJogDialog)
         MenuBar.SenLSetHomeAction.triggered.connect(self._m_client.SenSetLHome)
-        MenuBar.SenRSetHomeAction.triggered.connect(self._m_client.SeNSetRHome)
+        MenuBar.SenLHomeAction.triggered.connect(self._m_client.SenLHome)
 
-
-
+        MenuBar.SenRMoveToPosAction.triggered.connect(self.SenRMoveToPosDialog)
+        MenuBar.SenRMoveToMMAction.triggered.connect(self.SenRMoveToMMDialog)
+        MenuBar.SenRMoveToPercentAction.triggered.connect(self.SenRMoveToPercentDialog)
+        MenuBar.SenRJogAction.triggered.connect(self.SenRJogDialog)
+        MenuBar.SenRSetHomeAction.triggered.connect(self._m_client.SenSetRHome)
+        MenuBar.SenRHomeAction.triggered.connect(self._m_client.SenRHome)
+        
+        MenuBar.SenMoveBothAction.triggered.connect(self.SenMoveBothDialog)
+        MenuBar.SenHomeBothAction.triggered.connect(self._m_client.SenLHome)
+        MenuBar.SenHomeBothAction.triggered.connect(self._m_client.SenRHome)
+        MenuBar.SenGetConfigAction.triggered.connect(self._m_client.SenGetLConfig)
+        MenuBar.SenGetConfigAction.triggered.connect(self._m_client.SenGetRConfig)
 
     @pyqtSlot()
     def SenLMoveToPosDialog(self):
@@ -144,7 +150,9 @@ class MenuBar(QMenuBar):
 
     @pyqtSlot()
     def SenLMoveToPercentDialog(self):
-        value, ok = QInputDialog.getInt(self, "Set Left SEN Percent", "Percent:", step=1)
+        value, ok = QInputDialog.getInt(
+            self, "Set Left SEN Percent", "Percent:", step=1
+        )
 
         if ok and value >= 0:
             self._m_client.SenLMovePercent(value)
@@ -153,10 +161,49 @@ class MenuBar(QMenuBar):
 
     @pyqtSlot()
     def SenRMoveToPercentDialog(self):
-        value, ok = QInputDialog.getInt(self, "Set Right SEN Percent", "Percent:", step=1)
+        value, ok = QInputDialog.getInt(
+            self, "Set Right SEN Percent", "Percent:", step=1
+        )
 
         if ok and value >= 0:
             self._m_client.SenRMovePercent(value)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+    @pyqtSlot()
+    def SenLJogDialog(self):
+        value, ok = QInputDialog.getInt(
+            self, "Jog Left SEN", "Steps:", min=-1000, max=1000, step=1
+        )
+
+        if ok:
+            self._m_client.SenLJog(value)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+    @pyqtSlot()
+    def SenRJogDialog(self):
+        value, ok = QInputDialog.getInt(
+            self, "Jog Right SEN", "Steps:", min=-1000, max=1000, step=1
+        )
+
+        if ok:
+            self._m_client.SenRJog(value)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+    @pyqtSlot()
+    def SenMoveBothDialog(self):
+        L, l_ok = QInputDialog.getInt(self, "Set Left SEN Percent: ", "Percent:", step=1)
+        R, r_ok = QInputDialog.getInt(self, "Set Right SEN Percent: ", "Percent:", step=1)
+
+        if l_ok and L >= 0:
+            self._m_client.SenLMovePercent(L)
+        else:
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+        if r_ok and R >= 0:
+            self._m_client.SenRMovePercent(R)
         else:
             logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
 
