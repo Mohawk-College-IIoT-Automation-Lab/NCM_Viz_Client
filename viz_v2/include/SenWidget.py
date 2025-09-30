@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QLabel
 from PyQt5.QtCore import pyqtSlot
 
 from .qml.gauge import GaugeWidget
@@ -63,8 +63,45 @@ class SenWidget(QWidget):
         self._sen_data = DataViewWidget.SenTeleTree()
         anim_v_box.addWidget(self._sen)
 
+        btn_g_box = QGridLayout()
+
+        l_m10_pbtn = QPushButton("-10%")
+        l_m10_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(-10))
+        l_m5_pbtn = QPushButton("-5%")
+        l_m5_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(-5))
+        l_p5_pbtn = QPushButton("+5%")
+        l_p5_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(5))
+        l_p10_pbtn =QPushButton("+10%")
+        l_p10_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(10))
+        l_h_pbtn = QPushButton("Home left")
+        l_h_pbtn.clicked.connect(lambda: _m_client.SenLHome())
+
+        r_m10_pbtn = QPushButton("-10%")
+        r_m10_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(-10))
+        r_m5_pbtn = QPushButton("-5%")
+        r_m5_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(-5))
+        r_p5_pbtn = QPushButton("+5%")
+        r_p5_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(5))
+        r_p10_pbtn =QPushButton("+10%")
+        r_p10_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(10))
+        r_h_pbtn = QPushButton("Home right")
+        r_h_pbtn.clicked.connect(lambda: _m_client.SenRHome())
+
+        btn_g_box.addWidget(l_m10_pbtn, 0, 0)
+        btn_g_box.addWidget(l_p10_pbtn, 0, 1)
+        btn_g_box.addWidget(r_m10_pbtn, 0 ,2)
+        btn_g_box.addWidget(r_p10_pbtn, 0, 3)
+        btn_g_box.addWidget(l_m5_pbtn, 1, 0)
+        btn_g_box.addWidget(l_p5_pbtn, 1, 1)
+        btn_g_box.addWidget(r_m5_pbtn, 1, 2)
+        btn_g_box.addWidget(r_p5_pbtn, 1, 3)
+        btn_g_box.addWidget(l_h_pbtn, 2, 0)
+        btn_g_box.addWidget(r_h_pbtn, 2, 3)
+
+        anim_v_box.addLayout(btn_g_box)
+
         _sen_label = QLabel("Sen Data")
-        _sen_label.setStyleSheet("font-size: 24px; color: #ffffff;")
+        _sen_label.setStyleSheet("font-size: 20px; color: #ffffff;")
         anim_v_box.addWidget(_sen_label)
         
         anim_v_box.addWidget(self._sen_data)

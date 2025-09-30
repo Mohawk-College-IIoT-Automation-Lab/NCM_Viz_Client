@@ -1,7 +1,6 @@
 import logging
-from PyQt5.QtCore import QMessageAuthenticationCode, pyqtSlot, right
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QAction, QMenuBar, QInputDialog
-
 from .Mqtt import MqttClient
 
 
@@ -20,6 +19,7 @@ class MenuBar(QMenuBar):
     SenLMoveToPercentAction = QAction("Move to %")
     SenLJogAction = QAction("Jog")
     SenLHomeAction = QAction("Home SEN")
+    SenLCloseAction = QAction("Close SEN")
     SenLSetHomeAction = QAction("Set Home Posisiton")
 
     SenRMoveToMMAction = QAction("Move to MM")
@@ -27,6 +27,7 @@ class MenuBar(QMenuBar):
     SenRMoveToPercentAction = QAction("Move to %")
     SenRJogAction = QAction("Jog")
     SenRHomeAction = QAction("Home SEN")
+    SenRCloseAction = QAction("Close SEN")
     SenRSetHomeAction = QAction("Set Home Posisiton")
 
     SenGetConfigAction = QAction("Get Config")
@@ -72,6 +73,7 @@ class MenuBar(QMenuBar):
         left_port_submenu.addAction(MenuBar.SenLJogAction)
         left_port_submenu.addAction(MenuBar.SenLMoveToPercentAction)
         left_port_submenu.addAction(MenuBar.SenLHomeAction)
+        left_port_submenu.addAction(MenuBar.SenLCloseAction)
         left_port_submenu.addAction(MenuBar.SenLSetHomeAction)
 
         right_port_submenu = sen_menu.addMenu("Right Port")
@@ -80,6 +82,7 @@ class MenuBar(QMenuBar):
         right_port_submenu.addAction(MenuBar.SenRJogAction)
         right_port_submenu.addAction(MenuBar.SenRMoveToPercentAction)
         right_port_submenu.addAction(MenuBar.SenRHomeAction)
+        right_port_submenu.addAction(MenuBar.SenRCloseAction)
         right_port_submenu.addAction(MenuBar.SenRSetHomeAction)
 
         if parent is not None:
@@ -97,6 +100,7 @@ class MenuBar(QMenuBar):
         MenuBar.SenLMoveToPercentAction.triggered.connect(self.SenLMoveToPercentDialog)
         MenuBar.SenLJogAction.triggered.connect(self.SenLJogDialog)
         MenuBar.SenLSetHomeAction.triggered.connect(self._m_client.SenSetLHome)
+        MenuBar.SenLCloseAction.triggered.connect(self._m_client.SenLClose)
         MenuBar.SenLHomeAction.triggered.connect(self._m_client.SenLHome)
 
         MenuBar.SenRMoveToPosAction.triggered.connect(self.SenRMoveToPosDialog)
@@ -104,6 +108,7 @@ class MenuBar(QMenuBar):
         MenuBar.SenRMoveToPercentAction.triggered.connect(self.SenRMoveToPercentDialog)
         MenuBar.SenRJogAction.triggered.connect(self.SenRJogDialog)
         MenuBar.SenRSetHomeAction.triggered.connect(self._m_client.SenSetRHome)
+        MenuBar.SenRCloseAction.triggered.connect(self._m_client.SenRClose)
         MenuBar.SenRHomeAction.triggered.connect(self._m_client.SenRHome)
         
         MenuBar.SenMoveBothAction.triggered.connect(self.SenMoveBothDialog)

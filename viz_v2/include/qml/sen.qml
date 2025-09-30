@@ -9,7 +9,7 @@ Item {
  
   property int gap: 20
   property int w: 600 
-  property int h: 600
+  property int h: 400
 
   width: w
   height: h
@@ -34,7 +34,7 @@ Item {
       anchors.fill: parent.fill
       color: "#111111"
 
-      // Left port
+     // Left port
       Rectangle {
 
         anchors.bottom: parent.bottom

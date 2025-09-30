@@ -1,9 +1,10 @@
+from typing import List
 from PyQt5.QtCore import  pyqtSlot
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QTreeView, QVBoxLayout, QWidget
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 
 from .Mqtt import MqttClient
-from .DataStructures import PID, Limits, SensorData, SenConfigModel, SenTelemetry, BaseTelemetry
+from .DataStructures import PID, Limits, Mapping, SensorData, SenConfigModel, SenTelemetry, BaseTelemetry
 
 
 class DataViewWidget(QWidget):
@@ -447,14 +448,14 @@ class DataViewWidget(QWidget):
             def UpdateTree(self, data:SenConfigModel):
                 self._port_v.setText(data.port)
                 self._id_v.setText(str(data.id))
-                self._baud_v.setText(str(data.baud_rate))
+                self._baud_v.setText(str(data.baud_rate.baud))
                 self._d_mode_v.setText(str(data.drive_mode))
                 self._op_mode_v.setText(str(data.op_mode))
                 self._mv_th_v.setText(str(data.moving_threshold))
                 self._t_limit_v.setText(str(data.temp_limit))
-                self._v_lim.UpdateLimit(data.volt_limt)
+                self._v_lim.UpdateLimit(data.volt_limit)
                 self._pwm_lim_v.setText(str(data.pwm_limit))
-                self._curr_lim_v.setText(str(data.current_limt))
+                self._curr_lim_v.setText(str(data.current_limit))
                 self._vel_lim_v.setText(str(data.velocity_limit))
                 self._pos_lim.UpdateLimit(data.position_limit)
                 self._v_pid.UpdatePID(data.velocity_pid)
@@ -530,5 +531,5 @@ class DataViewWidget(QWidget):
         _m_client.RightSenConnectedSignal.connect(self._sen_tele_tree.RightCon)
 
         _m_client.SenLeftConfigSignal.connect(self._sen_config_tree.UpdateLeft)
-        _m_client.SenRightConfigsignal.connect(self._sen_config_tree.UpdateRight)
+        _m_client.SenRightConfigSignal.connect(self._sen_config_tree.UpdateRight)
 

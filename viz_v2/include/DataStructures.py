@@ -19,18 +19,21 @@ class Mapping(BaseModel):
     mm: float 
     position: int
 
+class Baud(BaseModel):
+    baud: int 
+    id: int
 
 class SenConfigModel(BaseModel):
     port: str
     id: int
-    baud_rate: int
+    baud_rate: Baud
     drive_mode: int
     op_mode: int
     moving_threshold: int
     temp_limit: int
-    volt_limt: Limits
+    volt_limit: Limits
     pwm_limit: int
-    current_limt: int
+    current_limit: int
     velocity_limit: int
     position_limit: Limits 
     velocity_pid: PID 
@@ -39,6 +42,7 @@ class SenConfigModel(BaseModel):
     FFGain2: int
     mappings: List[Mapping]
     direction: bool
+    torque_en: bool
 
 class BaseTelemetry(BaseModel):
     pwm: int 

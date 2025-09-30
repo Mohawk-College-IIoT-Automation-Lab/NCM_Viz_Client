@@ -24,6 +24,7 @@ class MqttClient(QWidget):
     MoveToPosTopic = "goal/position"
     MoveToPercentTopic = "goal/percent"
     JogPosTopic = "jog"
+    JogPerTopic = "jog_percent"
     StopTopic = "stop"
     SetHomeTopic = "set_home"
     GetConfigTopic = "get_config"
@@ -53,7 +54,7 @@ class MqttClient(QWidget):
     SenTeleRightSignal = pyqtSignal(SenTelemetry)
 
     SenLeftConfigSignal = pyqtSignal(SenConfigModel)
-    SenRightConfigsignal = pyqtSignal(SenConfigModel)
+    SenRightConfigSignal = pyqtSignal(SenConfigModel)
 
     LOG_FMT_STR = f"[Mqtt] - %s"
 
@@ -303,13 +304,21 @@ class MqttClient(QWidget):
             self._not_connected_warn()
 
 
-    def _SenJog(self, port: SenPorts, pos: int | None = None):
+    def _SenJog(self, port: SenPorts, pos: int):
         if self.connected:
             topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.JogPosTopic}"
             logging.info(MqttClient.LOG_FMT_STR, f"Jogging {pos} steps, topic: {topic}")
 
             self._client.publish(topic, pos)
 
+        else:
+            self._not_connected_warn()
+
+    def _SenJogPer(self, port: SenPorts, per:int):
+        if self.connected:
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.JogPerTopic}"
+            logging.info(MqttClient.LOG_FMT_STR, f"Jogging {per} %, topic: {topic}")
+            self._client.publish(topic, per)
         else:
             self._not_connected_warn()
 
@@ -331,6 +340,13 @@ class MqttClient(QWidget):
         if self.connected:
             topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPosTopic}"
             self._client.publish(topic, 0)
+        else:
+            self._not_connected_warn()
+
+    def _SenClose(self, port:SenPorts):
+        if self.connected:
+            topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPercentTopic}"
+            self._client.publish(topic, 100)
         else:
             self._not_connected_warn()
 
@@ -441,6 +457,14 @@ class MqttClient(QWidget):
     def SenRJog(self, pos: int):
         self._SenJog(SenPorts.RightPort, pos)
 
+    @pyqtSlot(int)
+    def SenLJogPercent(self, per:int):
+        self._SenJogPer(SenPorts.LeftPort, per)
+
+    @pyqtSlot(int)
+    def SenRJogPercent(self, per:int):
+        self._SenJogPer(SenPorts.RightPort, per)
+
     @pyqtSlot()
     def SenGetLConfig(self):
         self._SenGetConfig(SenPorts.LeftPort)
@@ -464,3 +488,11 @@ class MqttClient(QWidget):
     @pyqtSlot()
     def SenRHome(self):
         self._SenHome(SenPorts.RightPort)
+
+    @pyqtSlot()
+    def SenLClose(self):
+        self._SenClose(SenPorts.LeftPort)
+
+    @pyqtSlot()
+    def SenRClose(self):
+        self._SenClose(SenPorts.RightPort)
