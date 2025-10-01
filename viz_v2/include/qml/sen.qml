@@ -9,7 +9,7 @@ Item {
  
   property int gap: 20
   property int w: 600 
-  property int h: 400
+  property int h: 600
 
   width: w
   height: h
@@ -34,8 +34,12 @@ Item {
       anchors.fill: parent.fill
       color: "#111111"
 
-     // Left port
+      // Left port
       Rectangle {
+        id: leftPort 
+        objectName: "leftPort"
+
+        property real value: 75
 
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
@@ -44,27 +48,34 @@ Item {
         radius: width / 2           // Half of width/height to make it round
         color: "#3e4147"
 
+        Text {
+            // show label and current % dynamically
+            text: `${Math.round(leftPort.value)}%`
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: leftPort.top
+            anchors.bottomMargin: 8
+            color: "white"
+            font.pixelSize: 20
+        }
+
         Rectangle {
 
-          id: leftPort 
-          objectName: "leftPort"
-
-          property real value: 75
           property real w: parent.width - leftSen.gap
           property real h: parent.height - leftSen.gap
 
           anchors.centerIn: parent
           color: "#00bbff"
 
-          width: value > 100 ? (w) : value < 0 ? (0) : (value / 100) * w
-          height: value > 100 ? (h) : value < 0 ? (0) : (value / 100) * h
+          width: leftPort.value > 100 ? (w) : leftPort.value < 0 ? (0) : (leftPort.value / 100) * w
+          height: leftPort.value > 100 ? (h) : leftPort.value < 0 ? (0) : (leftPort.value / 100) * h
           radius: width / 2
         }
       }
     }
-    // Right face 
+
+    // right face
     Rectangle {
-      id: rightSen 
+      id: rightSen
       objectName: "rightSen"
 
       property int gap: 50
@@ -77,8 +88,12 @@ Item {
       anchors.fill: parent.fill
       color: "#111111"
 
-      // Right port
+      // right port
       Rectangle {
+        id: rightPort 
+        objectName: "rightPort"
+
+        property real value: 25
 
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
@@ -87,24 +102,31 @@ Item {
         radius: width / 2           // Half of width/height to make it round
         color: "#3e4147"
 
+        Text {
+            // show label and current % dynamically
+            text: `${Math.round(rightPort.value)}%`
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: rightPort.top
+            anchors.bottomMargin: 8
+            color: "white"
+            font.pixelSize: 20
+        }
+
         Rectangle {
 
-          id: rightPort 
-          objectName: "rightPort"
-
-          property real value: 25
           property real w: parent.width - rightSen.gap
           property real h: parent.height - rightSen.gap
 
           anchors.centerIn: parent
           color: "#00bbff"
 
-          width: value > 100 ? (w) : value < 0 ? (0) : (value / 100) * w
-          height: value > 100 ? (h) : value < 0 ? (0) : (value / 100) * h
+          width: rightPort.value > 100 ? (w) : rightPort.value < 0 ? (0) : (rightPort.value / 100) * w
+          height: rightPort.value > 100 ? (h) : rightPort.value < 0 ? (0) : (rightPort.value / 100) * h
           radius: width / 2
         }
       }
     }
+    
   }
 }
 
