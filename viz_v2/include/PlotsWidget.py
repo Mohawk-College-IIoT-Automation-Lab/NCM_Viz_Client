@@ -29,7 +29,7 @@ class PlotsWidget(QWidget):
         self._r_wl_graph = DualPointPlotWidget(title="Right Waterlevel", y_label="MM", d1_label="RQ", d2_label="RR")
         self._l_v_graph = DualPointPlotWidget(title="Left Velocity", y_label="m/s", d1_label="LL", d2_label="LQ")
         self._r_v_graph = DualPointPlotWidget(title="Right Velocity", y_label="m/s", d1_label="RQ", d2_label="RR")
-        self._standing_graph = DualPointPlotWidget(title="Standing Wave", y_label="MM", d1_label="Left", d2_label="Right")
+        self._standing_graph = DualPointPlotWidget(title="Standing Wave", y_label="MM", d1_label="Left", d2_label="Right", height=200)
 
         top_g_box.addWidget(self._l_wl_graph, 0, 0)
         top_g_box.addWidget(self._r_wl_graph, 0, 1)

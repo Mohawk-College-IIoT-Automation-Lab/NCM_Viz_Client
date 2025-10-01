@@ -32,6 +32,7 @@ class SenAnimWidget(QWidget):
         self._right_port = _root.findChild(QObject, "rightPort")
 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setFixedSize(600, 608)
 
     @pyqtSlot(int)
     def SetLeftPort(self, value: int):
