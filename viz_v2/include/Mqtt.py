@@ -18,6 +18,7 @@ class MqttClient(QWidget):
     StartExpTopic = f"{CmdTopic}/START_EXP"
     StopExpTopic = f"{CmdTopic}/STOP_EXP"
     RenameExpTopic = f"{CmdTopic}/RENAME_EXP"
+    ElapsedTimeTopic = f"{BaseTopic}/Experiment/Elapsed"
 
     SenBaseTopic = f"{BaseTopic}/SEN"
     MoveToMMTopic = "goal/mm"
@@ -42,17 +43,15 @@ class MqttClient(QWidget):
     DaqDataTopic = f"{DaqBaseTopic}/DisplayData"
 
     # signals
-
     ConnectedSignal = pyqtSignal(bool)
     DaqConnectedSignal = pyqtSignal(bool)
+    DaqDataSignal = pyqtSignal(SensorData)
+    ElapseSignal = pyqtSignal(str)
+
     LeftSenConnectedSignal = pyqtSignal(bool)
     RightSenConnectedSignal = pyqtSignal(bool)
-
-    DaqDataSignal = pyqtSignal(SensorData)
-
     SenTeleLeftSignal = pyqtSignal(SenTelemetry)
     SenTeleRightSignal = pyqtSignal(SenTelemetry)
-
     SenLeftConfigSignal = pyqtSignal(SenConfigModel)
     SenRightConfigSignal = pyqtSignal(SenConfigModel)
 
@@ -200,12 +199,17 @@ class MqttClient(QWidget):
         self._client.subscribe(MqttClient.TeleRJsonTopic)
         self._client.subscribe(MqttClient.ConfigLTopic)
         self._client.subscribe(MqttClient.ConfigRTopic)
+        self._client.subscribe(MqttClient.ElapsedTimeTopic)
 
         self._client.message_callback_add(self.DaqDataTopic, self._DaqDataCallback)
         self._client.message_callback_add(self.TeleLJsonTopic, self._TeleLCallback)
         self._client.message_callback_add(self.TeleRJsonTopic, self._TeleRCallback)
         self._client.message_callback_add(self.ConfigLTopic, self._ConfigLCallback)
         self._client.message_callback_add(self.ConfigRTopic, self._ConfigRCallback)
+        self._client.message_callback_add(self.ElapsedTimeTopic, self._ElapsedCallback)
+
+    def _ElapsedCallback(self, client, userdata, msg):
+        self.ElapseSignal.emit(msg.payload.decode())
 
     def _DaqDataCallback(self, client, userdata, msg):
         try:
@@ -346,7 +350,7 @@ class MqttClient(QWidget):
     def _SenClose(self, port:SenPorts):
         if self.connected:
             topic = f"{MqttClient.SenBaseTopic}/{port.value}/{MqttClient.MoveToPercentTopic}"
-            self._client.publish(topic, 100)
+            self._client.publish(topic, 0)
         else:
             self._not_connected_warn()
 

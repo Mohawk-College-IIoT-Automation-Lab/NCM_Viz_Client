@@ -1,5 +1,6 @@
 from PyQt5 import QtGui, QtCore
-from PyQt5.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import QLabel, QMainWindow, QTabWidget, QVBoxLayout, QWidget, QStatusBar
 import time
 
 from paho.mqtt.client import MQTTv31
@@ -105,6 +106,8 @@ class MainWindow(QMainWindow):
         menu_bar = MenuBar.get_instance(self)
         self.setMenuBar(menu_bar)
 
+        self._elapsed_label = QLabel("Elapsed: 0ms")
+
         tab_widget = QTabWidget()
 
         sen_tab_widget = SenWidget()
@@ -117,11 +120,19 @@ class MainWindow(QMainWindow):
         tab_widget.addTab(data_tab_widget, "Dataview")
 
         central_v_box = QVBoxLayout(central_widget)
+        central_v_box.addWidget(self._elapsed_label)
         central_v_box.addWidget(tab_widget)
         central_widget.setLayout(central_v_box)
 
         self.showMaximized()
         logging.debug(MainWindow.LOG_FMT_STR, "Maximizaing MainWindow")
+
+        m_client.ElapseSignal.connect(self.SetElapseLabel)
+
+
+    @pyqtSlot(str)
+    def SetElapseLabel(self, elapsed:str):
+        self._elapsed_label.setText(f"Elapsed: {elapsed}")
 
     def closeEvent(self, a0) -> None:
         m_client = MqttClient.get_instance()
