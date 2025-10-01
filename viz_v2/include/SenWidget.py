@@ -1,5 +1,12 @@
-from PyQt5.QtWidgets import QGridLayout, QHBoxLayout, QPushButton, QVBoxLayout, QWidget, QLabel
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtWidgets import (
+    QGridLayout,
+    QHBoxLayout,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+    QLabel,
+)
+from PyQt5.QtCore import pyqtSlot, Qt
 
 from .qml.gauge import GaugeWidget
 from .qml.sen import SenAnimWidget
@@ -27,7 +34,6 @@ class SenWidget(QWidget):
         center_h_box = QHBoxLayout(self)
 
         # Left V Box
-        gauge_v_box = QVBoxLayout()
 
         self._ll_wl = GaugeWidget(title="LL Waterlevel")
         self._lq_wl = GaugeWidget(title="LQ Waterlevel")
@@ -39,30 +45,22 @@ class SenWidget(QWidget):
         self._rq_v = GaugeWidget(title="RQ Velocity")
         self._rr_v = GaugeWidget(title="RR Velocity")
 
-        gauge_top_h_box = QHBoxLayout()
-        gauge_bot_h_box = QHBoxLayout()
+        gauge_g_box = QGridLayout()
 
-        gauge_top_h_box.addWidget(self._ll_wl)
-        gauge_top_h_box.addWidget(self._lq_wl)
-        gauge_top_h_box.addWidget(self._rq_wl)
-        gauge_top_h_box.addWidget(self._rr_wl)
+        gauge_g_box.addWidget(self._ll_wl, 0, 0)
+        gauge_g_box.addWidget(self._lq_wl, 0, 1)
+        gauge_g_box.addWidget(self._rq_wl, 0, 2)
+        gauge_g_box.addWidget(self._rr_wl, 0, 3)
 
-        gauge_bot_h_box.addWidget(self._ll_v)
-        gauge_bot_h_box.addWidget(self._lq_v)
-        gauge_bot_h_box.addWidget(self._rq_v)
-        gauge_bot_h_box.addWidget(self._rr_v)
+        gauge_g_box.addWidget(self._ll_v, 1, 0)
+        gauge_g_box.addWidget(self._lq_v, 1, 1)
+        gauge_g_box.addWidget(self._rq_v, 1, 2)
+        gauge_g_box.addWidget(self._rr_v, 1, 3)
 
-        gauge_v_box.addLayout(gauge_top_h_box)
-        gauge_v_box.addLayout(gauge_bot_h_box)
-        center_h_box.addLayout(gauge_v_box)
+        center_h_box.addLayout(gauge_g_box)
 
         # Center V Box
         anim_v_box = QVBoxLayout()
-
-        self._sen = SenAnimWidget()
-        self._sen_data = DataViewWidget.SenTeleTree()
-        anim_v_box.addWidget(self._sen)
-
         btn_g_box = QGridLayout()
 
         l_m10_pbtn = QPushButton("-10%")
@@ -71,7 +69,7 @@ class SenWidget(QWidget):
         l_m5_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(-5))
         l_p5_pbtn = QPushButton("+5%")
         l_p5_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(5))
-        l_p10_pbtn =QPushButton("+10%")
+        l_p10_pbtn = QPushButton("+10%")
         l_p10_pbtn.clicked.connect(lambda: _m_client.SenLJogPercent(10))
         l_h_pbtn = QPushButton("Home left")
         l_h_pbtn.clicked.connect(lambda: _m_client.SenLHome())
@@ -82,14 +80,14 @@ class SenWidget(QWidget):
         r_m5_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(-5))
         r_p5_pbtn = QPushButton("+5%")
         r_p5_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(5))
-        r_p10_pbtn =QPushButton("+10%")
+        r_p10_pbtn = QPushButton("+10%")
         r_p10_pbtn.clicked.connect(lambda: _m_client.SenRJogPercent(10))
         r_h_pbtn = QPushButton("Home right")
         r_h_pbtn.clicked.connect(lambda: _m_client.SenRHome())
 
         btn_g_box.addWidget(l_m10_pbtn, 0, 0)
         btn_g_box.addWidget(l_p10_pbtn, 0, 1)
-        btn_g_box.addWidget(r_m10_pbtn, 0 ,2)
+        btn_g_box.addWidget(r_m10_pbtn, 0, 2)
         btn_g_box.addWidget(r_p10_pbtn, 0, 3)
         btn_g_box.addWidget(l_m5_pbtn, 1, 0)
         btn_g_box.addWidget(l_p5_pbtn, 1, 1)
@@ -98,13 +96,10 @@ class SenWidget(QWidget):
         btn_g_box.addWidget(l_h_pbtn, 2, 0)
         btn_g_box.addWidget(r_h_pbtn, 2, 3)
 
+        self._sen = SenAnimWidget()
+        anim_v_box.addWidget(self._sen)
         anim_v_box.addLayout(btn_g_box)
-
-        _sen_label = QLabel("Sen Data")
-        _sen_label.setStyleSheet("font-size: 20px; color: #ffffff;")
-        anim_v_box.addWidget(_sen_label)
-        
-        anim_v_box.addWidget(self._sen_data)
+        anim_v_box.addStretch()
         center_h_box.addLayout(anim_v_box)
 
         # Right V Box
@@ -131,10 +126,7 @@ class SenWidget(QWidget):
 
         _m_client.DaqDataSignal.connect(self._DaqDataSlot)
         _m_client.SenTeleLeftSignal.connect(self._SenLeftTeleSlot)
-        _m_client.LeftSenConnectedSignal.connect(self._sen_data.LeftCon)
         _m_client.SenTeleRightSignal.connect(self._SenRightTeleSlot)
-        _m_client.RightSenConnectedSignal.connect(self._sen_data.RightCon)
-
 
     @pyqtSlot(SensorData)
     def _DaqDataSlot(self, data: SensorData):
@@ -153,7 +145,6 @@ class SenWidget(QWidget):
     def _SenLeftTeleSlot(self, tele: SenTelemetry):
         if tele:
             self._sen.SetLeftPort(tele.present_telemetry.percent)
-            self._sen_data.UpdateLeft(tele)
             self._t_pos.UpdateD1(float(tele.present_telemetry.position))
             self._t_vel.UpdateD1(float(tele.present_telemetry.velocity))
             self._t_curr.UpdateD1(float(tele.present_telemetry.current))
@@ -162,8 +153,6 @@ class SenWidget(QWidget):
     def _SenRightTeleSlot(self, tele: SenTelemetry):
         if tele:
             self._sen.SetRightPort(tele.present_telemetry.percent)
-            self._sen_data.UpdateRight(tele)
             self._t_pos.UpdateD2(tele.present_telemetry.position)
             self._t_vel.UpdateD2(tele.present_telemetry.velocity)
             self._t_curr.UpdateD2(tele.present_telemetry.current)
-

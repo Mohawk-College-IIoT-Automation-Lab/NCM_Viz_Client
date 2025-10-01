@@ -102,7 +102,7 @@ class MainWindow(QMainWindow):
 
         logging.debug(MainWindow.LOG_FMT_STR, "Creating MainWindow")
 
-        menu_bar = MenuBar(self)
+        menu_bar = MenuBar.get_instance(self)
         self.setMenuBar(menu_bar)
 
         tab_widget = QTabWidget()
