@@ -107,6 +107,8 @@ class MainWindow(QMainWindow):
         self.setMenuBar(menu_bar)
 
         self._elapsed_label = QLabel("Elapsed: 0ms")
+        self._elapsed_label.setStyleSheet(f"font-size: 20px; color: #ffffff;")
+
 
         tab_widget = QTabWidget()
 

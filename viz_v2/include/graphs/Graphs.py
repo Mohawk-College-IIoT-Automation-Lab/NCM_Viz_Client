@@ -109,9 +109,9 @@ class DualPointPlotWidget(QWidget):
 
         v_box = QVBoxLayout()
         label_h_box = QHBoxLayout()
-        _d1_label = QLabel(f"{d1_label}:{color_1}")
+        _d1_label = QLabel(f"{d1_label}")
         _d1_label.setStyleSheet(f"font-size: 20px; color: {color_1}")
-        _d2_label = QLabel(f"{d2_label}:{color_2}")
+        _d2_label = QLabel(f"{d2_label}")
         _d2_label.setStyleSheet(f"font-size: 20px; color: {color_2}")
 
         label_h_box.addWidget(_d1_label)
