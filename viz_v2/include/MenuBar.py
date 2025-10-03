@@ -93,7 +93,7 @@ class MenuBar(QMenuBar):
 
         MenuBar.StartExpAction.triggered.connect(self._m_client.StartExp)
         MenuBar.StopExpAction.triggered.connect(self._m_client.StopExp)
-        MenuBar.RenameExpAction.triggered.connect(self._m_client.RenameExp)
+        MenuBar.RenameExpAction.triggered.connect(self.RenameExpDialog)
 
         MenuBar.SenLMoveToPosAction.triggered.connect(self.SenLMoveToPosDialog)
         MenuBar.SenLMoveToMMAction.triggered.connect(self.SenLMoveToMMDialog)
@@ -211,4 +211,13 @@ class MenuBar(QMenuBar):
             self._m_client.SenRMovePercent(R)
         else:
             logging.warning(MenuBar.LOG_FMT_STR, "User cancelled or Value was None")
+
+    @pyqtSlot()
+    def RenameExpDialog(self):
+        value, ok = QInputDialog.getText(self, "Rename Experiment", "Name:")
+
+        if ok:
+            self._m_client.RenameExp(value)
+        else :
+            logging.warning(MenuBar.LOG_FMT_STR, "User cancelled")
 
