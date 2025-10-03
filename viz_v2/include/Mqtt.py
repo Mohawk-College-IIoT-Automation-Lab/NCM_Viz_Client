@@ -14,11 +14,11 @@ from .DataStructures import SenTelemetry, SenConfigModel, SensorData, SenPorts
 class MqttClient(QWidget):
 
     BaseTopic = "NCM"
-    CmdTopic = f"{BaseTopic}/CMD"
-    StartExpTopic = f"{CmdTopic}/START_EXP"
-    StopExpTopic = f"{CmdTopic}/STOP_EXP"
-    RenameExpTopic = f"{CmdTopic}/RENAME_EXP"
-    ElapsedTimeTopic = f"{BaseTopic}/Experiment/Elapsed"
+    ExpTopic = f"{BaseTopic}/Experiment"
+    StartExpTopic = f"{ExpTopic}/Start"
+    StopExpTopic = f"{ExpTopic}/Stop"
+    RenameExpTopic = f"{ExpTopic}/Rename"
+    ElapsedTimeTopic = f"{ExpTopic}/Elapsed"
 
     SenBaseTopic = f"{BaseTopic}/SEN"
     MoveToMMTopic = "goal/mm"
@@ -39,8 +39,7 @@ class MqttClient(QWidget):
     ConfigLTopic = f"{SenBaseTopic}/LEFT/config"
     ConfigRTopic = f"{SenBaseTopic}/RIGHT/config"
 
-    DaqBaseTopic = f"{BaseTopic}/DAQ"
-    DaqDataTopic = f"{DaqBaseTopic}/DisplayData"
+    DaqDataTopic = f"{BaseTopic}/DisplayData"
 
     # signals
     ConnectedSignal = pyqtSignal(bool)
@@ -154,7 +153,7 @@ class MqttClient(QWidget):
             lambda: self.RightSenConnectedSignal.emit(False)
         )
 
-        self._daq_wdg.CountSignal.connect(lambda c: logging.debug(MqttClient.LOG_FMT_STR, f"{c} Daq Counter"))
+        self._daq_wdg.CountSignal.connect(lambda c: self.DaqConnectedSignal.emit(False))
 
         self._client.on_connect = self._on_connect
         self._client.on_disconnect = self._on_disconnect
@@ -406,24 +405,8 @@ class MqttClient(QWidget):
             self._not_connected_warn()
 
     @pyqtSlot()
-    def RenameExp(self, filename: str | None = None):
+    def RenameExp(self, filename: str):
         if self.connected:
-            if filename is None:
-                value, ok = QInputDialog.getText(
-                    self, title="Rename file", label="File name:"
-                )
-
-                if ok:
-                    if value:
-                        filename = value
-                    else:
-                        logging.warning(
-                            MqttClient.LOG_FMT_STR, "Filename was left empty"
-                        )
-                        return
-                else:
-                    logging.debug(MqttClient.LOG_FMT_STR, "User cancelled name change")
-                    return
             logging.info(MqttClient.LOG_FMT_STR, f"Renaming file to: {filename}")
             self._client.publish(MqttClient.RenameExpTopic, filename)
         else:

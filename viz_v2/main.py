@@ -6,6 +6,7 @@ import os
 from include.MainWindow import MainWindow
 
 app = QApplication(sys.argv)
+app.setStyle("Fusion") # for windows
 
 
 def handle_signals(*args):

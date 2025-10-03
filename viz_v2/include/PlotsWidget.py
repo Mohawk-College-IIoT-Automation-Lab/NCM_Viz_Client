@@ -51,15 +51,22 @@ class PlotsWidget(QWidget):
         self._l_v_graph.ClearPlot()
         self._standing_graph.ClearPlot()
 
-    @pyqtSlot()
+    @pyqtSlot(SensorData)
     def UpdatePlots(self, data: SensorData):
-        self._l_wl_graph.UpdatePlot(data.Ultra_Sonic_Distance.LL, data.Ultra_Sonic_Distance.LQ)
-        self._r_wl_graph.UpdatePlot(data.Ultra_Sonic_Distance.RQ, data.Ultra_Sonic_Distance.RR)
+        self._l_wl_graph.UpdateD1(data.Ultra_Sonic_Distance.LL)
+        self._l_wl_graph.UpdateD2(data.Ultra_Sonic_Distance.LQ)
 
-        self._l_v_graph.UpdatePlot(data.Anemometer.LL, data.Anemometer.LQ)
-        self._r_v_graph.UpdatePlot(data.Anemometer.RQ, data.Anemometer.RR)
+        self._r_wl_graph.UpdateD1(data.Ultra_Sonic_Distance.RQ)
+        self._r_wl_graph.UpdateD2(data.Ultra_Sonic_Distance.RR)
 
-        self._standing_graph.UpdatePlot(data.Standing_Wave.Left, data.Standing_Wave.Right)
+        self._l_v_graph.UpdateD1(data.Anemometer.LL)
+        self._l_v_graph.UpdateD2(data.Anemometer.LQ)
+
+        self._r_v_graph.UpdateD1(data.Anemometer.RQ)
+        self._r_v_graph.UpdateD2(data.Anemometer.RR)
+
+        self._standing_graph.UpdateD1(data.Standing_Wave.Left)
+        self._standing_graph.UpdateD2(data.Standing_Wave.Right)
 
 
 

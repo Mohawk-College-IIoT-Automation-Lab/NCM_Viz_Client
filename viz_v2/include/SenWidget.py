@@ -35,10 +35,10 @@ class SenWidget(QWidget):
 
         # Left V Box
 
-        self._ll_wl = GaugeWidget(title="LL Waterlevel")
-        self._lq_wl = GaugeWidget(title="LQ Waterlevel")
-        self._rq_wl = GaugeWidget(title="RQ Waterlevel")
-        self._rr_wl = GaugeWidget(title="RR Waterlevel")
+        self._ll_wl = GaugeWidget(title="LL Waterlevel", min= 0, max = 800)
+        self._lq_wl = GaugeWidget(title="LQ Waterlevel", min= 0, max = 800)
+        self._rq_wl = GaugeWidget(title="RQ Waterlevel", min= 0, max = 800)
+        self._rr_wl = GaugeWidget(title="RR Waterlevel", min= 0, max = 800)
 
         self._ll_v = GaugeWidget(title="LL Velocity")
         self._lq_v = GaugeWidget(title="LQ Velocity")
