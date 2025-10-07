@@ -30,12 +30,10 @@ class GaugeWidget(QWidget):
             raise RuntimeError(e)
 
         _q_root = _qml.rootObject()
-        self.gauge = _q_root.findChild(QQuickItem, "gauge")
+        self.gauge = _q_root.findChild(QObject, "gauge")
 
-        # self.gauge.setProperty("width", w)
-        # self.gauge.setProperty("height", h)
-        # self.gauge.setProperty("minimumValue", min)
-        # self.gauge.setProperty("maximumValue", max)
+        self.gauge.setProperty("min", min)
+        self.gauge.setProperty("max", max)
 
         _v_box = QVBoxLayout(self)
         _title_label = QLabel(title)
@@ -48,6 +46,6 @@ class GaugeWidget(QWidget):
         self.setMinimumSize(w, h)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-    @pyqtSlot()
+    @pyqtSlot(int)
     def SetValue(self, value: int):
-        self.gauge.setProperty("value", value)
+        self.gauge.setProperty("v", value)

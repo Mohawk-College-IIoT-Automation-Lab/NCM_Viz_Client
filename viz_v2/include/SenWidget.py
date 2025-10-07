@@ -35,15 +35,15 @@ class SenWidget(QWidget):
 
         # Left V Box
 
-        self._ll_wl = GaugeWidget(title="LL Waterlevel", min= 0, max = 800)
-        self._lq_wl = GaugeWidget(title="LQ Waterlevel", min= 0, max = 800)
-        self._rq_wl = GaugeWidget(title="RQ Waterlevel", min= 0, max = 800)
-        self._rr_wl = GaugeWidget(title="RR Waterlevel", min= 0, max = 800)
+        self._ll_wl = GaugeWidget(title="LL Waterlevel", min=0, max=800)
+        self._lq_wl = GaugeWidget(title="LQ Waterlevel", min=0, max=800)
+        self._rq_wl = GaugeWidget(title="RQ Waterlevel", min=0, max=800)
+        self._rr_wl = GaugeWidget(title="RR Waterlevel", min=0, max=800)
 
-        self._ll_v = GaugeWidget(title="LL Velocity")
-        self._lq_v = GaugeWidget(title="LQ Velocity")
-        self._rq_v = GaugeWidget(title="RQ Velocity")
-        self._rr_v = GaugeWidget(title="RR Velocity")
+        self._ll_v = GaugeWidget(title="LL Velocity", min=0, max=5)
+        self._lq_v = GaugeWidget(title="LQ Velocity", min=0, max=5)
+        self._rq_v = GaugeWidget(title="RQ Velocity", min=0, max=5)
+        self._rr_v = GaugeWidget(title="RR Velocity", min=0, max=5)
 
         gauge_g_box = QGridLayout()
 
@@ -137,15 +137,15 @@ class SenWidget(QWidget):
     @pyqtSlot(SensorData)
     def _DaqDataSlot(self, data: SensorData):
         if data:
-            self._ll_wl.setProperty("value", data.Ultra_Sonic_Distance.LL)
-            self._lq_wl.setProperty("value", data.Ultra_Sonic_Distance.LQ)
-            self._rq_wl.setProperty("value", data.Ultra_Sonic_Distance.RQ)
-            self._rr_wl.setProperty("value", data.Ultra_Sonic_Distance.RR)
+            self._ll_wl.SetValue(int(data.Ultra_Sonic_Distance.LL))
+            self._lq_wl.SetValue(int(data.Ultra_Sonic_Distance.LQ))
+            self._rq_wl.SetValue(int(data.Ultra_Sonic_Distance.RQ))
+            self._rr_wl.SetValue(int(data.Ultra_Sonic_Distance.RR))
 
-            self._ll_v.setProperty("value", data.Anemometer.LL)
-            self._lq_v.setProperty("value", data.Anemometer.LQ)
-            self._rq_v.setProperty("value", data.Anemometer.RQ)
-            self._rr_v.setProperty("value", data.Anemometer.RR)
+            self._ll_v.SetValue(int(data.Anemometer.LL))
+            self._lq_v.SetValue(int(data.Anemometer.LQ))
+            self._rq_v.SetValue(int(data.Anemometer.RQ))
+            self._rr_v.SetValue(int(data.Anemometer.RR))
 
     @pyqtSlot(SenTelemetry)
     def _SenLeftTeleSlot(self, tele: SenTelemetry):
