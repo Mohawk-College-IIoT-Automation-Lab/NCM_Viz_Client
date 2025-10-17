@@ -5,5 +5,6 @@
     - `pyqt5`
     - `pyqtgraphs`
     - `pydantic`
-    - `numpy`
+    - `numpy`A
+    - `paho-mqtt`
 - Install this using `requirments.txt` -> `python3 -m pip install -r requirments.txt`
