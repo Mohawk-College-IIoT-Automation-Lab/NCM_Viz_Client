@@ -1,53 +1,28 @@
+#!/usr/bin/env python3
+
 from PyQt5.QtWidgets import QApplication
-from NCM_Viz.NCM_Mainwindow import MainWindow
-from NI_DAQ.DAQ import DAQ, initialize_logging
-from Constants import DAQConfig, LoggerConfig, MQTTConfig
-import logging
 import sys, signal
+import os
+from include.MainWindow import MainWindow
 
-from multiprocessing import set_start_method, Event, Process
+app = QApplication(sys.argv)
+app.setStyle("Fusion") # for windows
 
 
-def gui_process_callback(logger_config:LoggerConfig, exit_event: Event):
-    def handle_sigint(*args):
-        print("Ctrl+C detected in GUI. Signaling parent...")
-        exit_event.set()
-        app.quit()
-
-    signal.signal(signal.SIGINT, handle_sigint)
-
-    app = QApplication(sys.argv)
-    window = MainWindow(logger_config=logger_config, exit_event=exit_event)
-    window.show()
-
-    sys.exit(app.exec_())
-
+def handle_signals(*args):
+    app.quit()
 
 if __name__ == "__main__":
+    # Check os and set xcb
+    if os.name != "nt":
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-    set_start_method("spawn") # Requird for Py QT on Windows
+    # handle signals
+    signal.signal(signal.SIGINT, handle_signals)
+    signal.signal(signal.SIGTERM, handle_signals)
 
-    mqtt_config = MQTTConfig(host_name="localhost", host_port=1883)
+    win = MainWindow()
+    win.show()
 
-    initialize_logging(process_name="Main", broker=mqtt_config.host_name, port=mqtt_config.host_port)
-
-    logging.debug(f"[Main] Main initialized. ")
-    stop_event = Event()
-
-    logging.debug(f"[Main] Starting DAQ Process")
-    daq_logger = LoggerConfig(log_name="DAQ", mqtt_config=mqtt_config)
-    daq_process = Process(target=DAQ.run, args=(daq_logger, stop_event), daemon=True)
-    daq_process.start()
-    
-    logging.debug(f"[Main] Starting QApp and Mainwindow")
-    gui_logger = LoggerConfig(log_name="Qt", mqtt_config=mqtt_config)
-    gui_process = Process(target=gui_process_callback, args=(gui_logger, stop_event))
-    gui_process.start()
-
-    stop_event.wait()
-
-    daq_process.join()
-    gui_process.join()
-
-
+    sys.exit(app.exec_())
 

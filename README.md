@@ -1,10 +1,9 @@
-# NiDAQmx-Py
-- This project serves as reference on connecting an NI-DAQ to a QT application for real-time plotting and logging.
-- This project will uses the following packages
-	- `nidaqmx`
-	- `pyqt5`
-	- `pyqtgraphs`
-	- `pydantic`
-	- `numpy`
-	- ``
+# NCM Vizualization Client
 
+- This is a real-time visualization and control user inerface for the Nexus Control Module.
+- This project will uses the following packages
+    - `pyqt5`
+    - `pyqtgraphs`
+    - `pydantic`
+    - `numpy`
+- Install this using `requirments.txt` -> `python3 -m pip install -r requirments.txt`
