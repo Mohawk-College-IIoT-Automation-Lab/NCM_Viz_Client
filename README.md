@@ -1,6 +1,6 @@
-# NiDAQmx-Py
+# NCM Vizualization Client
 
-- This project serves as reference on connecting an NI-DAQ to a QT application for real-time plotting and logging.
+- This is a real-time visualization and control user inerface for the Nexus Control Module.
 - This project will uses the following packages
     - `pyqt5`
     - `pyqtgraphs`
