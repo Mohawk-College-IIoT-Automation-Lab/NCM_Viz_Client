@@ -1,14 +1,13 @@
-from re import S
 from paho.mqtt.client import Client, MQTTv5, topic_matches_sub
 import json
 from PyQt5.QtCore import QTime, pyqtSignal, pyqtSlot, QTimer, QObject
 from PyQt5.QtWidgets import QInputDialog, QWidget
 import logging
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from pathlib import Path
 
-from .DataStructures import SenTelemetry, SenConfigModel, SensorData, SenPorts
+from .DataStructures import MCUData, SenTelemetry, SenConfigModel, SensorData, SenPorts
 
 
 class MqttClient(QWidget):
@@ -40,11 +39,13 @@ class MqttClient(QWidget):
     ConfigRTopic = f"{SenBaseTopic}/RIGHT/config"
 
     DaqDataTopic = f"{BaseTopic}/DisplayData"
+    McuDataTopic = f"{BaseTopic}/DisplayData/MCU"
 
     # signals
     ConnectedSignal = pyqtSignal(bool)
     DaqConnectedSignal = pyqtSignal(bool)
     DaqDataSignal = pyqtSignal(SensorData)
+    McuDataSignal = pyqtSignal(MCUData)
     ElapseSignal = pyqtSignal(str)
 
     LeftSenConnectedSignal = pyqtSignal(bool)
@@ -199,8 +200,10 @@ class MqttClient(QWidget):
         self._client.subscribe(MqttClient.ConfigLTopic)
         self._client.subscribe(MqttClient.ConfigRTopic)
         self._client.subscribe(MqttClient.ElapsedTimeTopic)
+        self._client.subscribe(MqttClient.McuDataTopic)
 
         self._client.message_callback_add(self.DaqDataTopic, self._DaqDataCallback)
+        self._client.message_callback_add(self.McuDataTopic, self._McuDataCallback)
         self._client.message_callback_add(self.TeleLJsonTopic, self._TeleLCallback)
         self._client.message_callback_add(self.TeleRJsonTopic, self._TeleRCallback)
         self._client.message_callback_add(self.ConfigLTopic, self._ConfigLCallback)
@@ -225,6 +228,25 @@ class MqttClient(QWidget):
                 MqttClient.LOG_FMT_STR,
                 f"Failed to decode JSON payload: {msg.payload.decode()}",
             )
+
+    def _McuDataCallback(self, client, userdata, msg):
+        try:
+            mcu_data = MCUData.model_validate(json.loads(msg.payload.decode()))
+            self.McuDataSignal.emit(mcu_data)
+
+            # TODO: Add watchdog later
+
+        except json.JSONDecodeError:
+            logging.warning(
+                MqttClient.LOG_FMT_STR,
+                f"Failed to decode JSON payload: {msg.payload.decode()}",
+            )
+
+        except ValidationError:
+            logging.warning(
+                    MqttClient.LOG_FMT_STR,
+                    f"Failed to parse payload: {msg.payload.decode()}",
+                    )
 
     def _TeleLCallback(self, client, userdata, msg):
 

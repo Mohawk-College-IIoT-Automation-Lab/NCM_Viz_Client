@@ -16,18 +16,24 @@
 
 # 2026-09-14
 
+## Outline of work
+
 Adding a new sensor measurement to the Viz client. The measurement will be done on a separate device from the DAQ. So, it will require a new topic.
 
 Unit of measurement is pressure in mbar. Unit of interest is velocity in m/s.
 The idea is to record the raw data (pressures from both ports + differential), transform pressure to velocity on edge.
 Display only velocity, but save everything similarly to the current pipeline.
 
+## System Design
+
+### Current Design
+
 Current routine:
 
     1. Get data (200 unfiltered samples)
-    2. Filter data (produce 1 value)
+    2. Filter data
     3. Save data raw and filtered
-    4. Prepare data for display (averaging)
+    4. Prepare data for display (average, produce 1 value)
     5. Publish display data to mqtt
 
 From `_raw_data_callback` in `Daq.py` inside of `NCM_Daq` repo:
@@ -93,6 +99,34 @@ There will be one differential sensor per location, this will yeild 2 pressures 
 Ideally will plan for this data to be sent separatly to prepare for the future setup. Right now, the data will be sent over serial to a PC and the PC will publish the msg to mqtt.
 In the future, the MCU will be the publisher.
 
+---
+
+### New Design
+
+New data schema:
+
+```json
+{
+    "Location": "LL",
+    "Pressure": { "DP": 0.0, "CH1": 0.0, "CH2": 0.0 },
+    "Velocity": 0.0
+}
+```
+
+New topic: `NCM/MCU/DisplayData`, modify the daq topic to `NCM/DAQ/DisplayData`
+
+New Routine:
+
+    1. Collect 10 samples
+
+    2. Filter
+
+    3. Save raw and filtered
+
+    4. Average
+
+    5. Publish
+
 Routine for adding new "standalone" sensor:
 
     1. Add the topic constant next to DaqDataTopic
@@ -104,3 +138,15 @@ Routine for adding new "standalone" sensor:
     4. Write _NewSensorCallback — copy _DaqDataCallback verbatim, including the watchdog lines
 
     5. Add a Watchdog instance + NewSensorConnectedSignal if you want a liveness indicator
+
+# 2026-09-15
+
+## SD Feather Wing
+
+It would be better to have an SD Feather Wing. This way i can store everything locally and upload data at the end of an experiment.
+Which means I can use low QoS for msgs during the experiment, decreasing latency because we don't really care about data during the experiment it is only for monitoring, if a msg is lost - not a big deal.
+But with raw data we have to be more careful, we use it later for analysis. If we were to send it over mqtt, we would have to implement QoS 1 or 2 which would hurt our perfomance
+
+## Watchdog for MCU
+
+Not worrying about heartbeat for MCU for now. Add later

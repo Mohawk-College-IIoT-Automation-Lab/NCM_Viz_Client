@@ -11,6 +11,7 @@ from .MenuBar import MenuBar
 from .SenWidget import SenWidget
 from .PlotsWidget import PlotsWidget
 from .DataViewWidget import DataViewWidget
+from .PressureWidget import PressureWidget
 import logging
 
 
@@ -114,11 +115,13 @@ class MainWindow(QMainWindow):
 
         sen_tab_widget = SenWidget()
         graph_tab_widget = PlotsWidget()
+        pressure_tab_widget = PressureWidget()
         data_tab_widget = DataViewWidget()
 
         tab_widget.setGeometry(0, 0, 500, 500)
         tab_widget.addTab(sen_tab_widget, "SEN")
         tab_widget.addTab(graph_tab_widget, "Graphs")
+        tab_widget.addTab(pressure_tab_widget, "Pressure")
         tab_widget.addTab(data_tab_widget, "Dataview")
 
         central_v_box = QVBoxLayout(central_widget)

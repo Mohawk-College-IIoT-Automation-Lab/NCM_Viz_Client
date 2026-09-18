@@ -1,4 +1,4 @@
-from enum import Enum 
+from enum import Enum, StrEnum 
 from typing import List
 from pydantic import BaseModel
 
@@ -68,6 +68,17 @@ class SensorReadings(BaseModel):
     RR: float
     RQ: float
 
+class Location(StrEnum):
+    LL = "LL"
+    LQ = "LQ"
+    RQ = "RQ"
+    RR = "RR"
+
+class Pressure(BaseModel):
+    DP: float
+    CH1: float
+    CH2: float
+
 class StandingWave(BaseModel):
     Left: float
     Right: float
@@ -76,3 +87,8 @@ class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
     Anemometer: SensorReadings
     Standing_Wave: StandingWave
+
+class MCUData(BaseModel):
+    Location: Location
+    Pressure: Pressure
+    Velocity: float

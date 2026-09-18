@@ -48,7 +48,7 @@ class PlotsWidget(QWidget):
         self._l_wl_graph.ClearPlot()
         self._r_wl_graph.ClearPlot()
         self._l_v_graph.ClearPlot()
-        self._l_v_graph.ClearPlot()
+        self._r_v_graph.ClearPlot()
         self._standing_graph.ClearPlot()
 
     @pyqtSlot(SensorData)
