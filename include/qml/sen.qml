@@ -12,7 +12,7 @@ Item {
   property int h: 600
 
   width: w
-  height: h
+  height: Math.max(leftSen.height, rightSen.height)
   
 
   Rectangle{
@@ -24,14 +24,13 @@ Item {
       id: leftSen
       objectName: "leftSen"
 
-      property int gap: 50
+      property int gap: 20
 
       width: (parent.width - sen.gap)/2
-      height: parent.height
+      height: width + gap
       radius: width / 12
 
       anchors.left: parent.left
-      anchors.fill: parent.fill
       color: "#111111"
 
       // Left port
@@ -44,7 +43,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: (parent.width - leftSen.gap) 
-        height: (parent.height - 200)
+        height: width
         radius: width / 2           // Half of width/height to make it round
         color: "#3e4147"
 
@@ -58,6 +57,7 @@ Item {
             font.pixelSize: 20
         }
 
+        // Left Opening
         Rectangle {
 
           property real w: parent.width - leftSen.gap
@@ -78,14 +78,13 @@ Item {
       id: rightSen
       objectName: "rightSen"
 
-      property int gap: 50
+      property int gap: 20
 
       width: (parent.width - sen.gap)/2
-      height: parent.height
+      height: width + gap
       radius: width / 12
 
       anchors.right: parent.right
-      anchors.fill: parent.fill
       color: "#111111"
 
       // right port
@@ -98,7 +97,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         width: (parent.width - rightSen.gap) 
-        height: (parent.height - 200)
+        height: width
         radius: width / 2           // Half of width/height to make it round
         color: "#3e4147"
 
@@ -112,6 +111,7 @@ Item {
             font.pixelSize: 20
         }
 
+        // Right Opening
         Rectangle {
 
           property real w: parent.width - rightSen.gap
