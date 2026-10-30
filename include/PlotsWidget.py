@@ -41,7 +41,7 @@ class PlotsWidget(QWidget):
         self.setLayout(center_v_box)
 
         _m_client.DaqDataSignal.connect(self.UpdatePlots)
-        MenuBar.StartExpAction.triggered.connect(self.ClearPlots)
+        MenuBar.PrepareExpAction.triggered.connect(self.ClearPlots)
 
     @pyqtSlot()
     def ClearPlots(self):

@@ -10,7 +10,7 @@ class MenuBar(QMenuBar):
     ConnectMqttAction = QAction("Conect Mqtt")
     DisconnectMqttAction = QAction("Disconnect Mqtt")
 
-    StartExpAction = QAction("Start Experiment")
+    PrepareExpAction = QAction("Start Experiment")
     RenameExpAction = QAction("Rename Experiment")
     StopExpAction = QAction("Stop Experiment")
 
@@ -59,7 +59,7 @@ class MenuBar(QMenuBar):
         mqtt_submenu.addAction(MenuBar.ConnectMqttAction)
         mqtt_submenu.addAction(MenuBar.DisconnectMqttAction)
 
-        exp_menu.addAction(MenuBar.StartExpAction)
+        exp_menu.addAction(MenuBar.PrepareExpAction)
         exp_menu.addAction(MenuBar.RenameExpAction)
         exp_menu.addAction(MenuBar.StopExpAction)
 
@@ -91,7 +91,7 @@ class MenuBar(QMenuBar):
         MenuBar.ConnectMqttAction.triggered.connect(self._m_client.ConnectBroker)
         MenuBar.DisconnectMqttAction.triggered.connect(self._m_client.DisconnectBroker)
 
-        MenuBar.StartExpAction.triggered.connect(self._m_client.PrepareExp)
+        MenuBar.PrepareExpAction.triggered.connect(self._m_client.PrepareExp)
         MenuBar.StopExpAction.triggered.connect(self._m_client.StopExp)
         MenuBar.RenameExpAction.triggered.connect(self.RenameExpDialog)
 

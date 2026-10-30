@@ -43,7 +43,7 @@ class BarsWidget(QWidget):
         self.setLayout(center_v_box)
 
         _m_client.McuDataSignal.connect(self.UpdateBars)
-        MenuBar.StartExpAction.triggered.connect(self.ClearPlots)
+        MenuBar.PrepareExpAction.triggered.connect(self.ClearPlots)
 
     @pyqtSlot()
     def ClearPlots(self):
