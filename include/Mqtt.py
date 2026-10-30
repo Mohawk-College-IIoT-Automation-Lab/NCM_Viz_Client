@@ -412,9 +412,9 @@ class MqttClient(QWidget):
             logging.debug(MqttClient.LOG_FMT_STR, "Already connected")
 
     @pyqtSlot()
-    def StartExp(self):
+    def PrepareExp(self):
         if self.connected:
-            logging.info(MqttClient.LOG_FMT_STR, "Starting experiment")
+            logging.info(MqttClient.LOG_FMT_STR, "Preparing experiment")
             self._client.publish(MqttClient.PrepareExpTopic, "")
         else:
             self._not_connected_warn()

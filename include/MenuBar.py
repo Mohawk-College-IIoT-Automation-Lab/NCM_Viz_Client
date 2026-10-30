@@ -91,7 +91,7 @@ class MenuBar(QMenuBar):
         MenuBar.ConnectMqttAction.triggered.connect(self._m_client.ConnectBroker)
         MenuBar.DisconnectMqttAction.triggered.connect(self._m_client.DisconnectBroker)
 
-        MenuBar.StartExpAction.triggered.connect(self._m_client.StartExp)
+        MenuBar.StartExpAction.triggered.connect(self._m_client.PrepareExp)
         MenuBar.StopExpAction.triggered.connect(self._m_client.StopExp)
         MenuBar.RenameExpAction.triggered.connect(self.RenameExpDialog)
 
