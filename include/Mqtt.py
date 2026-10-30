@@ -15,6 +15,7 @@ class MqttClient(QWidget):
     BaseTopic = "NCM"
     ExpTopic = f"{BaseTopic}/Experiment"
     StartExpTopic = f"{ExpTopic}/Start"
+    PrepareExpTopic = f"{ExpTopic}/Prepare"
     StopExpTopic = f"{ExpTopic}/Stop"
     RenameExpTopic = f"{ExpTopic}/Rename"
     ElapsedTimeTopic = f"{ExpTopic}/Elapsed"
@@ -39,7 +40,7 @@ class MqttClient(QWidget):
     ConfigRTopic = f"{SenBaseTopic}/RIGHT/config"
 
     DaqDataTopic = f"{BaseTopic}/DisplayData"
-    McuDataTopic = f"{BaseTopic}/DisplayData/MCU"
+    McuDataTopic = f"{BaseTopic}/MCU/DisplayData"
 
     # signals
     ConnectedSignal = pyqtSignal(bool)
@@ -414,7 +415,7 @@ class MqttClient(QWidget):
     def StartExp(self):
         if self.connected:
             logging.info(MqttClient.LOG_FMT_STR, "Starting experiment")
-            self._client.publish(MqttClient.StartExpTopic, "")
+            self._client.publish(MqttClient.PrepareExpTopic, "")
         else:
             self._not_connected_warn()
 
