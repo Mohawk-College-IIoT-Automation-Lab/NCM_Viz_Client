@@ -86,7 +86,8 @@ class PressureWidget(QWidget):
                 units="m/s",
                 v_min=PressureWidget.VEL_MIN,
                 v_max=PressureWidget.VEL_MAX,
-                color=PressureWidget.CH1_COLOR,
+                pos_color=PressureWidget.POSITIVE_COLOR,
+                neg_color=PressureWidget.NEGATIVE_COLOR,
             )
             self._vel_bars[loc] = bar
             bars_h_box.addWidget(bar)

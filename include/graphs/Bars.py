@@ -8,6 +8,8 @@ class SignedBarWidget(QWidget):
 
     Instantaneous only - there is no rolling buffer. Each call to SetValue
     replaces the bar rather than appending to a history.
+
+    The bar is drawn in pos_color for values >= 0 and neg_color for values < 0.
     """
 
     class SignedBar(pg.PlotWidget):
@@ -16,7 +18,8 @@ class SignedBarWidget(QWidget):
             self,
             v_min: float = -5.0,
             v_max: float = 5.0,
-            color: str = "#ff0000",
+            pos_color: str = "#50C878",
+            neg_color: str = "#ff0000",
             bar_thickness: float = 0.6,
             parent=None,
         ):
@@ -24,6 +27,11 @@ class SignedBarWidget(QWidget):
 
             self._v_min = v_min
             self._v_max = v_max
+
+            # Build both brushes once; SetValue only swaps on a sign change.
+            self._pos_brush = pg.mkBrush(pos_color)
+            self._neg_brush = pg.mkBrush(neg_color)
+            self._is_negative = False
 
             self.plotItem.showGrid(x=True, y=False, alpha=0.5)
             self.plotItem.setXRange(v_min, v_max, padding=0)
@@ -44,7 +52,7 @@ class SignedBarWidget(QWidget):
                 x1=[0.0],
                 y=[0.0],
                 height=[bar_thickness],
-                brush=pg.mkBrush(color),
+                brush=self._pos_brush,
                 pen=pg.mkPen(None),
             )
             self.plotItem.addItem(self._bar)
@@ -55,12 +63,19 @@ class SignedBarWidget(QWidget):
         @pyqtSlot(float)
         def SetValue(self, value: float) -> float:
             clamped = max(self._v_min, min(self._v_max, float(value)))
-            self._bar.setOpts(x1=[clamped])
+            is_negative = clamped < 0.0
+            if is_negative != self._is_negative:
+                self._is_negative = is_negative
+                brush = self._neg_brush if is_negative else self._pos_brush
+                self._bar.setOpts(x1=[clamped], brush=brush)
+            else:
+                self._bar.setOpts(x1=[clamped])
             return clamped
 
         @pyqtSlot()
         def ClearBar(self):
-            self._bar.setOpts(x1=[0.0])
+            self._is_negative = False
+            self._bar.setOpts(x1=[0.0], brush=self._pos_brush)
 
     def __init__(
         self,
@@ -69,7 +84,8 @@ class SignedBarWidget(QWidget):
         units: str = "m/s",
         v_min: float = -5.0,
         v_max: float = 5.0,
-        color: str = "#ff0000",
+        pos_color: str = "#50C878",
+        neg_color: str = "#ff0000",
         label_color: str = "#ffffff",
         value_size: int = 18,
         decimals: int = 2,
@@ -80,7 +96,7 @@ class SignedBarWidget(QWidget):
         self._decimals = decimals
         self._units = units
 
-        self._bar = SignedBarWidget.SignedBar(v_min, v_max, color)
+        self._bar = SignedBarWidget.SignedBar(v_min, v_max, pos_color, neg_color)
 
         self._title_label = QLabel(title)
         self._title_label.setAlignment(Qt.AlignCenter)
