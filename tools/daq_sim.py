@@ -254,6 +254,7 @@ class DaqSim:
                 usd = {k: round(wave(9.0, 150, 700, ph, noise=3)) for k, ph in DaqSim.PHASES.items()}
                 anm = {k: round(wave(6.0, 0.04, 5.0, ph + 0.4, noise=0.05), 2) for k, ph in DaqSim.PHASES.items()}
                 self.publish(DAQ_TOPIC, json.dumps({
+                    "Timestamp": int(time.time() * 1_000_000),  # µs since 1970 UTC
                     "Ultra_Sonic_Distance": {k: float(v) for k, v in usd.items()},
                     "Anemometer": anm,
                     "Standing_Wave": {"Left": float(usd["LL"] - usd["LQ"]),

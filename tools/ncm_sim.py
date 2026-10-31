@@ -39,7 +39,7 @@ RENAME_TOPIC = f"{EXP}/Rename"
 ELAPSED_TOPIC = f"{EXP}/Elapsed"
 
 DAQ_TOPIC = f"{BASE}/DisplayData"
-MCU_TOPIC = f"{BASE}/DisplayData/MCU"
+MCU_TOPIC = f"{BASE}/MCU/DisplayData"  # what the bridge publishes
 
 SEN_BASE = f"{BASE}/SEN"
 LOCATIONS = ("LL", "LQ", "RQ", "RR")
@@ -154,6 +154,7 @@ class DaqSim(SimClient):
                for loc, ph in DaqSim.PHASES.items()}
 
         payload = {
+            "Timestamp": int(time.time() * 1_000_000),  # µs since 1970 UTC, like the DAQ
             "Ultra_Sonic_Distance": {k: float(v) for k, v in usd.items()},
             "Anemometer": anm,
             "Standing_Wave": {
@@ -170,7 +171,7 @@ class DaqSim(SimClient):
 # ---------------------------------------------------------------- MCU
 
 class McuSim(SimClient):
-    """One MCU for one location. All four share NCM/DisplayData/MCU."""
+    """One MCU for one location. All four share NCM/MCU/DisplayData."""
 
     PHASES = {"LL": 0.0, "LQ": 0.9, "RQ": 1.8, "RR": 2.7}
 
@@ -195,6 +196,7 @@ class McuSim(SimClient):
                 "CH2": round(ch2, 1),
             },
             "Velocity": round(velocity, 2),
+            "Timestamp": int(time.time() * 1_000_000),  # µs since 1970 UTC, like the bridge
         })
 
 
