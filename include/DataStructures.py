@@ -87,8 +87,10 @@ class SensorData(BaseModel):
     Ultra_Sonic_Distance: SensorReadings
     Anemometer: SensorReadings
     Standing_Wave: StandingWave
+    Timestamp: int # us since unix epoch, first sample of buffer
 
 class MCUData(BaseModel):
     Location: Location
     Pressure: Pressure
     Velocity: float
+    Timestamp: int # us since unix epoch, first sample of buffer

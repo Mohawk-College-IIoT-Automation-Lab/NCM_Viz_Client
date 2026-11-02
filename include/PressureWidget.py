@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 from PyQt5.QtCore import pyqtSlot
 
 import logging
+import time
 
 from .graphs.Graphs import DualPointPlotWidget
 from .graphs.Bars import SignedBarWidget, GroupedBarWidget
@@ -67,10 +68,12 @@ class PressureWidget(QWidget):
         top_h_box = QHBoxLayout()
 
         self._l_v_graph = DualPointPlotWidget(
-            title="Left Velocity", y_label="m/s", d1_label="LL", d2_label="LQ"
+            title="Left Velocity", y_label="m/s", x_label="time",
+            d1_label="LL", d2_label="LQ", time_axis=True,
         )
         self._r_v_graph = DualPointPlotWidget(
-            title="Right Velocity", y_label="m/s", d1_label="RQ", d2_label="RR"
+            title="Right Velocity", y_label="m/s", x_label="time",
+            d1_label="RQ", d2_label="RR", time_axis=True,
         )
 
         top_h_box.addWidget(self._l_v_graph)
@@ -128,19 +131,23 @@ class PressureWidget(QWidget):
 
     @pyqtSlot(MCUData)
     def UpdatePlots(self, data: MCUData):
+        # x = the batch's timestamp in Unix seconds (shown as clock time).
+        # Publishers without a Timestamp fall back to the arrival time.
+        t = data.Timestamp / 1e6 if data.Timestamp is not None else time.time()
+
         # Velocity over time - which plot and which trace depends on location.
         match data.Location:
             case Location.LL:
-                self._l_v_graph.UpdateD1(data.Velocity)
+                self._l_v_graph.UpdateD1At(t, data.Velocity)
 
             case Location.LQ:
-                self._l_v_graph.UpdateD2(data.Velocity)
+                self._l_v_graph.UpdateD2At(t, data.Velocity)
 
             case Location.RQ:
-                self._r_v_graph.UpdateD1(data.Velocity)
+                self._r_v_graph.UpdateD1At(t, data.Velocity)
 
             case Location.RR:
-                self._r_v_graph.UpdateD2(data.Velocity)
+                self._r_v_graph.UpdateD2At(t, data.Velocity)
 
             case _:
                 logging.warning(

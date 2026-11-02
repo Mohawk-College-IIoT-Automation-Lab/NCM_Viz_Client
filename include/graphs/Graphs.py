@@ -20,9 +20,13 @@ class DualPointPlotWidget(QWidget):
             color_2: str = "#ffff00",
             width: int = 200,
             height: int = 100,
+            time_axis: bool = False,
             parent=None,
         ):
-            super().__init__(parent)
+            # time_axis: x values are Unix time in seconds, shown as clock time
+            # (local time zone) by pyqtgraph's DateAxisItem.
+            axis_items = {"bottom": pg.DateAxisItem(orientation="bottom")} if time_axis else None
+            super().__init__(parent, axisItems=axis_items)
 
             self.plotItem.setLabel(
                 "left",
@@ -50,6 +54,13 @@ class DualPointPlotWidget(QWidget):
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
 
+            # x values for the time-axis mode. float64: Unix seconds (~1.8e9)
+            # in float32 would only resolve ~2 minutes.
+            self._d1_t_arr = np.zeros(self._buf_size, dtype=np.float64)
+            self._d2_t_arr = np.zeros(self._buf_size, dtype=np.float64)
+            self._d1_count = 0  # points received since the last clear (time mode)
+            self._d2_count = 0
+
             self.setMinimumSize(width, height)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -57,6 +68,10 @@ class DualPointPlotWidget(QWidget):
         def ClearPlot(self):
             self._d1_np_arr = np.zeros(self._buf_size, dtype=np.float32)
             self._d2_np_arr = np.zeros(self._buf_size, dtype=np.float32)
+            self._d1_t_arr = np.zeros(self._buf_size, dtype=np.float64)
+            self._d2_t_arr = np.zeros(self._buf_size, dtype=np.float64)
+            self._d1_count = 0
+            self._d2_count = 0
 
         @pyqtSlot(float)
         def UpdateD1(self, d1: float):
@@ -73,6 +88,32 @@ class DualPointPlotWidget(QWidget):
 
             self._d2_plot.setData(y = self._d2_np_arr)
 
+        # --- time-axis mode: each point has its own x (Unix seconds) -------
+        # Only the points received so far are drawn, so the empty buffer
+        # (x = 0, i.e. 1970) never stretches the axis.
+
+        @pyqtSlot(float, float)
+        def UpdateD1At(self, t: float, d1: float):
+            self._d1_t_arr = np.roll(self._d1_t_arr, -1)
+            self._d1_np_arr = np.roll(self._d1_np_arr, -1)
+            self._d1_t_arr[-1] = t
+            self._d1_np_arr[-1] = d1
+            self._d1_count = min(self._d1_count + 1, self._buf_size)
+
+            n = self._d1_count
+            self._d1_plot.setData(x=self._d1_t_arr[-n:], y=self._d1_np_arr[-n:])
+
+        @pyqtSlot(float, float)
+        def UpdateD2At(self, t: float, d2: float):
+            self._d2_t_arr = np.roll(self._d2_t_arr, -1)
+            self._d2_np_arr = np.roll(self._d2_np_arr, -1)
+            self._d2_t_arr[-1] = t
+            self._d2_np_arr[-1] = d2
+            self._d2_count = min(self._d2_count + 1, self._buf_size)
+
+            n = self._d2_count
+            self._d2_plot.setData(x=self._d2_t_arr[-n:], y=self._d2_np_arr[-n:])
+
     def __init__(
         self,
         buffer_size: int = 100,
@@ -88,6 +129,7 @@ class DualPointPlotWidget(QWidget):
         color_2: str = "#ffff00",
         width: int = 200,
         height: int = 100,
+        time_axis: bool = False,
         parent=None,
     ):
         super().__init__(parent)
@@ -104,6 +146,7 @@ class DualPointPlotWidget(QWidget):
             color_2,
             width,
             height,
+            time_axis,
             parent,
         )
 
@@ -133,3 +176,11 @@ class DualPointPlotWidget(QWidget):
     @pyqtSlot(float)
     def UpdateD2(self, d2: float):
         self._plot.UpdateD2(d2)
+
+    @pyqtSlot(float, float)
+    def UpdateD1At(self, t: float, d1: float):
+        self._plot.UpdateD1At(t, d1)
+
+    @pyqtSlot(float, float)
+    def UpdateD2At(self, t: float, d2: float):
+        self._plot.UpdateD2At(t, d2)
